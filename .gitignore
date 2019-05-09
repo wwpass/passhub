@@ -1,0 +1,4 @@
+test_output/
+vendor/
+node_modules/
+js/dist

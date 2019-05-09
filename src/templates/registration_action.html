@@ -1,0 +1,22 @@
+<div class="col-md-2">
+</div>
+<div class="col-md-8 phub-dialog">
+<?php if($success) { ?>
+    <h1>Check Your Mailbox</h1>
+    <p>
+        We've sent a verification message to <i><?php echo $email?>.</i>
+        Click on the link in the message to activate your account.
+    </p>
+    <p>
+        If you do not receive this email, check your Spam e-mail folder.
+    </p>
+<?php  } else { ?>
+    <h3>Sorry, there was a problem sending a verification mail</h3>
+    <h4> Please try again later</h4>
+<?php   }  ?>
+    <p>
+    <a href="logout.php" >Go back</a>
+    </p>
+</div>
+<div class="col-md-1">
+</div>

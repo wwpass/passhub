@@ -1,0 +1,33 @@
+{
+  "name": "passhub",
+  "version": "1.0.0",
+  "description": "PassHub Password Manager",
+  "scripts": {
+    "test": "./node_modules/.bin/nightwatch",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wwpass/passhub.git"
+  },
+  "keywords": [],
+  "author": "WWPass",
+  "license": "agpl-3.0",
+  "devDependencies": {
+    "chromedriver": "^2.46.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.2",
+    "nightwatch": "^1.0.19",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.1"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.1",
+    "install": "^0.12.2",
+    "jquery-contextmenu": "^2.8.0",
+    "node-forge": "^0.8.1",
+    "npm": "^6.8.0",
+    "wwpass-frontend": "^2.0.1"
+  }
+}

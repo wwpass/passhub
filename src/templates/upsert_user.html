@@ -1,0 +1,41 @@
+<div class="col-md-2">
+</div>
+
+<div class="col-md-8">
+    <div class ="phub-dialog"  style="padding:30px 20px 20px 20px;">
+    <?php if($upgrade) { ?>
+        <h1 style="text-align: center;">Upgrading your account for higher security</h1>
+    <?php } else { ?>
+        <h1 style="text-align: center;">Creating your account</h1>
+    <?php } ?>
+        <div style="margin: 15px">
+            <p>
+            It may take up to a minute or so.
+            </p>
+            <p id="create_userwait"> Please wait</p>
+            <p id="seconds_passsed"></p>
+            <p id="too_long">This is one-time operation. If it takes too long, open <b>passhub.net</b> in a laptop or desktop browser and scan the QR code with WWPass PassKey app</p>
+        </div>
+    </div>
+</div>
+<div class="col-md-1">
+</div>
+
+<!--
+<script src=js/forge.min.js></script>
+-->
+<script src="js/jquery.csv.js"></script>
+
+<script>
+    var page_args = {
+        wwpassTicket: "<?php echo $ticket ?>",
+<?php if($upgrade) { ?> 
+        upgrade: true,
+<?php } else { ?>
+         upgrade: false,
+<?php } ?>
+        template_safes: <?php echo json_encode($template_safes) ?>
+    };
+</script>
+
+<script src="js/dist/upsert_user.js?v=2"></script>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
+    <link rel="icon" type="image/png" href="img/favicon.ico">
+    <title>PassHub</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style-header.css?version=190219">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="css/jquery.contextMenu.min.css">
+<!--    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script> -->
+
+<!--
+    <script src="js/jquery.contextMenu.min.js"></script>
+    <script src="js/jquery.ui.position.min.js"></script>
+-->
+
+
+<!--    <script src="js/wwpass.universal.js"></script> -->
+<!--    <script src="js/functions.js?version=180509"></script> --> 
+  </head>
+<?php
+if(isset($onload)) {
+echo "  <body onload=$onload>";
+} else {
+echo "  <body>";
+}
+?>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 hidden-xs" style="height:18px"></div>
+        <div class="col-xs-12 visible-xs" style="height:12px"></div>
+      </div>
+      <div class="row vertical-align">
+<?php   if(isset($narrow)) { ?>
+        <div class="col-md-2"></div>
+        <div class="col-md-8 col-sm-12 col-xs-12">
+<?php   } else { ?>
+        <div class="col-md-12 col-sm-12 col-xs-12">
+<?php   } ?>
+          <a href="index.php" style="text-decoration: none;"><img src="img/new_ph_logo.svg" alt= "logo" height="24" ></a>
+          <?php   if(file_exists('img/logo.png')) { ?>
+            <img src="img/logo.png" style="height:32px; margin-left:16px; vertical-align:middle" class="hidden-xs">
+          <?php } ?>
+     
+          <span  class="pull-right header__user" style="margin-top:4px">
+          <span id="timing" style="color:white;padding-right:1px;"></span>
+          <span class='hidden-xs' id="xs_indicator"></span>
+<?php if(isset($index_page)) { ?>
+          <a href="#" class="search_switch">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-search'></use></svg>
+          </a>
+<?php } ?>
+<?php if( !isset($help_page)) { ?>
+          <a href="help.php">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-help'></use></svg>
+          </a>
+<?php }
+      if(isset($index_page) && $isSiteAdmin) { ?>
+        <a href="iam.php">
+          <svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-wrench'></use></svg>
+        </a>
+<?php 
+      } else if(!isset($feedback_page) /*&& !isset($iam_page)*/) { ?>
+        <a href="feedback.php">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-contact'></use></svg>
+          </a>
+<?php }
+      if( !isset($hide_logout) || ($hide_logout == false)) { ?>
+          <a href="logout.php" style="margin-right:0">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-logout'></use></svg>
+          </a>
+<?php } ?>
+          </span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12 hidden-xs" style="width:100%;height:18px"></div>
+        <div class="search_div col-sm-5 col-md-4 col-lg-3" style="display:none; margin:10px 0; padding:0">
+          <div class="input-group">
+            <input class="form-control" id="search_string" type="text" style='height:40px; font-size:16px; border-right:none'>
+            <span class="input-group-addon do_search"  style="cursor:pointer;padding:1px 6px;background:white;border-left:none">
+              <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-search'></use></svg>
+            </span>
+            <span class="input-group-addon search_switch"  style="cursor:pointer">
+              <svg width='24' height='24' style='stroke:black'><use xlink:href='img/SVG2/sprite.svg#el-x'></use></svg>
+            </span>
+          </div>
+        </div>
+        <div class="col-xs-12 visible-xs" style="width:100%;height:12px"></div>
+      </div>
+<?php if(isset($index_page)) { ?>
+      <div class="row is-table-row" id="index_page_row">
+<?php } else { ?>
+      <div class="row">
+<?php } ?>

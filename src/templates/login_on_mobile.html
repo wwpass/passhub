@@ -1,0 +1,57 @@
+<div class="col-md-2">
+</div>
+<div class="col-md-8 phub-dialog">
+
+</div>
+
+<script src="js/wwpass.universal.js"></script>
+<script>
+
+function isSafariPrivateMode() {
+  const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
+
+  if(!isSafari || !navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
+    return false;
+  }
+  const version = parseInt(isSafari[1], 10);
+  if (version >= 11) {
+      try {
+        window.openDatabase(null, null, null, null);
+        return false;
+      } catch (_) {
+        return true;
+      };
+  } else if (version === 10) {
+    const x = localStorage.length;
+    if(localStorage.length) {
+      return false;
+    } else {
+      try {
+        localStorage.test = 1;
+        localStorage.removeItem('test');
+        return false;
+      } catch (_) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+if(isSafariPrivateMode()) {
+  window.location.href = "error_page.php?js=SafariPrivateMode";
+}
+
+var url_base = $(location).attr('href');
+url_base = url_base.substring(0, url_base.lastIndexOf("/")) + '/';
+
+WWPass.openWithTicket({
+    'ticket': "<?php echo $ticket ?>",
+    'callbackURL': url_base + 'login.php'
+});
+
+</script>
+</div>
+</div>
+</body>
+</html>

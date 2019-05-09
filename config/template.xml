@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<KeePassFile>
+    <Root>
+        <Group>
+            <Name>Passhub</Name>
+            <Group>
+                <Name>Example Safe</Name>
+                <Entry>
+                    <String>
+                        <Key>Notes</Key>
+                        <Value>This is an example login/password record. Use &quot;Generate&quot; button to generate cryptographically strong passwords
+
+Delete all the given examples and safe structure at any time</Value>
+                    </String>
+                    <String>
+                        <Key>Password</Key>
+                        <Value ProtectInMemory="True">4tE3xze6qG</Value>
+                    </String>
+                    <String>
+                        <Key>Title</Key>
+                        <Value>Example entry</Value>
+                    </String>
+                    <String>
+                        <Key>URL</Key>
+                        <Value>https://www.example.com</Value>
+                    </String>
+                    <String>
+                        <Key>UserName</Key>
+                        <Value>exampleName</Value>
+                    </String>
+                </Entry>
+                <Group>
+                    <Name>Example folder</Name>
+                    <Entry>
+                        <String>
+                            <Key>Notes</Key>
+                            <Value>Create folders to structure your information</Value>
+                        </String>
+                        <String>
+                            <Key>Password</Key>
+                            <Value ProtectInMemory="True">EpA5Hc35Lz</Value>
+                        </String>
+                        <String>
+                            <Key>Title</Key>
+                            <Value>Entry in folder</Value>
+                        </String>
+                        <String>
+                            <Key>URL</Key>
+                            <Value>www.example.com</Value>
+                        </String>
+                        <String>
+                            <Key>UserName</Key>
+                            <Value>someName</Value>
+                        </String>
+                    </Entry>
+                    <Entry>
+                        <String>
+                            <Key>Notes</Key>
+                            <Value>Note in a folder</Value>
+                        </String>
+                        <String>
+                            <Key>Title</Key>
+                            <Value>Example note</Value>
+                        </String>
+                        <String>
+                            <Key>Note</Key>
+                            <Value>1</Value>
+                        </String>
+                    </Entry>
+                </Group>
+            </Group>
+            <Group>
+                <Name>Personal</Name>
+            </Group>
+            <Group>
+                <Name>Work</Name>
+                <Entry>
+                    <String>
+                        <Key>Notes</Key>
+                        <Value>Create and share safes with colleagues and partners. Store corporate accounts, files.</Value>
+                    </String>
+                    <String>
+                        <Key>Title</Key>
+                        <Value>Work safe</Value>
+                    </String>
+                </Entry>
+            </Group>
+        </Group>
+     </Root>
+</KeePassFile>

@@ -1,0 +1,202 @@
+<style>
+
+td, th {
+    padding: 5px 10px;
+}
+th {
+    text-align:center;
+}
+
+td {
+    text-align: right;
+}
+
+table {
+    border-collapse: collapse;
+    margin: 20px;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+.iam_table_scroll_control {
+
+   max-height:calc(100vh - 280px);
+   overflow-y:visible;
+   overflow-x:hidden;
+}
+</style>
+
+<div class="col-md-1">
+</div>
+<div class="col-md-10 phub-dialog">
+
+<div>    
+<h1>User Management<span style='float:right; opacity:0.4; cursor: pointer' onclick='window.location.href = "index.php"'
+    >&times;</span></h1>
+</div>
+
+<pre style="margin:20px; font-size: 16px">
+<?php echo $stats?>
+</pre>
+
+<div style='margin:20px;'>
+    <div style='display: inline-block'>
+        <span class = "glyphicon glyphicon-remove" style="color:red; margin:0 5px;"></span> delete a user
+        <br>
+        <span class = "glyphicon glyphicon-check" style="color:green; margin:0 5px;"></span> toogle admin rights
+    </div>
+    <div style='/*display: inline-block; */ float:right'>
+        <a href='#' class='white_list' style='float:right; font-size: larger' >Mail White list</a>
+        <br>
+<!--
+        <button class='btn btn-default invite_external_user' style='float:right' >Invite external user</button>
+-->
+    </div>
+</div>
+
+
+    <div class = "iam_table_scroll_control" >
+        <table style="margin: 20px auto">
+            <thead>
+                <tr>
+                <th></th>
+                <th>Admin</th>
+                <th>Mail</th>
+                <!--<th>ID</th>-->
+                <th>Safes<br>total</th>
+                <th>Safes<br>shared</th>
+                <th id='th_seen'>Seen</th>
+                </tr>
+            </thead>
+            <tbody  id='userTableBody'>
+            </tbody>
+        </table>
+    </div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="deleteUserLabel">Delete User</h4>
+        <p style="margin:20px">
+        Mail: <span id="user_mail"></span><br>
+        ID: <span id="user_id"></span>
+        </p>
+        <div class="alert alert-danger" role="alert" id="delete_user_alert" ></div>
+        <p id="delete_user_warning"> Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button  type="button" class="btn btn-primary "  id="deleteUserBtn">Delete</button>
+        <button type="button" class="btn btn-default" id="deleteUserCancelBtn" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  
+  .white_list_cancel {
+    color:red; 
+    border: none; 
+    background: none;
+  }
+
+  #newUserMail, #newUserMail:focus  {
+    flex:1; 
+  /*  padding-left: 15px; */
+  }
+
+  .white_list_item {
+    padding: 10px 0 10px 10px;
+  }
+
+  .white_list_item:hover {
+    background: #eee;
+  }
+
+  .white_list_item > .glyphicon-remove {
+    color:red;
+    opacity: 0.2; 
+    padding: 0 5px;
+  }
+
+  .white_list_item:hover > .glyphicon-remove {
+    opacity: 1.0;
+    cursor: pointer;
+  }
+
+</style>
+
+<div class="modal" id="mailWhiteList" tabindex="-1" role="dialog" aria-labelledby="inviteByMailLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="mailWhiteListLabel">Mail white list</h4>
+      </div>
+      <div class="modal-body" style="font-size: 16px; padding-left: 30px; padding-right: 30px">
+
+          <div class="form-group" style="display:flex">
+              <input type="email" class="form-control" name="newUserMail" maxlength=254
+              id="newUserMail" placeholder="New user mail" required >
+              <button  type="button" class="btn btn-primary "  id="id_SubmitNewUserMail" style='margin: 0 0 0 10px' >Add</button>
+              <button class="white_list_cancel" type="button" >Cancel</button>
+          </div>
+          <div class="alert alert-danger" role="alert" id="inviteByMailAlert" 
+            style="display: none; margin-top: 20px; text-align: left;"></div>
+<!--        <ul id='white_list_ul'> -->
+          <div id='white_list_ul'>
+
+        </ul>
+
+      </div>
+    </div>
+  </div>
+</div>  
+<div id="csrf" data-csrf='<?php echo $csrf ?>' style='display:none'>
+</div>
+<a id="mailhref"></a>
+
+<!--
+<div class="modal" id="inviteByMail" tabindex="-1" role="dialog" aria-labelledby="inviteByMailLabel">
+  <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="inviteByMailLabel">Invite new user by email address</h4>
+        </div>
+        <div class="modal-body">
+                <div class="form-group">
+                    <div class="input_group">
+                        <label class="control-label" for="newUserMail">New user e-mail address</label>
+                        <input type="email" class="form-control" name="newUserMail" maxlength=254
+                        id="newUserMail" required >
+                    </div>
+                  </div>
+        </div>
+        <div class="modal-footer">
+            <button  type="button" class="btn btn-primary "  id="id_SubmitNewUserMail" >Invite</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <div class="alert alert-danger" role="alert" id="inviteByMailAlert" 
+            style="display: none; margin-top: 20px; text-align: left;"></div>
+        </div>
+    </div>
+  </div>
+</div>
+-->
+
+<script>
+var page_args = {
+    users: JSON.parse('<?php echo json_encode($users); ?>'),
+    me: '<?php echo $me ?>'
+}
+</script>
+
+<script src = "js/dist/iam.js?v=190416"></script> 

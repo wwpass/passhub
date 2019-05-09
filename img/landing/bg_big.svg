@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 830 1010">
+  <defs>
+    <radialGradient id="a" cx="830" cy="623" r="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="aqua" stop-opacity="0"/>
+      <stop offset="1" stop-color="aqua"/>
+    </radialGradient>
+    <radialGradient id="b" r="100" xlink:href="#a"/>
+    <radialGradient id="c" cx="10" cy="463" r="540" xlink:href="#a"/>
+    <radialGradient id="d" cx="10" cy="463" r="350" xlink:href="#a"/>
+  </defs>
+  <path d="M630,623c0,110.46,89.54,200,200,200V423C719.54,423,630,512.54,630,623Z" opacity="0.12" fill="url(#a)"/>
+  <path d="M730,623A100,100,0,0,0,830,723V523A100,100,0,0,0,730,623Z" opacity="0.12" fill="url(#b)"/>
+  <path d="M282.94,0H0V997.5q7.62.21,15.28.22C310.6,997.72,550,758.32,550,463,550,265.21,442.6,92.5,282.94,0Z" opacity="0.12" fill="url(#c)"/>
+  <path d="M10,113c-3.34,0-6.68,0-10,.14V812.86c3.32.09,6.66.14,10,.14,193.3,0,350-156.7,350-350S203.3,113,10,113Z" opacity="0.12" fill="url(#d)"/>
+  <path d="M160,596.66V424c0-14.27-11.11-23.77-22.22-23.77h-6.35V352.71c0-60.19-54-107.72-119.06-107.72-4.19,0-8.32.2-12.38.56v50.88a79.57,79.57,0,0,1,10.79-.75c36.51,0,65.09,23.76,65.09,55.45v47.52H0v67.14a35.17,35.17,0,0,1,12.38-2.2c19,0,33.34,14.26,33.34,33.27,0,11.09-6.35,20.59-11.12,26.93v39.6a10.84,10.84,0,0,1-11.11,11.09h-19A11.74,11.74,0,0,1,0,573.63V622H134.61C148.9,622,160,609.33,160,596.66Z" fill="aqua" opacity="0.2"/>
+</svg>

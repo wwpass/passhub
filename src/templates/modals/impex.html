@@ -1,0 +1,67 @@
+<div class="modal" id="backupModal" tabindex="-1" role="dialog" aria-labelledby="BackupLabel">
+  <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="ExportLabel">Export/Backup</h4>
+
+            <div class = "well">
+                <p><b>Select output format:</b></p>
+                <div class="radio">
+                    <label><input type="radio" name="export_format" value="XML" checked>XML (KeePass2.x compatible) </label>
+                </div>
+                <div class="radio">
+                    <label><input type="radio" name="export_format" value="CSV">CSV (readable, Excel and KeePassXC compatible)</label>
+                </div>
+            </div>
+
+            <p>
+            Copy of all your data will be saved to <b><span id="export_filename">passhub.xml</span></b> file
+            </p>
+        </div>
+        <div class="alert alert-danger" role="alert" id="backup_alert"></div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="backup_button">Export</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="restoreModal" tabindex="-1" role="dialog" aria-labelledby="RestoreLabel">
+  <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="RestoreLabel">Import / Restore</h4>
+            <div class="alert alert-danger" role="alert" id="restore_alert" style="margin-top:15px"></div>
+        </div>
+
+        <div class="modal-body">
+            <div class = "well">
+                <p><b>Select mode:</b></p>
+                <div class="radio">
+                <label><input type="radio" name="restore_mode" value="Import" checked>Import into a new safe</label>
+                </div>
+                <div class="radio">
+                <label><input type="radio" name="restore_mode" value="Restore">Restore (Merge into existing safes where possible)</label>
+                </div>
+            </div>
+
+            <input type="file" id="fileinput_id" name="filename" accept=".xml,.csv" style="margin:20px 20px 0 20px">
+
+            <p style="margin:20px 20px 0 20px">
+            Supported file types  are CSV and KeePass 2.x XML
+            </p>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="import_button">Import</button>
+            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
+    </div>
+  </div>
+</div>

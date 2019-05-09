@@ -1,0 +1,37 @@
+<div class="col-md-2">
+</div>
+<div class="col-md-8 phub-dialog">
+
+<?php if (isset($js) && $js == "SafariPrivateMode" ) { ?>
+    <h1 style="padding: 30px 0 30px;">Sorry, your Safari browser is&nbsp;in Private mode</h1>
+    <p style = 'font-size: larger'>Please follow 
+    <a href = 'https://support.apple.com/en-us/HT203036'>Apple's instructions</a> 
+    to&nbsp;return to&nbsp;normal mode</p>
+    <p>Private mode is not compatible with Passhub, some important browser functions are disabled</p>
+
+<?php } else { ?>  
+
+    <h1 style="margin:30px 0 50px 15px"><?php echo $header ?></h1>
+
+    <div style="margin:30px 0 50px 15px">
+    <p><?php echo $text ?></p>
+    </div>
+
+<?php } 
+
+if( isset($js387) && ($js387 === "mobile")) { ?>
+
+<p>Possible reasons</p>
+<ul>
+<li>your browser is in private (incognito) mode</li>
+<li>you started PassHub in non-default browser</li>
+</ul>
+<p>
+Try again in this (default) browser
+</p>
+<button type="button" class = "btn btn-primary" style="margin:15px 15px 30px 15px;" onclick="window.location.href='logout.php'; return 0;">Try again</button>
+
+<?php } else { ?>
+    <button type="button" class = "btn btn-primary" style="margin:15px 15px 30px 15px;" onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
+<?php } ?>
+</div>

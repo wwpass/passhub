@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<?php if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
+    <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Forget the pain of remembering all your passwords">
+    <meta property="og:description" content="PassHub, a free password manager with sharing capabilities and more secure multi-factor authentication -- no need to even remember a master password.">
+    <meta property="og:image" content="<?php echo OPEN_GRAPH_IMAGE_URL; ?>">
+    <meta name="twitter:image" content="<?php echo OPEN_GRAPH_IMAGE_URL; ?>" />
+<?php } ?>
+    <meta name="theme-color" content="#005ABB">
+    <title>PassHub — Password Manager</title>
+
+    <link rel="stylesheet" href="css/style.css?version=180822">
+    <link rel="icon" type="image/png" href="img/favicon.ico">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"  integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7" crossorigin="anonymous"></script>
+    <style>
+      .hardware {
+          display: none;
+      }
+    </style>
+  </head>
+  <body class="loginPage">
+    <header class="container">
+      <nav class="main-nav">
+        <ul class="nav nav--header">
+          <li class="nav__item nav__item--header nav__item--logo">
+            <a class="nav__link nav__link--logo" href="#">
+              
+              <img class="main-nav__logo" src="img/landing/logo.svg" width="122" height="24" alt="PassHub logo">
+              <?php   if(file_exists('img/logo.png')) { ?>
+                <img src="img/logo.png" style="height:32px; margin-left:16px; vertical-align:middle" class="hidden-xs">
+              <?php } ?>
+              </a>
+          </li>
+          <?php if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
+
+          <li class="nav__item nav__item--header">
+            <a class="nav__link nav__link--header " href="security.php">
+              Security
+            </a>
+          </li>
+          <li class="nav__item nav__item--header">
+            <a class="nav__link nav__link--header " href="business.php">
+              Business
+            </a>
+          </li>
+          <?php } ?>
+
+          <li class="nav__item nav__item--header nav__item--help">
+            <a class="nav__link nav__link--header nav__link--help" href="help.php">
+              <svg class="nav__icon nav__icon--help" width="25" height="25">
+                <use xlink:href="img/landing/sprite.svg#icon-help"></use>
+              </svg>
+              Help
+            </a>
+          </li>
+          <li class="nav__item nav__item--header nav__item--contact">
+            <a class="nav__link nav__link--header nav__link--contact" href="feedback.php">
+              <svg class="nav__icon nav__icon--contacts" width="25" height="25">
+                <use xlink:href="img/landing/sprite.svg#icon-contact"></use>
+              </svg>
+              Contact Us
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="loginMain">
+      <section class="popup landingContent landingContent--instruction">
+        <h5 class="heading heading--h5 heading--instruction popup__title">
+          New to PassHub?
+          <svg class="landingContent__icon landingContent__icon--close" width="20" height="20">
+            <use xlink:href="img/landing/sprite.svg#icon-x"></use>
+          </svg>
+        </h5>
+        <article class="landingContent__instruction landingContent__instruction--hidden">
+          <div class="landingContent__text--hidden">
+            <p class="text">Please complete the following steps before using the service</p>
+            <ol class="landingContent__list landingContent__list--ordered">
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">Install WWPass PassKey app</h5>
+                <p class="text">WWPass&trade;&nbsp;PassKey app is your key to access PassHub. You need to install and initialize WWPass PassKey on your smartphone before you can log in to PassHub.</p>
+                <?php if(!$isAndroid) { ?>
+                <a class="button button--store button--store-ios" href="https://itunes.apple.com/us/app/wwpass-passkey-lite/id984532938">AppStore</a>
+                <?php }
+                if(!$isIOS) { ?>
+                <a class="button button--store button--store-google" href="https://play.google.com/store/apps/details?id=com.wwpass.android.passkey">Google Play</a>
+                <?php } ?>
+              </li>
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">PassHub on your laptop or desktop</h5>
+                <p class="text">Scan QR code on PassHub with your WWPass&trade;&nbsp;PassKey app to access PassHub on your laptop or desktop.</p>
+              </li>
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">PassHub on your smartphone</h5>
+                <p class="text">Tap the QR code on PassHub login page on your phone. WWPass PassKey app pops up automatically to log you in.</p>
+              </li>
+            </ol>
+            <button class="button button--wide button--icon button--instruction" type="button" name="button">I already have PassKey</button>
+          </div>
+        </article>
+      </section>
+      <section class="landingContent landingContent--main">
+        <article class="landingContent__code">
+        <div class="landingContent__code-container">
+            <div class="landingContent__codeHeading">
+              <h4 class="heading heading--center heading--h4 heading--dark heading--code">Log in</h4>
+              <h5 class="heading heading--center heading--h5 heading--code heading--getStarted button--getStarted">Get started</h5>
+            </div>
+            <div class="landingContent__text">
+              <p class="text--sm text--center text--dark landingContent__text--qr">
+                <span class="qr_code_instruction">Scan the QR code with 
+                  <span class="landingContent__text--qr-bold">WWPass&trade;&nbsp;PassKey&nbsp;App</span>
+                </span> to&nbsp;open&nbsp;your vault
+<!--
+                &nbsp;<svg class="landingContent__icon--hint landingContent__icon--hintTop" width="20" height="20">
+                  <use xlink:href="img/landing/sprite.svg#icon-hint"></use>
+                </svg>
+-->
+              </p>
+              <div class="landingContent__hintInfo landingContent__hintInfo--top">
+                <p class="text text--sm text--dark">
+                  WWPass&trade;&nbsp;PassKey App is a mobile application for iOS and Android platforms that turns a mobile device into a lightweight and easy-to-use WWPass PassKey. WWPass PassKey App allows users to authenticate on unlimited WWPass-enabled websites and WWPass-enabled applications. WWPass PassKey App does not require users to install software on their computers.
+                </p>
+                <a class="text--sm" href="https://www.wwpass.com/multi-factor-authentication">Learn More</a>
+              </div>
+            </div>
+            <div class="landingContent__code-qr" id="qrcode">
+              <canvas width="160" height="160"></canvas>
+            </div>
+            <div class="text--sm text--center text--dark landingContent__text--qr hardware landingContent__hardTokenText">
+              Or connect&nbsp;<span class="landingContent__text--qr-bold">PassKey</span>
+              
+<!--
+              &nbsp;<svg class="landingContent__icon--hint landingContent__icon--hintQr" width="20" height="20">
+                <use xlink:href="img/landing/sprite.svg#icon-hint"></use>
+              </svg>
+-->
+              <div class="landingContent__hintInfo landingContent__hintInfo--bottom">
+                <p class="text text--sm text--dark">
+                  The PassKey is based on a cryptographic microcomputer that is used to authenticate a user to web sites and applications. It is also responsible for end-to-end mail encryption, local ciphering of files and other user data.  Personal data is encrypted, fragmented, and dispersed, so it cannot be accessed without the user’s PassKey and access code.
+                </p>
+                <a class="text--sm" href="https://www.wwpass.com/multi-factor-authentication">Learn More</a>
+              </div>
+            </div>
+            <button id="button--login" class="button button--wide button--icon landingContent__hardToken landingContent__hardTokenButton hardware" type="button" name="button">
+              <svg class="landingContent__icon landingContent__icon--hardLogo" width="15" height="15">
+                <use xlink:href="img/landing/sprite.svg#icon-button_logo"></use>
+              </svg>
+              Log in with PassKey
+            </button>
+          </div>
+        </article>
+        <article class="landingContent__info landingContent__infoShare container">
+          <h2 class="heading heading--h2 heading--left heading--share">
+            Never remember a&nbsp;password again
+            <svg class="landingContent__icon landingContent__icon--play" width="50" height="50">
+              <use xlink:href="img/landing/sprite.svg#icon-play"></use>
+            </svg>
+          </h2>
+<!--
+          <p class="text">You share a Netflix subscription, a checking account, a slew of monthly bills – and the pain of remembering all those joint passwords.</p>
+          <p class="text">You forget. You reset. Repeat. Repeat. Repeat.</p>
+          <p class="text">Break the cycle with free, unlimited password sharing with the ones you trust.</p>
+          <p class="text landingContent__text--big">PassHub is a free password manager with more secure multi-factor authentication – you don't even need to remember a master password.</p>
+-->
+<!--
+<p  class="text">
+Using the same easily memorable password everywhere is terribly risky.  Use PassHub to easily generate unique, complex passwords for all your accounts.
+</p>
+-->
+<p class="text">
+Organize all your credentials and sensitive files for instant and secure access on the go from any device, anytime you need them.
+</p><p class="text">
+Securely share important info with your family, friends &amp; coworkers with zero-knowledge cloud storage.
+</p><p class="text">
+Unlike other password managers, your phone is the key to your vault &mdash; no master password is required.  Best of all, PassHub is free!
+</p>
+
+          <button class="button button--wide button--icon button--more" type="button" name="button">
+            <svg class="landingContent__icon landingContent__icon--collapse landingContent__icon--collapseLeft" width="15" height="15">
+              <use xlink:href="img/landing/sprite.svg#icon-collapse"></use>
+            </svg>
+            Learn more
+            <svg class="landingContent__icon landingContent__icon--collapse landingContent__icon--collapseRight" width="15" height="15">
+              <use xlink:href="img/landing/sprite.svg#icon-collapse"></use>
+            </svg>
+          </button>
+          <div class="landingContent__info landingContent__info--more displayNone container">
+<!--
+            <ul class="landingContent__list landingContent__list--unordered text">
+              <li class="landingContent__item landingContent__item--unordered">Strong multi-factor authentication</li>
+              <li class="landingContent__item landingContent__item--unordered">AES 256, client-side and end-to-end encryption</li>
+              <li class="landingContent__item landingContent__item--unordered">Unlimited storage and unlimited sharing</li>
+              <li class="landingContent__item landingContent__item--unordered">Accessible any time on any internet connected device</li>
+              <li class="landingContent__item landingContent__item--unordered">Password generator</li>
+              <?php if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
+              <li class="landingContent__item landingContent__item--unordered">100% free</li>
+              <?php } ?>
+              <li class="landingContent__item landingContent__item--unordered">Say goodbye to spreadsheets and Post-its for good</li>
+            </ul>
+-->
+<p class="text">
+No more headaches
+</p>
+<ul>
+<li>Easily generate strong passwords without frustration
+<li>Skip the hassle of unnecessary password resets
+<li>Find your key info anytime, anywhere
+</ul>
+
+<p class="text">
+Get organized faster
+</p>
+<ul>
+<li>Easy to fill templates for safes & folders
+<li>Customize your vault with safes & folders to meet your needs
+<li>Safely share necessary info/files with family, friends or co-workers
+</ul>
+
+<p class="text">
+Backup vital info
+</p>
+<ul>
+<li>Upload essential files to a secure, redundant, indestructible cloud
+<li>ID/membership cards, birth certificates, tax information & more
+<li>Phone contacts, emergency contacts & more
+<li>Wills, Power of Attorney, Legal Documents & more
+</ul>
+
+<p class="text">
+Get peace of mind with zero-knowledge storage
+<p>
+<ul>
+<li>With Client-Side Encryption, you alone can access your vault
+<li>Even shared files are not accessible by anyone but you and those you share with
+<li>So secure, even the PassHub team (or spy agencies/companies) cannot access your data
+</ul>
+
+
+            <button class="button button--wide button--getStarted" type="button" name="button">Get Started &mdash; It's Free</button>
+          </div>
+        </article>
+      </section>
+    </main>
+    <template>
+    <div class="promo">
+        <div class="promo__video-container">
+          <div class="promo__video--close" width="20" height="20"></div>
+          <iframe class="promo__video" width="854" height="480" src="" frameborder="0" gesture="media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </template>
+    <footer class="loginFooter container">
+    <?php if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
+
+      <div class="footer-nav">
+        <div class="share">
+          <p class="text text--sm text--center share__text">Tell your friends about&nbsp;us</p>
+          <a class="share__button share__button--fb" href="#"></a>
+          <a class="share__button share__button--li" href="#"></a>
+          <a class="share__button share__button--tw" href="#"></a>
+        </div>
+
+        <ul class="nav nav--footer">
+          <li class="nav__item nav__item--footer"><a class="nav__link nav__link--footer" href="https://www.wwpass.com/">Powered by WWPass</a></li>
+          <li class="nav__item nav__item--footer"><a class="nav__link nav__link--footer" href="terms.php">Terms of use</a></li>
+          <li class="nav__item nav__item--footer"><a class="nav__link nav__link--footer" href="privacy.php">Privacy Policy</a></li>
+        </ul>
+      </div>
+
+<script>
+
+$(".share__button--fb").click(function() {
+
+    var url1 = url_base + "login.php?og=2";
+
+    var url = "https://www.facebook.com/sharer/sharer.php?kid_directed_site=0&sdk=joey&u=" + encodeURIComponent(url1) + "&display=popup&ref=plugin&src=share_button";
+
+
+    if(navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
+        window.open(url);
+    } else {
+        window.open(url, '_blank', 'toolbar=0,location=0,menubar=0');
+    }
+});
+
+$(".share__button--li").click(function() {
+    var d = new Date();
+    var t = d.getTime/1000.0;
+    var url1 = url_base + "login.php?og=3";
+    var url = "https://www.linkedin.com/cws/share?url=" + encodeURIComponent(url1) +"&original_referer=" + encodeURIComponent(url1) + "&token=&isFramed=false&lang=en_US&_ts=" + t + "&xd_origin_host=" + encodeURIComponent(url_base);
+
+    if(navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
+        window.open(url);
+    } else {
+        window.open(url, '_blank', 'toolbar=0,location=0,menubar=0');
+    }
+});
+
+$(".share__button--tw").click(function() {
+    var url1 = url_base + "login.php?og=6";
+
+
+//    var msg_template = encodeURIComponent("I'm done with password hassles with my new password manager. Get yours free at https://passhub.net/.");
+//    var url = "https://twitter.com/intent/tweet?original_referer=" + encodeURIComponent(url1) + "&ref_src=twsrc%5Etfw&text=" + msg_template + "&tw_p=tweetbutton&url=" + encodeURIComponent(url1);
+
+    var msg_template = encodeURIComponent("I'm done with password hassles with my new password manager. Get yours free at Passhub.");
+
+    var url = "https://twitter.com/intent/tweet?original_referer=" + encodeURIComponent(url1) + "&ref_src=twsrc%5Etfw&text=" + msg_template + "&tw_p=tweetbutton&url=" + encodeURIComponent(url_base);
+
+
+    if(navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
+        window.open(url);
+    } else {
+        window.open(url, '_blank', 'toolbar=0,location=0,menubar=0');
+    }
+});
+</script>
+
+    <?php }
+
+      if(file_exists('config/server_name.php')) {
+        /**
+         * Example server layout
+          <div class="server">
+            c.d
+          </div>
+         */
+        include('config/server_name.php');
+       } ?>
+
+    </footer>
+    <div class="overlay"></div>
+
+    <script src="js/landing.js"></script>
+    <script>
+      initVideo();
+    </script>
+  <script src="js/dist/login.js"></script>
+  </body>
+</html>
