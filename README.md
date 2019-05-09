@@ -43,7 +43,7 @@ You get a tarball named as `passhub.business.YYYYMMDD.tgz`
 
 With the tarball in hands, deploy your own instance of PassHub.
 
-Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/InstallationManualUbuntu18.04.md). The document is mainly oriented on Ubuntu 18.04, but any modern Linux distribution should work.
+Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/InstallingPassHubOnUbuntu18.04.md). The document is mainly oriented on Ubuntu 18.04, but any modern Linux distribution should work.
 
 ## Feedback and Support
 
