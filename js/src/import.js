@@ -318,7 +318,7 @@ function mergeSafe(site, backup) {
     function itemStatus(backup_item) {
       let found = false;
       for (let s = 0; s < site.items.length; s++) {
-        const cleartext = site.items[s].cleartext;
+        const { cleartext } = site.items[s];
         if (cleartext[0] == backup_item.cleartext[0]) {
           if ((cleartext[1] == backup_item.cleartext[1]) 
             && (cleartext[2] == backup_item.cleartext[2])
@@ -347,7 +347,7 @@ function mergeSafe(site, backup) {
           break;
         }
         backup.entries[b].cleartext[0] = `${title}(${n})`;
-        const status1 = item_status(backup.entries[b]);
+        const status1 = itemStatus(backup.entries[b]);
         if (status1 === 'absent') {
           result.push(backup.entries[b]); // cipher
           break;

@@ -75,8 +75,6 @@ $top_template = Template::factory('src/templates/top.html');
 $top_template->add('narrow', true)
     ->render();
 
-passhub_err('note = ' . $note);
-//$item_template = Template::factory('src/templates/edit_item.html');
 $item_template = Template::factory('src/templates/item_form.html');
 $item_template->add('item', json_encode($item))
     ->add('encrypted_key_CSE', $encrypted_key_CSE)

@@ -39,12 +39,12 @@ function get_sharing_status_proxy($mng) {
         $_SESSION['expired'] = true;
         return "login";
     }
-/*
+    /*
     if(!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
         passhub_err("bad csrf");
         return "Bad Request (46)";
     }
-*/
+    */
     $UserID = $_SESSION['UserID'];
 
     return getSharingStatus($mng, $UserID);
@@ -52,17 +52,13 @@ function get_sharing_status_proxy($mng) {
 
 $result = get_sharing_status_proxy($mng);
 
-if(!is_array($result)) {
+if (!is_array($result)) {
     $result = array("status" => $result);
 }
-
-passhub_err(print_r($result, true) . " " . $_SESSION['UserID']);
 
 header('Content-type: application/json');
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
 
-
-// Send the data.
 echo json_encode($result);
 exit();

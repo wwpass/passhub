@@ -183,6 +183,7 @@ function create_safe1($mng, $UserID, $safe) {
     return array("status" =>"Ok", "id" => $SafeID);
 }
 
+/*
 function create_safe($mng, $UserID, $SafeName, $hex_crypted_key = null) {
 
     if ($SafeName == "") {
@@ -217,6 +218,7 @@ function create_safe($mng, $UserID, $SafeName, $hex_crypted_key = null) {
     );
     return array("status" =>"Ok", "id" => $SafeID);
 }
+*/
 
 //**********************************************************************
 // local helper function should only be called from safe_acl
