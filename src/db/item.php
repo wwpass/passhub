@@ -72,8 +72,6 @@ function create_items_cse($mng, $UserID, $SafeID, $items, $folder) {
         return "no rights";
     }
 
-    // ????????????????????????!!!!!!!!!!!!!!!!!!!!!!!!???????????????????????
-
     $records = [];
     foreach ($items as $item) {
         $js = json_decode($item);
@@ -151,7 +149,6 @@ function update_item_cse($mng, $UserID, $SafeID, $entryID, $data) {
         passhub_err("error itm 363 role = '$role'");
         return "no rights";
     }
-    // ???????????????????????!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!?????????????????????
 
     $id =  (strlen($entryID) != 24)? $entryID : new MongoDB\BSON\ObjectID($entryID);
 
@@ -183,6 +180,7 @@ function update_item_cse($mng, $UserID, $SafeID, $entryID, $data) {
     // try-catch
     if ($result->getModifiedCount() == 1) {
         // readback to get folder: wish I had findOneAndUpdate
+        // returns folder to show in the index page  
 
         $cursor = $mng->safe_items->find(['_id' => $id]);
 
@@ -444,7 +442,7 @@ function folder_ops($mng, $UserID, $data) {
             passhub_err(print_r($result, true));
             return "Internal error";
         }
-        passhub_log('user ' . $UserID . ' activity mpty folder deleted');
+        passhub_log('user ' . $UserID . ' activity empty folder deleted');
         return "Ok";
     }
 
@@ -476,7 +474,7 @@ function folder_ops($mng, $UserID, $data) {
             passhub_err("itm 265 name json structure " . $data['name']);
             return "internal error";
         }
-        // ???????????????????!!!!!!!!!!!!!!!!!!!?????????????????
+
         if ($data['operation'] == 'create') {
             $r = $mng->safe_folders->insertOne(
                 ['SafeID' => $SafeID, 
@@ -620,8 +618,9 @@ function import_safes($mng, $UserID, $post) {
             return "internal error";
         }
         //TODO truncate name length if required
-
-        $result = create_safe($mng, $UserID, $safe['name'], $safe['key']);
+        // patch naming
+        $safe['aes_key'] = $safe['key'];
+        $result = create_safe1($mng, $UserID, $safe);
         if (is_string($result)) {
             return $result;
         }

@@ -7,6 +7,8 @@ PassHub is a web-based password manager for individuals and teams with support f
 In this guide, we'll discuss how to get PassHub installed on your Ubuntu 18.04
 server.
 
+Practical knowledge of web server deployment is required, inlcuding DNS configuration and  SSL certificates.  
+
 ## Prerequisites
 
 To deploy Passhub, you should set up Ubuntu 18.04 Server and
@@ -60,6 +62,12 @@ sudo service php7.2-fpm restart
 sudo apt install composer
 ```
 
+Some VPS distributions of Ubuntu 18.04 come without zip/unzip tools, required by composer. Install them as follows:
+
+```sh
+sudo apt install zip unzip
+```
+
 ## Step 4: Extract PassHub Files
 
 Upload `passhub*.tgz` archive to your home directory via SCP or any other method.
@@ -98,9 +106,126 @@ sudo mkdir /var/lib/passhub
 sudo chown www-data:www-data /var/log/passhub
 ```
 
+## Step 5: Congigure Nginx Server
 
+To configure Nginx web server, we need to obtain two SSL sertificates: first, the HTTPS certificate to protect web connection and second - WWPass Service Provider certificate for PassHub.
 
-## Step 5: Adjust PassHub Configuration
+Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more then one already existing URLs served by Nginx. If PassHub is not the first destination, you already have proper experience to adapt following instructins to your needs.
+
+Here are the steps for freshly installed Nginx.
+
+### 5.1 PassHub URL
+
+Start with selecting URL for the PassHub service, e.g. 'passhub.yourcompany.com'. Set your DNS accordingly.
+
+### 5.1 SSL certificates
+
+Obtain the SSL certificate from Certificate authority of your choice. We recommend [Let's Encrypt CA](https://letsencrypt.org/).
+
+### 5.2 WWPass certificates
+
+PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site. Use `var\www\html` directory to store the verification file.
+
+### 5.3 Nginx configuration  
+
+We need to create a new Nginx configuration file for our PassHub installation.
+
+Create a new configuration file by typing:
+
+```sh
+sudo nano /etc/nginx/sites-available/passhub.conf
+```
+
+And add the following content to the file:
+
+```
+server {
+  listen 80;
+  listen [::]:80;
+  server_name example.com;
+  location / {
+    rewrite ^(.*)$ https://example.com$1;
+  }
+}
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+  server_name example.com;
+  ssl on;
+  ssl_certificate /path/to/ssl/certificate/fullchain.pem;
+  ssl_certificate_key /path/to/ssl/certificate/privkey.pem;
+  root /var/www/passhub;
+  index index.php index.html index.htm;
+  location ~/(config|helpers|src) {
+    deny all;
+    return 404;
+  }
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+  }
+}
+```
+
+**Notes**:
+
+1. Change ```example.com``` to the DNS name of your server;
+2. Make sure ```ssl_certificate``` and ```ssl_certificate_key``` point to
+existing SSL certificate files;
+
+Save and close the file when you are finished.
+
+Next, create a symbolic link in the ```/etc/nginx/sites-enabled/```
+directory so that Nginx can pick up the configuration file we just created:
+
+```sh
+sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-enabled/passhub.conf
+```
+
+Now it is time to test our Nginx configuration for possible errors:
+
+```sh
+sudo nginx -t
+```
+
+If everything is correct, you will see the following output:
+
+```sh
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+```
+
+If Nginx reports configuration errors and you see output like this:
+
+```sh
+nginx: configuration file /etc/nginx/nginx.conf test failed
+```
+
+Revise your Nginx configuration and re-test.
+
+Once your Nginx configuration contains no errors, it is time to
+tell Nginx to reload configuration data:
+
+```sh
+sudo nginx -s reload
+```
+
+**Tip**: to temporarily disable your PassHub instance in Nginx, you can simply remove the symbolic link in the ```/etc/nginx/sites-enabled/```
+directory and reload Nginx configuration like this:
+
+```sh
+sudo rm /etc/nginx/sites-enabled/passhub.conf
+sudo nginx -s reload
+```
+
+To re-enable Nginx, just re-create the symbolic link and reload Nginx configuration:
+
+```sh
+sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-enabled/passhub.conf
+sudo nginx -s reload
+```
+
+## Step 6: Adjust PassHub Configuration
 
 We now need to create a new PassHub configuration using the sample configuration file bundled with the PassHub distribution.
 
@@ -204,112 +329,13 @@ We need to perform the following adjustments:
 
 1. Set ```WWPASS_CERT_FILE``` to the absolute path to your WWPass service provider certificate file (eg. /etc/ssl/yourcompany.com.crt);
 2. Set ```WWPASS_KEY_FILE``` to the absolute path to your WWPass service provider key file (e.g. /etc/ssl/yourcompany.com.key);
-4. Set ```WWPASS_CA_FILE``` to the absolute path to the WWPass certificate authority file (e.g. /etc/ssl/wwpass_sp_ca.crt). You can download ```wwpass_ca.cer``` here:
+3. Set ```WWPASS_CA_FILE``` to the absolute path to the WWPass certificate authority file (e.g. /etc/ssl/wwpass_sp_ca.crt). You can download ```wwpass_ca.cer``` here:
 https://developers.wwpass.com/downloads/wwpass.ca
-5. Set ```SUPPORT_MAIL_ADDRESS``` to an email address you are going to use for handling user support requests;
+4. Set ```SUPPORT_MAIL_ADDRESS``` to an email address you are going to use for handling user support requests;
 
 Additionally, you may want to adjust the ```WWPASS_PIN_REQUIRED``` parameter, which controls whether PassHub should request PIN during authentication. Set it to ```false``` if you want to disable PIN requests, leave the default ```true``` value otherwise.
 
 Save and close the file when you are finished.
-
-## Step 6: Create Nginx Configuration for PassHub
-
-We need to create a new Nginx configuration file for our PassHub installation.
-
-Create a new configuration file by typing:
-
-```sh
-sudo nano /etc/nginx/sites-available/passhub.conf
-```
-
-And add the following content to the file:
-
-```
-server {
-  listen 80;
-  listen [::]:80;
-  server_name example.com;
-  location / {
-    rewrite ^(.*)$ https://example.com$1;
-  }
-}
-server {
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
-  server_name example.com;
-  ssl on;
-  ssl_certificate /path/to/ssl/certificate/fullchain.pem;
-  ssl_certificate_key /path/to/ssl/certificate/privkey.pem;
-  root /var/www/passhub;
-  index index.php index.html index.htm;
-  location ~/(config|helpers|src) {
-    deny all;
-    return 404;
-  }
-  location ~ \.php$ {
-    include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php7.0-fpm.sock;
-  }
-}
-```
-
-**Notes**:
-
-1. Change ```example.com``` to the DNS name of your server;
-2. Make sure ```ssl_certificate``` and ```ssl_certificate_key``` point to
-existing SSL certificate files;
-
-Save and close the file when you are finished.
-
-Next, create a symbolic link in the ```/etc/nginx/sites-enabled/```
-directory so that Nginx can pick up the configuration file we just created:
-
-```sh
-sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-available/passhub.conf
-```
-
-Now it is time to test our Nginx configuration for possible errors:
-
-```sh
-sudo nginx -t
-```
-
-If everything is correct, you will see the following output:
-
-```sh
-nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-nginx: configuration file /etc/nginx/nginx.conf test is successful
-```
-
-If Nginx reports configuration errors and you see output like this:
-
-```sh
-nginx: configuration file /etc/nginx/nginx.conf test failed
-```
-
-You should revise your Nginx configuration and re-test.
-
-Once your Nginx configuration contains no errors, it is time to
-tell Nginx to reload configuration data:
-
-```sh
-sudo nginx -s reload
-```
-
-**Tip**: if you need to temporarily disable your PassHub instance in Nginx, you can simply remove the symbolic link in the ```/etc/nginx/sites-enabled/```
-directory and reload Nginx configuration like this:
-
-```sh
-sudo rm /etc/nginx/sites-enabled/passhub.conf
-sudo nginx -s reload
-```
-
-To re-enable Nginx, just re-create the symbolic link and reload Nginx configuration:
-
-```sh
-sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-enabled/passhub.conf
-sudo nginx -s reload
-```
 
 ## Step 7: Setting up email
 
@@ -365,12 +391,12 @@ You will need to twaek security settings of the gmail account. In the account se
 
 Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with hardware WWPass PassKey under the QR code.
 
-
 ## Step 9: Site administrator
 
-For corporate use a PassHub administrator should be assigned. The administrator has rights to see user activities, delete users or grant PassHub administrator role to other users. PassHub administrator also controls the white list of email adresses of external users allowed to create an account.
+For corporate use a PassHub administrator should be assigned. The administrator has rights to monitor user activities, delete users or grant PassHub administrator role to other users. PassHub administrator also controls the white list of email adresses of external users allowed to create an account.
 
-The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users can only become site administrators by permission of existing site administrators.
+The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
 ## Feedback and Support
+
 Should you experience any difficulties during installation of PassHub, please feel free to contact our support team at support@wwpass.com.

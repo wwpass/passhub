@@ -373,9 +373,6 @@ function getUserData($mng, $UserID)
         'safes' => $user->getData(),
         'ticket' => $_SESSION['wwpass_ticket']
     ];
-
-    passhub_err('getUserData ticket ' . $_SESSION['wwpass_ticket']);
-
     
     if (array_key_exists('folder', $_GET)) {
         $data['active_folder'] = $_GET['folder'];
@@ -405,7 +402,6 @@ function getUserData($mng, $UserID)
 
 
 // assing user a Keypair and UserID and link UserID to PUID; return UserID
-
 
 function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
 
@@ -473,11 +469,10 @@ function process_reg_code($mng, $code, $PUID) {
             if ($codes[0]->verified == false) {
                 $mng->reg_codes->updateOne(['code' => $code], ['$set' =>['verified' =>true]]);
 
-
                 // PUID verified, delete all other codes
                 $mng->reg_codes->deleteMany(['PUID' => $PUID, 'verified' =>false]);
 
-                if ($_SESSION['UserID']) { // remove when done
+                if ($_SESSION['UserID']) { // adding mail to already existing account (intermediate)
                     $id =  (strlen($_SESSION['UserID']) != 24)? $_SESSION['UserID'] : new MongoDB\BSON\ObjectID($_SESSION['UserID']);
                     $result = $mng->users->updateOne(
                         ['_id' => $id], 

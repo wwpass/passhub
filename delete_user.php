@@ -39,8 +39,6 @@ function delete_user_proxy($mng) {
         passhub_err('Caught exception: ' . $e->getMessage());
         return "login";
     }
-
-    passhub_err(print_r($_POST, true));
     if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
         passhub_err("bad csrf");
         return "Bad Request (44)";
