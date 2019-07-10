@@ -8,7 +8,7 @@
            <div class="alert alert-danger" role="alert" ><?php echo $error_msg; ?> </div>
     <?php } ?>
 
-    <form  action="registration_action.php" method="post" id="registration_form">
+    <form  action="registration_action.php" method="post" onsubmit="submitMail()"  id="registration_form">
 
         <div class="form-group">
             <p>We need your e-mail address to activate your account.</p>
@@ -18,7 +18,8 @@
 
         <div class="form-group">
             <input type="hidden" id="registration_base_url" name="base_url" value="">
-            <button class = "btn btn-primary" onclick="submitMail()">Submit</button>
+<!--            <button class = "btn btn-primary" onclick="submitMail()">Submit</button> -->
+            <button class = "btn btn-primary" type=submit>Submit</button>
             <a href="logout.php" ><span style="margin-left:20px;">Go back</span></a>
         </div>
 
@@ -35,6 +36,8 @@ function passhub_url_base() {
 
 function submitMail() {
     $("#registration_base_url").val(passhub_url_base());
-    $("#registration_form").submit();
+    return true;
+//    event.preventDefault();
+//    $("#registration_form").submit();
 }
 </script>

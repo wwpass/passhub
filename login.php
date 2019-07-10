@@ -18,7 +18,7 @@ require_once 'vendor/autoload.php';
 
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/cookie.php';
+// require_once 'src/cookie.php';
 require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
@@ -298,6 +298,7 @@ if (isset($err_msg)) {
     $login_template->add('err_msg', $err_msg);
 }
 
+/*
 $hideInstructions = sniffCookie('hideInstructions');
 if (!$hideInstructions) {
     if (isset($_REQUEST['ref'])) {  // ?ref=ios-passkey-lite
@@ -305,10 +306,11 @@ if (!$hideInstructions) {
 //        setcookie('hideInstructions', true, time() + SECONDS_IN_DAY * 50);
     }
 }
+*/
 
-$login_template->add('hideInstructions', $hideInstructions)
-    ->add('showHardwareLogin', sniffCookie('showHardwareLogin'))
-    ->add('complete_registration', isset($_SESSION['reg_code']))
+$login_template->add('complete_registration', isset($_SESSION['reg_code']))
     ->add('isAndroid', $isAndroid)
     ->add('isIOS', $iOS)
+    // ->add('hideInstructions', $hideInstructions)
+    // ->add('showHardwareLogin', sniffCookie('showHardwareLogin'))
     ->render();

@@ -71,9 +71,11 @@ import passhubCrypto from './crypto';
       $('#title').val('');
       return false;
     }
-    if ($('#password').val() !== $('#confirm_password').val()) {
-      show_alert("Passwords don't match");
-      return false;
+    if (!item_form.note) {
+      if ($('#password').val() !== $('#confirm_password').val()) {
+        show_alert("Passwords don't match");
+        return false;
+      }
     }
     $('#password').attr('type', 'hidden');
     $('#confirm_password').attr('type', 'hidden');
@@ -155,28 +157,29 @@ import passhubCrypto from './crypto';
 
   function page_resize() {
     if (item_form.note) {
-      const t0 = $('.phub-dialog').offset().top;
-      const t = parseInt(20 + t0);
-      let dialogHeight = $('.phub-dialog').height(`calc(100vh - ${t}px)`).height();
-      dialogHeight = parseInt(dialogHeight);
+      if (document.querySelector('#notes')) { // can write
+        const dialogTop = $('.phub-dialog').offset().top;
+        const t = parseInt(20 + dialogTop);
+        let dialogHeight = $('.phub-dialog').height(`calc(100vh - ${t}px)`).height();
+        dialogHeight = parseInt(dialogHeight);
 
-      if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 812)) { // iPhone X
-        dialogHeight -= 140;
-      } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 667)) { // iPhone 6
-        dialogHeight -= 100;
-      } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 320) && (screen.height === 568)) { // iPhone 6s, Anf, display siz
-        dialogHeight -= 60;
-      } else if (navigator.userAgent.match(/iPhone/) && ((screen.height === 320) || (screen.width === 320))) { // iPhone 5
-        dialogHeight -= 80;
-      } else if (navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
-        dialogHeight -= 60;
-      }
-      // 412 732: Galaxy edge 7
+        if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 812)) { // iPhone X
+          dialogHeight -= 140;
+        } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 667)) { // iPhone 6
+          dialogHeight -= 100;
+        } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 320) && (screen.height === 568)) { // iPhone 6s, Anf, display siz
+          dialogHeight -= 60;
+        } else if (navigator.userAgent.match(/iPhone/) && ((screen.height === 320) || (screen.width === 320))) { // iPhone 5
+          dialogHeight -= 80;
+        } else if (navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
+          dialogHeight -= 60;
+        }
+        // 412 732: Galaxy edge 7
 
-      const dialogTop = $('.phub-dialog').offset().top;
-      const notesTop = $('#notes').offset().top;
-      const notesInDialogOffset = notesTop - dialogTop;
-      $('#notes').height(dialogHeight - notesInDialogOffset - 100);
+        const notesTop = $('#notes').offset().top;
+        const notesInDialogOffset = notesTop - dialogTop;
+        $('#notes').height(dialogHeight - notesInDialogOffset - 100);
+      }  
     }
   }
 

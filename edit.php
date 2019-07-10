@@ -75,6 +75,10 @@ $top_template = Template::factory('src/templates/top.html');
 $top_template->add('narrow', true)
     ->render();
 
+
+
+$can_write = can_write($mng, $UserID, $SafeID);
+
 $item_template = Template::factory('src/templates/item_form.html');
 $item_template->add('item', json_encode($item))
     ->add('encrypted_key_CSE', $encrypted_key_CSE)
@@ -85,6 +89,7 @@ $item_template->add('item', json_encode($item))
     ->add('create', 0)
     ->add('folder', $folder)
     ->add('note', $note)
+    ->add('can_write', $can_write)
     ->render();
 
 $gen_password_template = Template::factory('src/templates/modals/gen_password.html');

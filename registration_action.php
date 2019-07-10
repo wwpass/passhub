@@ -19,7 +19,6 @@ require_once 'src/db/user.php';
 require_once 'src/template.php';
 require_once 'src/db/iam_ops.php';
 
-
 require_once 'src/db/SessionHandler.php';
 
 $mng = newDbConnection();
@@ -27,6 +26,7 @@ $mng = newDbConnection();
 setDbSessionHandler($mng);
 
 session_start();
+
 /*
 if(!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
     http_response_code(400);
@@ -57,11 +57,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     if ($result['status'] == "Ok") {
         $subject = "PassHub Account Activation";
         $body = "<p>Dear PassHub Customer,</p> <p>Please click the link below to activate your account:</p>"
-         /*
-         . "<a href=" . $url . "reg_code_check.php?reg_code=" . $result['code'] . ">"
-         . $url . "reg_code_check.php?reg_code=" . $result['code'] . "</a>"
-         */
-
          . "<a href=" . $url . "login.php?reg_code=" . $result['code'] . ">"
          . $url . "login.php?reg_code=" . $result['code'] . "</a>"
 
@@ -70,7 +65,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
          $result = sendMail($email, $subject, $body);
  
         passhub_log('verification mail sent to ' . $email);
-        session_destroy();
+        $_SESSION = [];
         passhub_err(print_r($result, true));
         $sent = true;
         if ($result['status'] !== 'Ok') {
@@ -85,23 +80,22 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     }
 }
 
+if (!isset($error_msg)) {
+    $_SESSION['form_email'] = htmlspecialchars($email);
+    passhub_err(print_r($_SESSION, true));
+    header('Location: form_filled.php?registration_action');
+    exit();
+}
+
 $top_template = Template::factory('src/templates/top.html');
 $top_template->add('hide_logout', true)
     ->add('narrow', true)
     ->render();
 
-if (isset($error_msg)) {
-    $request_mail_template  = Template::factory('src/templates/request_mail.html');
-    passhub_err($error_msg);
-    $request_mail_template->add('error_msg', $error_msg)
-        ->render();
-} else {
-
-    $feedback_action_template = Template::factory('src/templates/registration_action.html');
-    $feedback_action_template->add('success', $sent)
-        ->add('email', htmlspecialchars($email))
-        ->render();
-}
+$request_mail_template  = Template::factory('src/templates/request_mail.html');
+passhub_err($error_msg);
+$request_mail_template->add('error_msg', $error_msg)
+    ->render();
 
 ?>
 

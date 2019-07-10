@@ -40,7 +40,7 @@ define('WWPASS_LOGOUT_ON_KEY_REMOVAL', true);
 // Database Connection Parameters
 
 // Database name
-define('DB_NAME', 'phub');
+define('DB_NAME', 'passhub');
 // Mongodb connection line (unsafe!)
 define('MONGODB_CONNECTION_LINE', 'mongodb://localhost');
 
@@ -61,9 +61,8 @@ define('MAX_STORAGE', 100);
 define('FILE_DIR', '/var/lib/passhub');
 //define('GOOGLE_CREDS', 'google_drive_credentials.json');
 
-// access and share policy
+// access policy
 define('MAIL_DOMAIN', "wwpass.com");
-define('SHARE_BY_MAIL', true);
 
 // lazy send mail, requires  "sudo apt install php-mail"
 /*

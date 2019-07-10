@@ -379,10 +379,10 @@ function getUserData($mng, $UserID)
     } else {
         $data['active_folder'] = 0;
     }
-    if (defined('SHARE_BY_MAIL') && SHARE_BY_MAIL == true ) {
-        $data['shareModal'] = "#shareByMailModal";
-    } else {
+    if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
         $data['shareModal'] = "#safeShareModal";
+    } else {
+        $data['shareModal'] = "#shareByMailModal";
     }
     if (isset($_REQUEST['show_table'])) {
         $data['show_table'] = true;

@@ -52,9 +52,14 @@ function getPwdFont() {
     return $password_font;
 }
 
-function update_ticket() {
-/*
-    if (time() > ($_SESSION['wwpass_ticket_creation_time'] + WWPASS_TICKET_TTL/2) {
+function update_ticket() {}
+
+function test_ticket() {
+    if (time() > ($_SESSION['wwpass_ticket_creation_time'] + WWPASS_TICKET_TTL - 10)) {
+        throw new WWPass\Exception('ticket expired');
+    } 
+    /*
+    if (time() > ($_SESSION['wwpass_ticket_creation_time'] + WWPASS_TICKET_TTL/2)) {
         passhub_err("old ticket " . $_SESSION['wwpass_ticket']);
         $t0 = microtime(true);
         $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
@@ -69,9 +74,9 @@ function update_ticket() {
         $_SESSION['wwpass_ticket_creation_time'] = time();
         passhub_err("new ticket " .  $_SESSION['wwpass_ticket']);
         passhub_err("ticket_updated");
-     }
-     return  + WWPASS_TICKET_TTL/2;
-*/     
+    }
+    return  + WWPASS_TICKET_TTL/2;
+    */
 }
 
 function passhub_log($message) {
@@ -90,7 +95,7 @@ function passhub_err($message) {
     if (defined('LOG_DIR') && ($message != "")) {
         $fname = LOG_DIR . '/passhub-' . date("ymd") . ".err";
         if ($fh = fopen($fname, 'a')) {
-            fwrite($fh, date("c") . " " . $message . "\n");
+            fwrite($fh, date("c") . " "  . $_SERVER['REMOTE_ADDR'] . " " . $message . "\n");
             fclose($fh);
         } else {
             error_log("Cannot open log file " . $fname);

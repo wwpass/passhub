@@ -3,7 +3,7 @@
     <div id="vlist_controls" style='padding-right:15px; padding-left:15px'>
         <button type="button" class = "btn btn-vault" style="width:100%" data-toggle="modal" data-target="#newSafe">New Password Safe</button>
         <div><span style="margin:20px auto; display:table">
-            <?php if (!defined('SHARE_BY_MAIL') || !SHARE_BY_MAIL) { ?>
+            <?php if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
             <a href="#"  data-toggle="modal" data-target="#fromInviteSafe" style="color:white; text-decoration: underline;"> Accept&nbsp;invitation</a>
             <?php } ?>
             <a href="#"  data-toggle="modal" data-target="#restoreModal" style="color:white; text-decoration: underline; margin-left: 10px;">Import</a>
@@ -16,10 +16,14 @@
     </div>
 </div>
 <div id="csrf" data-csrf='<?php echo $csrf ?>' style='display:none'></div>
+
+<?php if (isset($active_folder)) { ?>
+<div data-folder='<?php echo $active_folder ?>'></div>
+<?php } ?>
+
 <a id="mailhref"></a>
 
-<div class="hidden-xs hidden-sm hidden-md hidden-lg btn-group table_pane" id="table_pane_nav" role="group" 
-  style="width:100%;background-color: #353f68; color:white; font-size:18px; padding:15px 0 10px 0">
+<div class="hidden-xs hidden-sm hidden-md hidden-lg btn-group table_pane" id="table_pane_nav" role="group">
     <div class='folder_back' style='float:left;  width:20%; ; padding-left:10px; cursor: pointer'>
         <svg width='30' height='30' style='stroke:white; float:left; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#ar-back'></use></svg>
     </div>
@@ -30,7 +34,8 @@
     </a>
 </div>
 
-<div class="col-lg-9 col-md-8 col-sm-7 hidden-xs table_pane right_radius" id="table_pane_body" style="padding-right:0; padding-left:0; background: #dae6f2; min-height:200px;" >
+<div class="col-lg-9 col-md-8 col-sm-7 hidden-xs table_pane right_radius" id="table_pane_body"
+ style="padding-right:0; padding-left:0; min-height:200px;" >
 
     <div  class = "not_confirmed_safe" style="margin:20px; display:none">
         <p >You have successfully accepted the invitation.<br> Please wait until the owner of the safe confirms your access rights</p>
@@ -144,21 +149,3 @@
 
     </div>
 </div>
-
-
-<?php if(defined('TEST')) { ?>
-    <div id='extension_data' style= 'display:none'>
-            {"url":"https://www.netflix.com/login","login":"alice","password":"123456"}
-    </div>
-    <script>
-        function extension_event() {
-            alert('Hello Extension');
-        }
-        document.querySelector('#extension_data').addEventListener("extention_message", extension_event);
-        function getFormData(url) {
-            return document.querySelector('#extension_data').innetHTML;
-        }         
-    </script>
-<?php } ?>
-
-

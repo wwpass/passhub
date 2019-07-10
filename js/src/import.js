@@ -207,7 +207,7 @@ function doRestoreCSV(text) {
   }
   const titles = data.shift();
   if (titles.length !== 6) {
-    throw new Error(`Not a Passhub file: 6 fileds are required in each line, found ${titles.length}`);
+    throw new Error(`Not a Passhub file: 6 fields are required in each line, found ${titles.length}`);
   }
   const safes = [];
   data.forEach((e) => {

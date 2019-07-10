@@ -1,14 +1,19 @@
 <div class="col-md-2">
 </div>
-<div class="col-md-8 phub-dialog">
+<div class="col-md-8 phub-dialog" style="padding:20px 0">
 <?php if($success) { ?>
-    <h1>Your message has been sent</h1>
+    <h1 style="text-align:center"> Thank you for contacting us</h1>
+    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
+      We will get back to you shortly
+    </p>
 <?php   } else { ?>
     <h3>Sorry, there were problems sending your message</h3>
     <h4> Please try again later</h4>
 <?php   }  ?>
-    <p>
-    <a href="index.php" >Return to home page</a>
+    <p style="display: flex; justify-content: center;">
+        <button type="button" class="btn btn-primary" onclick="window.location.href='index.php'">
+            Close
+        </button>
     </p>
 </div>
 <div class="col-md-1">
