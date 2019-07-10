@@ -24,7 +24,7 @@ try {
     if (isset($_REQUEST['ref'])) {  //older versioins of Passkey Lite
         $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'':'');
     } else {
-        $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'p:c':'c');
+        $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
         $dt = number_format((microtime(true) - $t0), 3);
         $sp = explode("@", $ticket)[1];
 

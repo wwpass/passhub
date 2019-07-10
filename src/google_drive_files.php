@@ -37,13 +37,14 @@ function google_drive_download($fname) {
     try {
         $pageToken = null;
         $service = google_drive_get_service();
-        $response = $service->files->listFiles(array(
-            //        'q' => "mimeType='image/jpeg'",
+        $response = $service->files->listFiles(
+            array(
             'q' => "name = '" . $fname . "'",
             'spaces' => 'drive',
             'pageToken' => $pageToken,
             'fields' => 'nextPageToken, files(id, name, fileExtension, kind, mimeType, size, webViewLink, createdTime)',
-        ));
+            )
+        );
         if (count($response->files) != 1) {
             passhub_err("Google drive: file not found " . $fname);
             return ["status" => "count " . count($response->files)];
@@ -64,13 +65,14 @@ function google_drive_delete($fname) {
     try {
         $pageToken = null;
         $service = google_drive_get_service();
-        $response = $service->files->listFiles(array(
-            //        'q' => "mimeType='image/jpeg'",
+        $response = $service->files->listFiles(
+            array(
             'q' => "name = '" . $fname . "'",
             'spaces' => 'drive',
             'pageToken' => $pageToken,
             'fields' => 'nextPageToken, files(id, name, fileExtension, kind, mimeType, size, webViewLink, createdTime)',
-        ));
+            )
+        );
         if (count($response->files) != 1) {
             return ["status" => "count " . count($response->files)];
         }

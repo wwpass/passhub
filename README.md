@@ -1,13 +1,13 @@
 # PassHub Password Manager
 
-**PassHub** password manager is a collaboration tool to securely store and share login/password pairs, notes, files, certicates, and documents. Passhub relies on WWPass technology: authentication and client-side encryption use WWPass services
+**PassHub** password manager is a collaboration tool to securely store and share login/password pairs, notes, files, certificates, and documents. Passhub relies on WWPass technology: authentication and client-side encryption use WWPass services
 
 ## Features
 
 - No usernames/passwords to login
 - Platform/OS-neutral, web-only solution: works in any browser
-- no need to download software
 - works across all user devices
+- no need to download software on each user device or browser
 - when used with smartcard/USB/Bluetooth Passkey: automatic logout when the key is disconnected. For Bluetooth connection automatic logout when the phone is moved away from the computer.
 - Open-source (No backdoors, no registration)
 - PassHub may be deployed on company servers - provides full control over company sensitive information
@@ -25,9 +25,11 @@
 - Ubuntu 18.04
 - NGINX Web server
 
-## Development environment
+## Getting passhub.business archive
 
-- nmp 6.9+
+You may either download the latest release of the PassHub archive [passhub.business.*.tgz](https://github.com/wwpass/passhub/releases/download/v1.0.0/passhub.business.20190514.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
+
+To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
 
 To compile the project from scratch, download the git repository and run
 
@@ -47,4 +49,4 @@ Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/I
 
 ## Feedback and Support
 
-Should you experience any difficulties during installation of PassHub, please feel free to contact our support team at support@wwpass.com.
+Should you experience any difficulties during the installation of PassHub, please feel free to contact our support team at support@wwpass.com.

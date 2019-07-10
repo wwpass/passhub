@@ -12,6 +12,11 @@
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
+
+if (!file_exists('vendor/autoload.php' )) {
+    die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
+}
+
 require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 require_once 'src/functions.php';
@@ -20,7 +25,7 @@ require_once 'src/db/safe.php';
 require_once 'src/db/item.php';
 require_once 'src/template.php';
 
-require_once 'src/cookie.php';
+// require_once 'src/cookie.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -38,6 +43,7 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     passhub_err("HTTP_USER_AGENT undefined (corrected)");
 }
 
+/*
 $hideInstructions = sniffCookie('hideInstructions');
 if (!$hideInstructions) {
     if (stripos($_SERVER['HTTP_USER_AGENT'], "iPod")
@@ -49,6 +55,7 @@ if (!$hideInstructions) {
         setcookie('hideInstructions', true, time() + 60*60*50);
     }
 }
+*/
 /*
 if (isset($_REQUEST['updateTicket'])) {
     try {
@@ -92,7 +99,8 @@ if (isset($_SESSION['next'])) {
 }
 
 try {
-    update_ticket();
+    // update_ticket();
+    test_ticket();
     if (!isset($_SESSION['UserID'])) {
         $result = getUserByPuid($mng, $_SESSION['PUID']);
         if ($result['status'] == "not found") {
@@ -224,13 +232,16 @@ $top_template->add('index_page', true)
     ->add('isSiteAdmin', $user->site_admin)
     ->render();
 
-
 $password_font = getPwdFont();
 
 $index_template = Template::factory('src/templates/index.html')
     ->add('csrf', User::get_csrf())
-    ->add('password_font', getPwdFont())
-    ->render();
+    ->add('password_font', getPwdFont());
+
+if (array_key_exists('folder', $_GET)) {
+    $index_template->add('active_folder', $_GET['folder']);
+}
+$index_template->render();
 ?>
 
    </div>
@@ -243,8 +254,8 @@ $index_template = Template::factory('src/templates/index.html')
 <?php if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
 <div class="info_footer">
     <span>
-        <a href="//wwpass.com" target="_blank" style="color:#000; opacity:0.8; margin:10px">Powered by WWPass</a>
-        <a href="terms.php" style="color:#000; opacity:0.8; margin:10px">Terms of use</a>
+        <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
+        <a href="terms.php">Terms of use</a>
     </span>
 </div>
 
@@ -276,10 +287,13 @@ $rename_vault_template ->render();
 $rename_file_template = Template::factory('src/templates/modals/rename_file.html');
 $rename_file_template ->render();
 
-if (defined('SHARE_BY_MAIL') && SHARE_BY_MAIL == true ) {
-    $share_safe_template = Template::factory('src/templates/modals/share_by_mail.html');
-} else {
+if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+    $accept_sharing_template = Template::factory('src/templates/modals/accept_sharing.html');
+    $accept_sharing_template->render();
+  
     $share_safe_template = Template::factory('src/templates/modals/share_safe.html');
+} else {
+    $share_safe_template = Template::factory('src/templates/modals/share_by_mail.html');
 }
 
 $share_safe_template->add('password_font', $password_font)
@@ -288,50 +302,13 @@ $share_safe_template->add('password_font', $password_font)
 $safe_users_template = Template::factory('src/templates/modals/safe_users.html');
 $safe_users_template->render();
 
-$accept_sharing_template = Template::factory('src/templates/modals/accept_sharing.html');
-$accept_sharing_template->render();
-
 $progress_template = Template::factory('src/templates/progress.html');
 $progress_template->render();
 
 
-/*
-$script_params = [
-  'csrf' => User::get_csrf(),
-  'publicKeyPem' => $user->publicKey_CSE,
-  'invitation_accept_pending' => $user->invitation_accept_pending,
-  'current_safe' => $user->current_safe,
-  'user_mail' => $user->email,
-  'ePrivateKey' => $user->privateKey_CSE,
-  'ticket' => $_SESSION['wwpass_ticket']
-];
-
-if (array_key_exists('folder', $_GET)) {
-  $script_params['active_folder'] = $_GET['folder'];
-} else {
-  $script_params['active_folder'] = 0;
-}
-if (defined('SHARE_BY_MAIL') && SHARE_BY_MAIL == true ) {
-  $script_params['shareModal'] = "#shareByMailModal";
-} else {
-  $script_params['shareModal'] = "#safeShareModal";
-}
-
-if (isset($_REQUEST['show_table'])) {
-  $script_params['show_table'] = true;
-} else {
-  $script_params['show_table'] = false;
-}
-*/
-
 ?>
 
-<!--
-<script src=js/forge.min.js></script>
-<script src="js/FileSaver.min.js"></script>
--->
-
-<script src="js/jquery.csv.js"></script>
+<script src="js/jquery.csv.min.js"></script>
 
 
 <script>

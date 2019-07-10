@@ -39,20 +39,6 @@ if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
 $name = $_POST['name'];
 $email = $_POST['email'];
 
-/*
-$header  = 'MIME-Version: 1.0' . "\r\n";
-$header .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
-$header .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
-
-*/
-
-
-/*
-if (!mb_detect_encoding($subject, 'ASCII', true)) {
-    $subject = '=?UTF-8?B?'.base64_encode($subject).'?=';
-}
-*/
-
 $subject = "passhub report";
 
 $message = "From: '$email' (name '$name')" . "<br><br>" . $_POST['message'];
@@ -70,20 +56,6 @@ if ($result['status'] !== 'Ok') {
     error_page("error sending email. Please try again later");
 }
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('hide_logout', !isset($_SESSION['PUID']))
-    ->add('feedback_page', true)
-    ->add('narrow', true)
-    ->render();
-
-$feedback_action_template = Template::factory('src/templates/feedback_action.html');
-$feedback_action_template->add('success', $result)
-                         ->render();
-
-?>
-
-</div>
-</div>
-</body>
-</html>
+$_SESSION['form_success'] = ($result['status'] == 'Ok') ? 1 : 0; 
+header('Location: form_filled.php?contact_us');
 

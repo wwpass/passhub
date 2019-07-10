@@ -29,20 +29,23 @@ session_start();
 
 passhub_err("old ticket " . $_SESSION['wwpass_ticket']);
 $t0 = microtime(true);
-$wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
-$old_ticket = $_SESSION['wwpass_ticket'];
-$new_ticket = $wwc->putTicket($old_ticket, WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
+try {
+  $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
+  $old_ticket = $_SESSION['wwpass_ticket'];
+  $new_ticket = $wwc->putTicket($old_ticket, WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
 
-$dt = number_format((microtime(true) - $t0),3);
-$sp = explode("@", $new_ticket)[1];
+  $dt = number_format((microtime(true) - $t0),3);
+  $sp = explode("@", $new_ticket)[1];
 
-timing_log("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+  timing_log("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 
-$_SESSION['wwpass_ticket'] = $new_ticket;
-$_SESSION['wwpass_ticket_creation_time'] = time();
-passhub_err("new ticket " .  $_SESSION['wwpass_ticket']);
-passhub_err("ticket_updated");
-
+  $_SESSION['wwpass_ticket'] = $new_ticket;
+  $_SESSION['wwpass_ticket_creation_time'] = time();
+  passhub_err("new ticket " .  $_SESSION['wwpass_ticket']);
+  passhub_err("ticket_updated");
+} catch (Exception $e) {
+  passhub_err("updateTicket error " . $e->getMessage());
+}
 
 // Prevent caching.
 header('Cache-Control: no-cache, must-revalidate');

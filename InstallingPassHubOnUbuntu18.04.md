@@ -7,7 +7,7 @@ PassHub is a web-based password manager for individuals and teams with support f
 In this guide, we'll discuss how to get PassHub installed on your Ubuntu 18.04
 server.
 
-Practical knowledge of web server deployment is required, inlcuding DNS configuration and  SSL certificates.  
+Practical knowledge of web server deployment is required, including DNS configuration and  SSL certificates.  
 
 ## Prerequisites
 
@@ -30,8 +30,8 @@ PassHub requires a WWPass Service Provider certificate, which can be obtained at
 Since this is our first interaction with the apt packaging system in this session, we should update our local package index, so that we have access to the most recent versions of packages. After that, Nginx can be installed.
 
 ```sh
-sudo apt-get update
-sudo apt-get install -y nginx
+sudo apt update
+sudo apt install -y nginx
 ```
 
 On Ubuntu 18.04, Nginx is configured to start running upon installation.
@@ -47,7 +47,7 @@ sudo apt install mongodb
 Type the following command to install PHP and additional modules required by PassHub:
 
 ```sh
-sudo apt-get install -y php-fpm php-curl php-mbstring php-mongodb php-mail
+sudo apt install -y php-fpm php-curl php-mbstring php-mongodb php-mail php-pear php-net-smtp
 ```
 
 Finally, you need to restart php7.2-fpm so that your configuration changes take effect:
@@ -70,7 +70,7 @@ sudo apt install zip unzip
 
 ## Step 4: Extract PassHub Files
 
-Upload `passhub*.tgz` archive to your home directory via SCP or any other method.
+Download [passhub](https://github.com/wwpass/passhub/releases/download/v1.0.0/passhub.business.20190514.tgz) archive and put it to your server home directory.
 
 We need to extract the contents of the archive into the `/var/www` directory:
 
@@ -85,7 +85,7 @@ Change ownership of the extracted files:
 sudo chown -R username:www-data /var/www/passhub
 ```
 
-**Note**: don't forget to change `username` with the actual name of your account.
+**Note**: don't forget to change the `username` with the actual name of your account.
 
 ## Step 4.1 Install PHP libraries
 
@@ -95,7 +95,7 @@ In the _/var/www/passhub_ directory run composer:
 sudo composer install
 ```
 
-## Step 4.1 Create working diretories
+## Step 4.2 Create working directories
 
 We also need to create PassHub log and working directories:
 
@@ -103,14 +103,14 @@ We also need to create PassHub log and working directories:
 sudo mkdir /var/log/passhub
 sudo chown www-data:www-data /var/log/passhub
 sudo mkdir /var/lib/passhub
-sudo chown www-data:www-data /var/log/passhub
+sudo chown www-data:www-data /var/lib/passhub
 ```
 
-## Step 5: Congigure Nginx Server
+## Step 5: Configure Nginx Server
 
-To configure Nginx web server, we need to obtain two SSL sertificates: first, the HTTPS certificate to protect web connection and second - WWPass Service Provider certificate for PassHub.
+To configure Nginx web server, we need to obtain two SSL certificates: first, the HTTPS certificate to protect web connection and second - WWPass Service Provider certificate for PassHub.
 
-Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more then one already existing URLs served by Nginx. If PassHub is not the first destination, you already have proper experience to adapt following instructins to your needs.
+Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more then one already existing URLs served by Nginx. If PassHub is not the first destination, you are probably already experienced enough to adapt following instructions to your needs.
 
 Here are the steps for freshly installed Nginx.
 
@@ -124,7 +124,7 @@ Obtain the SSL certificate from Certificate authority of your choice. We recomme
 
 ### 5.2 WWPass certificates
 
-PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site. Use `var\www\html` directory to store the verification file.
+PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site. For new Nginx deployment, you can use `/var/www/html` directory to store the verification file.
 
 ### 5.3 Nginx configuration  
 
@@ -136,7 +136,7 @@ Create a new configuration file by typing:
 sudo nano /etc/nginx/sites-available/passhub.conf
 ```
 
-And add the following content to the file:
+Add the following content to the file:
 
 ```
 server {
@@ -162,7 +162,7 @@ server {
   }
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php7.0-fpm.sock;
+    fastcgi_pass unix:/run/php/php7.2-fpm.sock;
   }
 }
 ```
@@ -210,7 +210,7 @@ tell Nginx to reload configuration data:
 sudo nginx -s reload
 ```
 
-**Tip**: to temporarily disable your PassHub instance in Nginx, you can simply remove the symbolic link in the ```/etc/nginx/sites-enabled/```
+**Tip**: to temporarily disable your PassHub instance in Nginx, remove the symbolic link in the ```/etc/nginx/sites-enabled/```
 directory and reload Nginx configuration like this:
 
 ```sh
@@ -305,9 +305,8 @@ define('MAX_STORAGE', 100);
 define('FILE_DIR', '/var/lib/passhub');
 //define('GOOGLE_CREDS', 'google_drive_credentials.json');
 
-// access and share policy
+// access policy
 define('MAIL_DOMAIN', "yourcompany.com");
-define('SHARE_BY_MAIL', true);
 
 // lazy send mail, requires  "sudo apt install php-mail"
 /*
@@ -341,13 +340,13 @@ Save and close the file when you are finished.
 
 Passhub uses email service for feedback messages and user email address verification. Setting up a full-featured modern email server may be a tricky task. Depending on your resources, choose one out of the three options to configure PassHub mail.
 
-### Option 1
+### Option 1. Mail server on the same computer where PassHub is running
 
-Mail server on the same computer where PassHub is running. If you have one, you are all set: Passhub uses it by default.
+ If you have one, you are all set: Passhub uses it by default.
 
 ### Option 2
 
-Create or use a decicated mail account on your company mail server. This case you need to install PHP PEAR/mail package on the Passhub server:
+Create or use a dedicated mail account on your company mail server. This case you need to install PHP PEAR/mail package on the Passhub server:
 
   `sudo apt install php-mail`
 
@@ -367,7 +366,7 @@ Create or use a decicated mail account on your company mail server. This case yo
 
 ### Option 3
 
-Create a dedicated gmail account. Basically it is a variant of **Option 2**. Install PHP PEAR/mail package:
+Create a dedicated gmail account. Basically, it is a variant of **Option 2**. Install PHP PEAR/mail package:
 
   `sudo apt install php-mail`
 
@@ -385,7 +384,7 @@ Add account data to the config.php, for example
 );
 ```
 
-You will need to twaek security settings of the gmail account. In the account settings choose 'Security' and turn on **Less secure app access** switch
+You will need to tweak the security settings of the gmail account. In the account settings choose 'Security' and turn on **Less secure app access** switch
 
 ## Step 8: Test PassHub
 
@@ -393,10 +392,10 @@ Open your web browser and navigate to the address of your PassHub server. You sh
 
 ## Step 9: Site administrator
 
-For corporate use a PassHub administrator should be assigned. The administrator has rights to monitor user activities, delete users or grant PassHub administrator role to other users. PassHub administrator also controls the white list of email adresses of external users allowed to create an account.
+For corporate use, a PassHub administrator should be assigned. The administrator has rights to monitor user activities, delete users or grant PassHub administrator role to other users. PassHub administrator also controls the white list of email addresses of external users allowed to create an account.
 
 The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
 ## Feedback and Support
 
-Should you experience any difficulties during installation of PassHub, please feel free to contact our support team at support@wwpass.com.
+Should you experience any difficulties during the installation of PassHub, please feel free to contact our support team at support@wwpass.com.

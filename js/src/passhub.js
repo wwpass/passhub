@@ -6,7 +6,10 @@ import passhubCrypto from './crypto';
 import safes from './safes';
 
 const vaultPaneColor = '#2277e6';
-const tablePaneColor = '#dae6f2';
+
+
+// const tablePaneColor = '#dae6f2';
+const tablePaneColor = '#D9EFFF';
 
 function getSharingStatus(ph) {
   $.ajax({
@@ -77,7 +80,8 @@ export default {
     }
     return null;
   },
-
+  
+/*
   init(params) {
     //  { csrf, publicKeyPem, safes, shareModal } = params;
     this.csrf = params.csrf;
@@ -90,6 +94,7 @@ export default {
     this.shareModal = params.shareModal;
     this.showTableReq = params.show_table;
   },
+*/
 
   decryptSafeData: (aesKey, safe) => {
     for (let i = 0; i < safe.items.length; i += 1) {
@@ -145,7 +150,7 @@ export default {
         $('.list-item-vault').addClass('list-item-xs');
         $('.list-item-vault-active').addClass('list-item-xs');
       }
-      $('table_pane_body').removeClass('right_radius');
+      $('#table_pane_body').removeClass('right_radius');
       $('#vault_list').removeClass('left_radius');
       if ($('#vault_list').is(':visible')) {
         $('body').css('background-color', vaultPaneColor);
@@ -158,7 +163,7 @@ export default {
       document.body.style.fontSize = '16px';
       $('.list-item-vault').removeClass('list-item-xs');
       $('.list-item-vault-active').removeClass('list-item-xs');
-      $('.btn').css('font-size', '14px');
+      // $('.btn').css('font-size', '14px');
       $('#table_pane_body').addClass('right_radius');
       $('#vault_list').addClass('left_radius');
       $('#index_page_row').addClass('is-table-row');
@@ -286,7 +291,8 @@ export default {
       },
       success: (result) => {
         if (result.status === 'Ok') {
-          window.location.href = `index.php?vault=${this.currentSafe.id}`;
+          // window.location.href = `index.php?vault=${this.currentSafe.id}`;
+          this.refreshUserData();
           return;
         }
         if (result.status === 'login') {
@@ -408,29 +414,15 @@ export default {
         }
       },
     });
-    /*
-    fetch('get_user_data.php')
-      .then(response => response.json())
-      .then((myJson) => {
-        this.csrf = myJson.data.csrfToken;
-        this.safes = myJson.data.safes;
-        // passhub.safes.sort(cmpSafeNames);
-        this.currentSafe = this.getSafeById(myJson.data.currentSafe);
-        this.publicKeyPem = myJson.data.publicKeyPem;
-        this.decryptSafes(this.safes)
-          .then(() => {
-            safes.setActiveFolder(this.activeFolder);
-            this.indexPageResize();
-            this.makeCurrentVaultVisible();
-            progress.unlock();
-            return true;
-          });
-      });
-    */
   },
 
   getUserData() {
     this.csrf = document.getElementById('csrf').getAttribute('data-csrf');
+    const t = document.querySelectorAll('[data-folder]');
+    if (t.length === 1) {
+      this.activeFolder = t[0].getAttribute('data-folder');
+    }
+
     $.ajax({
       url: 'get_user_data.php',
       type: 'POST',

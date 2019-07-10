@@ -11,10 +11,10 @@ import passhubCrypto from './crypto';
 
 const prepareUrl = (url) => {
   if (url.startsWith('www')) {
-    return `<a target='_blank' href='http://${url}'>${url}</a>`;
+    return `<a target='_blank' href='http://${url}' rel="noreferrer noopener">${url}</a>`;
   }
   if (url.startsWith('https://') || url.startsWith('http://')) {
-    return `<a target='_blank' href='${url}'>${url}</a>`;
+    return `<a target='_blank' href='${url}' rel="noreferrer noopener">${url}</a>`;
   }
   return url;
 };
@@ -215,6 +215,9 @@ const show = (folder) => {
 };
 
 $('body').on('click', '.lp_show', function () {
+  if(passhub.searchMode) {
+    syncSearchSafe($(this).attr('data-record_nb'));
+  }
   showItemModal($(this).attr('data-record_nb'), true);
 });
 

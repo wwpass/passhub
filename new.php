@@ -67,7 +67,8 @@ $top_template->add('narrow', true)
 
 $note = (isset($_REQUEST['note']))? 1:0;
 
-//$item_template = Template::factory('src/templates/new_item.html');
+$can_write = can_write($mng, $UserID, $SafeID);
+
 $item_template = Template::factory('src/templates/item_form.html');
 $item_template->add('vault_id', $SafeID)
     ->add('folder', $folder)
@@ -77,6 +78,7 @@ $item_template->add('vault_id', $SafeID)
     ->add('note', $note)
     ->add('create', 1)
     ->add('item', json_encode([]))
+    ->add('can_write', $can_write)
     ->render();
 
 $gen_password_template = Template::factory('src/templates/modals/gen_password.html');

@@ -2,7 +2,7 @@ import $ from 'jquery';
 import * as WWPass from 'wwpass-frontend';
 
 let urlBase = window.location.href;
-urlBase = urlBase.substring(0, urlBase.lastIndexOf("/")) + '/';
+urlBase = `${urlBase.substring(0, urlBase.lastIndexOf('/'))}/`;
 
 $('.passhub_url').text(urlBase);
 
@@ -80,21 +80,60 @@ WWPass.authInit({
 const mobileDevice = navigator.userAgent.match(/iPhone|iPod|iPad|Android/i);
 
 if (mobileDevice) {
-  $('#qrcode').addClass('qrtap');
-  $('.qr_code_instruction').html('Touch the QR code or scan it with <b>WWPass&nbsp;PassKey&nbsp;app</b>');
+  // $('#qrcode').addClass('qrtap');
+  // $('.qr_code_instruction').html('Touch the QR code or scan it with <b>WWPass&nbsp;PassKey&nbsp;app</b>');
+  document.querySelector('#qrcode').classList.add('qrtap');
+
+  if (document.querySelector('.qr_code_instruction')) { // pre-2019
+    document.querySelector('.qr_code_instruction').innerHTML = 'Tap the QR code or scan it with <b>WWPass&nbsp;PassKey&nbsp;app</b> to open your PAssHub vault';
+  }
 } else {
   $(document).ready(() => {
-    setTimeout(() => {
+    function checkPlugin() {
       if (WWPass.pluginPresent()) {
-        const hardwarePassKeySet = document.querySelectorAll('.hardware');
+        // pre-2019 login (legacy)
+        let hardwarePassKeySet = document.querySelectorAll('.hardware');
         if (hardwarePassKeySet.length) {
           [].forEach.call(hardwarePassKeySet, (it) => {
             it.classList.remove('hardware');
           });
           const infoShare = document.querySelector('.landingContent__infoShare');
           infoShare.classList.add('landingContent__infoShare--hardToken');
+          return;
         }
+        // biz login
+        hardwarePassKeySet = document.querySelectorAll('.landingContent__hardToken');
+        if (hardwarePassKeySet.length) {
+          [].forEach.call(hardwarePassKeySet, (it) => {
+            it.classList.remove('landingContent__hardToken');
+          });
+          return;
+        }
+        // login 2019
+        const loginBtn = document.querySelector('#button--login');
+        loginBtn.classList.remove('embedded--hide');
+        $('#button--login > button').hide();
+        return;
       }
-    }, 100);
+      setTimeout(checkPlugin, 100);
+    }
+    setTimeout(checkPlugin, 100);
   });
 }
+
+
+// login 2019
+
+document.addEventListener('DOMContentLoaded', () => {
+  const qrtext = document.querySelector('#qrtext');
+  if (qrtext) {
+    if (mobileDevice) {
+      // qrtext.innerText = 'Tap the QR code or ';
+      qrtext.innerHTML = 'Download <b>WWPass&nbsp;Passkey&nbsp;App</b> and tap the QR code';
+    } else {
+      qrtext.innerText = 'Scan the QR code with WWPass™ PassKey App';
+      // qrtext.classList.add('text--qrcode');
+    }
+    qrtext.style.display = 'block';
+  }
+});

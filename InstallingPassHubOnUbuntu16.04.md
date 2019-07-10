@@ -198,9 +198,8 @@ define('MAX_STORAGE', 100);
 define('FILE_DIR', '/var/lib/passhub');
 //define('GOOGLE_CREDS', 'google_drive_credentials.json');
 
-// access and share policy
+// access
 define('MAIL_DOMAIN', "wwpass.com");
-define('SHARE_BY_MAIL', true);
 
 // lazy send mail, requires  "sudo apt install php-mail"
 /*

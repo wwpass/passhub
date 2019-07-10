@@ -1,22 +1,26 @@
 <div class="col-md-2">
 </div>
-<div class="col-md-8 phub-dialog">
+<div class="col-md-8 phub-dialog"  style="padding:20px 0">
 <?php if($success) { ?>
-    <h1>Check Your Mailbox</h1>
-    <p>
-        We've sent a verification message to <i><?php echo $email?>.</i>
+    <h1  style="text-align:center">Check Your Mailbox</h1>
+    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
+        We've sent a verification message to 
+        <i><b><?php echo $email?></b></i>
+    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
         Click on the link in the message to activate your account.
     </p>
-    <p>
+    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
         If you do not receive this email, check your Spam e-mail folder.
     </p>
 <?php  } else { ?>
     <h3>Sorry, there was a problem sending a verification mail</h3>
     <h4> Please try again later</h4>
 <?php   }  ?>
-    <p>
-    <a href="logout.php" >Go back</a>
-    </p>
+    <p style="display: flex; justify-content: center;">
+        <button type="button" class="btn btn-primary" onclick="window.location.href='index.php'">
+            Close
+        </button>
+    </p>        
 </div>
 <div class="col-md-1">
 </div>
