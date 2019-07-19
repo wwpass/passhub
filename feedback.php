@@ -27,9 +27,9 @@ session_start();
 
 $top_template = Template::factory('src/templates/top.html');
 $top_template->add('hide_logout', !isset($_SESSION['PUID']))
-             ->add('feedback_page', true)
-             ->add('narrow', true)
-             ->render();
+    ->add('feedback_page', true)
+    ->add('narrow', true)
+    ->render();
 
 $feedback_template = Template::factory('src/templates/feedback.html');
 $feedback_template->render();

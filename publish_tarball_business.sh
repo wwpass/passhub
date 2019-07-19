@@ -92,8 +92,6 @@ filelist+=" src/templates/upsert_user.html"
 filelist+=" src/functions.php"
 filelist+=" src/google_drive_files.php"
 filelist+=" src/template.php"
-filelist+=" .eslintrc.js"
-filelist+=" .gitignore"
 filelist+=" InstallingPassHubOnUbuntu16.04.md"
 filelist+=" InstallingPassHubOnUbuntu18.04.md"
 filelist+=" LICENSE"
@@ -129,21 +127,17 @@ filelist+=" move.php"
 filelist+=" new.php"
 filelist+=" newfile.php"
 filelist+=" notsupported.php"
-filelist+=" package-lock.json"
-filelist+=" package.json"
-filelist+=" passhub.business.20190710.tgz"
-filelist+=" publish_tarball_business.sh"
 filelist+=" registration_action.php"
 filelist+=" robots.txt"
 filelist+=" safe_acl.php"
 filelist+=" update.php"
 filelist+=" update_ticket.php"
 filelist+=" update_vault.php"
-filelist+=" webpack.config.js"
 
 code=$(date +%Y%m%d)
 echo "Arch"
 
+echo "$code" > config/version.txt
 rm -f /tmp/passhub.business.$code.tgz
 tar czf /tmp/passhub.business.$code.tgz --transform 's,^,passhub/,' $filelist
 mv /tmp/passhub.business.$code.tgz .
