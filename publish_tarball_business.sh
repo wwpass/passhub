@@ -1,7 +1,13 @@
 #!/bin/bash
 
+timestamp=$(date +%Y%m%d)
+
+# echo "$timestamp" > config/version.txt
+
+
 filelist=""
 
+filelist+=" config/version.txt"
 filelist+=" config/config-sample.php"
 filelist+=" config/template.xml"
 filelist+=" config/wwpass_sp_ca.crt"
@@ -134,12 +140,10 @@ filelist+=" update.php"
 filelist+=" update_ticket.php"
 filelist+=" update_vault.php"
 
-code=$(date +%Y%m%d)
 echo "Arch"
 
-echo "$code" > config/version.txt
-rm -f /tmp/passhub.business.$code.tgz
-tar czf /tmp/passhub.business.$code.tgz --transform 's,^,passhub/,' $filelist
-mv /tmp/passhub.business.$code.tgz .
+rm -f /tmp/passhub.business.$timestamp.tgz
+tar czf /tmp/passhub.business.$timestamp.tgz --transform 's,^,passhub/,' $filelist
+mv /tmp/passhub.business.$timestamp.tgz .
 
 echo "Done"
