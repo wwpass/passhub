@@ -35,8 +35,9 @@ if (isset($_GET['check_mail'])) {
 
     $template = Template::factory('src/templates/registration_action.html');
     $template->add('success', true);
+} else if (defined('PUBLIC_SERVICE') && !isset($_SESSION['PUID'])) {
+    $template = Template::factory('src/templates/form_filled.html');
 } else {
-
     $top_template = Template::factory('src/templates/top.html');
     $top_template->add('hide_logout', !isset($_SESSION['PUID']))
         ->add('feedback_page', true)
