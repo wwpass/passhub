@@ -7,11 +7,17 @@ define('WWPASS_KEY_FILE', "/etc/ssl/yourcompany.com.key");
 // Path to the WWPass certificate authority file.
 define('WWPASS_CA_FILE', "config/wwpass_sp_ca.crt");
 
-// Email address to handle end-user support requests.
-define('SUPPORT_MAIL_ADDRESS', 'support@yourcompany.com');
-
 // Set to true to request PIN or biometrics each time user signs in, set to false otherwise.
 define('WWPASS_PIN_REQUIRED', true);
+
+// Session expiration timeout in seconds, prolonged automatically by user activity.
+define('WWPASS_TICKET_TTL', 1200);
+
+// User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
+define('IDLE_TIMEOUT', 540);
+
+// Email address to handle end-user support requests.
+define('SUPPORT_MAIL_ADDRESS', 'support@yourcompany.com');
 
 // Upper limits for allocated resources.
 define('MAX_USERS_PER_VAULT',2048);
@@ -22,14 +28,8 @@ define('MAX_FILENAME_LENGTH',40);
 define('MAX_URL_LENGTH',2048);
 define('MAX_NOTES_SIZE', 2000);
 
-// Session expiration timeout in seconds, prolonged automatically by user activity.
-define('WWPASS_TICKET_TTL', 1200);
-
-// User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
-define('IDLE_TIMEOUT', 540);
-
 // Sharing invitation expiration timeout, default 48 hours
-define('SHARING_CODE_TTL', 48*60*60);
+// define('SHARING_CODE_TTL', 48*60*60);
 
 // Path to PassHub log directory
 define('LOG_DIR', '/var/log/passhub');
