@@ -45,6 +45,13 @@
 <symbol id="i-folder" viewBox="0 0 24 24">
   <path d="M10,4H5A2,2,0,0,0,3,6V16a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2V8a2,2,0,0,0-2-2H12Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
 </symbol>
+<symbol id="i-folder_shared" viewBox="0 0 24 24">
+  <path d="M10,4H5A2,2,0,0,0,3,6V16a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2V8a2,2,0,0,0-2-2H12Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle cx="9.5" cy="10" r="0.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M12,15a3.9,3.9,0,0,0-2.5-1.25A3.9,3.9,0,0,0,7,15Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle cx="15" cy="10.8" r="0.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M17,15a3.13,3.13,0,0,0-2-1,2.91,2.91,0,0,0-.43.05,2.42,2.42,0,0,1,.29.95Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
 <symbol id="i-help" viewBox="0 0 24 24">
   <circle cx="12" cy="12" r="10" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
   <path d="M9,10a3,3,0,0,1,6,0c0,2.63-3,2.63-3,5" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>

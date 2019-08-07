@@ -72,7 +72,9 @@ const showSafes = () => {
   $('#safe_list_ul').empty();
   for (let i = 0; i < passhub.safes.length; i++) {
     const safe = passhub.safes[i];
-    let safeText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'><use xlink:href='img/SVG2/sprite.svg#i-folder'></use></svg>" + utils.escapeHtml(safe.name);
+    const safeIcon = safe.users > 1 ? 'sprite.svg?v=1#i-folder_shared' : 'sprite.svg#i-folder';
+    let safeText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'>"
+      + `<use xlink:href='img/SVG2/${safeIcon}'></use></svg>${utils.escapeHtml(safe.name)}`;
     if (safe.confirm_req > 0) {
       safeText += " <span class='badge confirmation_badge' style='float:none' >!</span>";
     } else {

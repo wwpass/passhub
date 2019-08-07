@@ -177,7 +177,10 @@ class User
         foreach ($mng_res as $row) {
             $id = $row->SafeID;
             $this->safe_array[$id] = new Safe($row);
-        }
+        
+            $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
+            $this->safe_array[$id]->user_count = count($safe_users);
+        } 
 
         /*
         $filter = [ 'UserID' => $this->UserID , 'valid' => true, 'RecipientID' => ['$ne' => null]];
@@ -258,7 +261,8 @@ class User
                 'confirmed' => $safe->isConfirmed(),
                 "key" => $safe->encrypted_key_CSE,
                 "items" => $items,
-                "folders" => $folders
+                "folders" => $folders,
+                "users" => $safe->user_count
             ];
             array_push($response, $safe_entry);
         }
