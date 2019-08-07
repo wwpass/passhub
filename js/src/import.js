@@ -205,11 +205,57 @@ function doRestoreCSV(text) {
   if (data.length < 2) {
     throw new Error('Bad file format: too short');
   }
-  const titles = data.shift();
-  if (titles.length !== 6) {
-    throw new Error(`Not a Passhub file: 6 fields are required in each line, found ${titles.length}`);
-  }
+
+
   const safes = [];
+
+  const titles = data.shift();
+
+  if (titles.length === 1) { // dashline?
+    const t = data.shift();
+    data.unshift(t);
+    if (t.length === 7) {
+      data.forEach((e) => {
+        if (e.length === 7) {
+          const e1 = [titles[0], e[0], e[2], e[5], e[1], e[6]];
+          addRecord(safes, e1);
+        }
+      });
+      return safes;
+    }
+  }
+
+  // url,username,password,extra,name,grouping,fav -- lastpass
+  if ((titles.length === 7)
+    && (titles[0] === 'url')
+    && (titles[1] === 'username')
+    && (titles[2] === 'password')
+    && (titles[3] === 'extra')
+    && (titles[4] === 'name')
+    && (titles[5] === 'grouping')
+    && (titles[6] === 'fav')) {
+
+    data.forEach((e) => {
+      addRecord(safes, ['lastpass', e[4], e[1], e[2], e[0], e[3]]);
+    });
+    return safes;
+  }
+
+  if ((titles.length === 4) // chrome
+    && (titles[0] === 'name')
+    && (titles[1] === 'url')
+    && (titles[2] === 'username')
+    && (titles[3] === 'password')) {
+    // chrome
+    data.forEach((e) => {
+      const e1 = ['chrome', e[0], e[2], e[3], e[1], ''];
+      addRecord(safes, e1);
+    });
+    return safes;
+  }
+  if (titles.length !== 6) {
+    throw new Error('Unknown file format');
+  }
   data.forEach((e) => {
     addRecord(safes, e);
   });

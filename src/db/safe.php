@@ -28,6 +28,7 @@ class Safe
     public $encrypted_key_CSE;
     public $confirm_req;
     public $user_role;
+    public $user_count;
 
     function __construct($row) {
         $this->id = $row->SafeID;
@@ -43,6 +44,7 @@ class Safe
         $this->encrypted_key = isset($row->encrypted_key) ? $row->encrypted_key:null;
         $this->encrypted_key_CSE = isset($row->encrypted_key_CSE) ? $row->encrypted_key_CSE:null;
         $this->confirm_req = 0;
+        $this->$user_count = 1;
     }
 
     function isConfirmed() {

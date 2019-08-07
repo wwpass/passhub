@@ -1,10 +1,10 @@
-import $ from 'jquery';
+// import $ from 'jquery';
 import * as WWPass from 'wwpass-frontend';
 
 let urlBase = window.location.href;
 urlBase = `${urlBase.substring(0, urlBase.lastIndexOf('/'))}/`;
 
-$('.passhub_url').text(urlBase);
+// $('.passhub_url').text(urlBase);
 
 function supportsHtml5Storage() {
   try {
@@ -45,7 +45,6 @@ function isSafariPrivateMode() {
       return true;
     }
   } else if (version === 10) {
-    const x = localStorage.length;
     if (localStorage.length) {
       return false;
     }
@@ -64,10 +63,12 @@ if (isSafariPrivateMode()) {
   window.location.href = 'error_page.php?js=SafariPrivateMode';
 }
 
-if ((window.location.protocol !== 'https:') && (window.location.hostname !== 'localhost') && !window.location.hostname.endsWith('.localhost')) {
-  window.location.href = 'notsupported.php?js=2';
-} else if (!compatibleBrowser()) {
-  window.location.href = 'notsupported.php?js=1';
+if (!navigator.userAgent.match(/electron/)) {
+  if ((window.location.protocol !== 'https:') && (window.location.hostname !== 'localhost') && !window.location.hostname.endsWith('.localhost')) {
+    window.location.href = 'notsupported.php?js=2';
+  } else if (!compatibleBrowser()) {
+    window.location.href = 'notsupported.php?js=1';
+  }
 }
 
 WWPass.authInit({

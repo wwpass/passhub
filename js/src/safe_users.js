@@ -41,10 +41,20 @@ function showUsers(result) {
           if (ul[i].status == 0) {
             li += '<button class="btn btn-default btn-sm confirm_vault_user" style="font-size:16px;">Confirm</button>';
           } else {
-            li += "<button class='btn btn-default btn-sm role_selector' type='button' style='font-size:16px; width: 7em; text-align: right;'>"
+            li += "<span class = 'role_selector'>"
+                    + "<span class='caret' style='margin: 0 5px'></span>"
+                    + `${role}</span>`;
+            /*
+            li += "<button class='btn btn-default btn-sm role_selector' type='button' 
+                   style='font-size:16px; width: 7em; text-align: right;'>"
             + role + "<span class='caret' style='margin-left:5px'></span></button>";
+            */
           }
+          li += "<span class = 'del_user'>"
+             + "Delete</span>";
+          /*
           li += '<button class="btn btn-default btn-sm delete_vault_user" style="font-size:16px;">Delete</button>';
+          */
           li += '</div>';
 
           li += '</div>';

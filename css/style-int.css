@@ -120,6 +120,21 @@ body {
   background-color:red;
 }
 
+/* users modal*/
+
+.role_selector {
+  cursor: pointer;
+  text-decoration: underline;
+  /* color: #0366d6; */
+  margin-right: 1em;
+}
+
+.del_user {
+  cursor: pointer;
+  text-decoration: underline;
+  /* color: #0366d6; */
+}
+
 
 /* item_list */
 
