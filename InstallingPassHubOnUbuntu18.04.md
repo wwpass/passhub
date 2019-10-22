@@ -417,7 +417,7 @@ For corporate use, a PassHub administrator should be assigned. The administrator
 
 The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
-## Advanced: store your encryptes files in the cloud
+## Advanced: store your encrypted files in the cloud
 
 It is well possible to keep all your encrypted files in the Amazon S3 compatible object storage service. This way, you increase the availability of your data and simplify storage configuration for distributed deployments of PassHub.
 
