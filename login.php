@@ -13,13 +13,25 @@
  */
 
 require_once 'config/config.php';
-//require_once 'src/lib/wwpass.php';
+
+if (!file_exists(WWPASS_KEY_FILE)) {
+    die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist</p>');
+}
+if (!file_exists(WWPASS_CERT_FILE)) {
+    die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist</p>');
+}
+
+if (!file_exists('vendor/autoload.php')) {
+    die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
+}
+
 require_once 'vendor/autoload.php';
 
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
 // require_once 'src/cookie.php';
 require_once 'src/template.php';
+require_once 'src/localized-template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -103,91 +115,6 @@ if ($incompatible_browser) {
     exit();
 }
 
-/*
-Andoird TAB
-Opera: ( does not fit)
-  Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.110 Safari/537.36 OPR/49.2.2361.134358
-Samsung Browser
-  Mozilla/5.0 (Linux; Android 7.0; SAMSUNG SM-T815 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/8.2 Chrome/63.0.3239.111 Safari/537.36
-Firefox on TAB
- Mozilla/5.0 (Android 7.0; Tablet; rv:64.0) Gecko/64.0 Firefox/64.0
-UC Browser
-(Linux; U; Android 7.0; en-US; SM-T815 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.108 UCBrowser/12.9.10.1159 Mobile Safari/537.36 
-*/
-
-function es6_compatible() {
-    global $iOS;
-    $es6_compatible = false;
-
-    if (preg_match("/Macintosh|Linux|Windows NT 10/", $_SERVER['HTTP_USER_AGENT']) 
-        || !preg_match("/Android/", $_SERVER['HTTP_USER_AGENT'])
-    ) {
-        if (preg_match("/ Chrome\/(\d{2}).* OPR\/(\d{2}).*/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 70) &&  ($matches[2] >= 57)) {
-                // opera
-                $es6_compatible = true;
-            }
-        } elseif (preg_match("/ Chrome\/(\d{2}).* YaBrowser\/(\d{2}).*/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 70) &&  ($matches[2] >= 18)) {
-                // YaBrowser
-                $es6_compatible = true;
-            }
-        } elseif (preg_match("/ Chrome\/(\d{2}).* Edge\/(\d{2}).*/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 64) &&  ($matches[2] >= 17)) {
-                // Edge
-                $es6_compatible = true;
-            }
-        } elseif (preg_match("/ Chrome\/(\d{2}).* Vivaldi\/(\d{1}).*/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 71) &&  ($matches[2] >= 2)) {
-                // Vivaldi
-                $es6_compatible = true;
-            }
-        } elseif (preg_match("/ Chrome\/(\d{2})/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 71)) {
-                // Chrome ? 
-                $es6_compatible = true;
-            }
-        } elseif (preg_match("/ Firefox\/(\d{2})/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 64)) {
-                // Firefox ? 
-                $es6_compatible = true;
-            }
-        }  
-    }
-
-    if ($iOS) {
-        if (preg_match("/ Version\/(\d{2}).* Safari\/(\d{3})/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 12) &&  ($matches[2] >= 604)) {
-                // Safari
-                $es6_compatible = true;
-            }
-        }
-    }
-    if (preg_match("/Macintosh/", $_SERVER['HTTP_USER_AGENT'])) {
-        if (preg_match("/ Version\/(\d{2}).* Safari\/(\d{3})/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
-            if (($matches[1] >= 12) &&  ($matches[2] >= 605)) {
-                // Safari
-                $es6_compatible = true;
-            }
-        }
-    }
-    // make it unconditional
-    
-    $es6_compatible = true;
-/*    
-    if ($es6_compatible) {
-        passhub_err(
-            "es6: " . $_SERVER['HTTP_USER_AGENT']
-        );
-    } else {
-        passhub_err(
-            "not es6: " . $_SERVER['HTTP_USER_AGENT']
-        );
-    }
-*/
-    return $es6_compatible;
-}
-
 if (isset($_SESSION['PUID'])) {
     header("Location: index.php");
     exit();
@@ -263,8 +190,6 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             $_SESSION['wwpass_ticket_renewal_time'] = time() + WWPASS_TICKET_TTL/2;
             $_SESSION['wwpass_ticket_creation_time'] = time();
 
-            $_SESSION['es6'] = es6_compatible();
-
             if (!isset($_REQUEST['wwp_hw'])) {
                 $_SESSION['PasskeyLite'] = true;
             }
@@ -279,34 +204,24 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
     }
 }
 
-$login_page_url = "src/templates/login.html";
 if (defined('LOGIN_PAGE')) {
-    $login_page_url = LOGIN_PAGE;
+    $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
+} else {
+    $login_template = Template::factory('src/templates/login.html');
 }
-if (isset($_SESSION['reg_code'])) {
 
+if (isset($_SESSION['reg_code'])) {
     $top_template = Template::factory('src/templates/top.html');
     $top_template->add('hide_logout', !isset($_SESSION['PUID']))
         ->add('narrow', true)
         ->render();
 
-    $login_page_url = "src/templates/login_reg.html";
+    $login_template = Template::factory('src/templates/login_reg.html');
 }
 
-$login_template = Template::factory($login_page_url);
 if (isset($err_msg)) {
     $login_template->add('err_msg', $err_msg);
 }
-
-/*
-$hideInstructions = sniffCookie('hideInstructions');
-if (!$hideInstructions) {
-    if (isset($_REQUEST['ref'])) {  // ?ref=ios-passkey-lite
-//        $hideInstructions = true;
-//        setcookie('hideInstructions', true, time() + SECONDS_IN_DAY * 50);
-    }
-}
-*/
 
 $login_template->add('complete_registration', isset($_SESSION['reg_code']))
     ->add('isAndroid', $isAndroid)

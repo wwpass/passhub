@@ -17,9 +17,13 @@
 if (defined('GOOGLE_CREDS')) {
     require_once 'src/google_drive_files.php';
 }
+if (defined('S3_CONFIG')) {
+    require_once 'src/s3_files.php';
+}
 
 function local_fs_upload($file_id, $content) {
 
+    //    passhub_err("uploading file $file_id length " . strlen($content));
     $fname = FILE_DIR . '/' . $file_id;
     if ($fh = fopen($fname, 'w')) {
         fwrite($fh, $content);
@@ -51,74 +55,95 @@ function local_fs_delete($file_id) {
 
 function file_upload($file_id, $data) {
 
-    if (defined('FILE_DIR') && !defined('GOOGLE_CREDS')) {
-        return local_fs_upload($file_id, $data);
-    } else if (!defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
-        return google_drive_upload($file_id, $data);
-    }
-    passhub_err("Error: no file storage configured");
-    error_page("Site is misconfigured. Consult system administrator");
+    try {
+        if (defined('FILE_DIR')) {
+            return local_fs_upload($file_id, $data);
+        }
+        if (defined('GOOGLE_CREDS')) {
+            return google_drive_upload($file_id, $data);
+        }
+        if (defined('S3_CONFIG')) {
+            return s3_upload($file_id, $data);
+        }
+        passhub_err("Error: no file storage configured");
+        return ["status" =>  "Site is misconfigured. Consult system administrator"];
+    }  catch(Exception $e) {
+        return ["status" =>  $e->getMessage()];
+    }      
 }
 
 function file_download($file_id) {
-
-    if (defined('FILE_DIR') && !defined('GOOGLE_CREDS')) {
-        return local_fs_download($file_id);
-    } else if (!defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
-        return google_drive_download($file_id);
-    }
-    passhub_err("Error: no file storage configured");
-    error_page("Site is misconfigured. Consult system administrator");
+    try {
+        if (defined('FILE_DIR')) {
+            return local_fs_download($file_id);
+        }
+        if (defined('GOOGLE_CREDS')) {
+            return google_drive_download($file_id);
+        }
+        if (defined('S3_CONFIG')) {
+            return s3_download($file_id);
+        }
+        passhub_err("Error: no file storage configured");
+        return ["status" =>  "Site is misconfigured. Consult system administrator"];
+    }  catch(Exception $e) {
+        return ["status" =>  $e->getMessage()];
+    }      
 }
 
 function file_delete($file_id) {
-
-    if (defined('FILE_DIR') && !defined('GOOGLE_CREDS')) {
-        return local_fs_delete($file_id);
-    } else if (!defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
-        return google_drive_delete($file_id);
-    }
-    passhub_err("Error: no file storage configured");
-    error_page("Site is misconfigured. Consult system administrator");
+    try {
+        if (defined('FILE_DIR')) {
+            return local_fs_delete($file_id);
+        }
+        if (defined('GOOGLE_CREDS')) {
+            return google_drive_delete($file_id);
+        }
+        if (defined('S3_CONFIG')) {
+            return s3_delete($file_id);
+        }
+        passhub_err("Error: no file storage configured");
+        return ["status" =>  "Site is misconfigured. Consult system administrator"];
+    }  catch(Exception $e) {
+        return ["status" =>  $e->getMessage()];
+    }      
 }
 
 function create_file_item_cse($mng, $UserID, $SafeID, $folder, $meta, $file) {
 
     if (can_write($mng, $UserID, $SafeID) == false) {
         passhub_err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
-        return "Not enough rights";
+        return "Sorry you do not have editor rights for this safe";
     }
 
-    $file_id = new MongoDB\BSON\ObjectID();
-    $file_id = (string)$file_id;
-
-
-    $meta_js = json_decode($meta);
     $file_js = json_decode($file);
-
     $data = base64_decode($file_js->data, true);
-    // $data = $file_js->data;
 
     if (!defined('MAX_FILE_SIZE')) {
-        $max_file_size = 5;
+        $max_file_size = 5 * 1024 * 1024;
     } else {
         $max_file_size = MAX_FILE_SIZE;
     }
     passhub_err("upload file size " . strlen($data));
-    if (strlen($data) > $max_file_size*1024*1024) {
-        return ['status' => "File size exceeds " . $max_file_size . " MBytes"];
+    if (strlen($data) > $max_file_size) {
+        return ['status' => "File size exceeds " . humanReadableFileSize($max_file_size)];
     }
 
-    if (defined('MAX_STORAGE')) {
-        $result = getAcessibleStorage($mng, $UserID);
+    if (defined('MAX_STORAGE_PER_USER')) {
+        $result = used_resources($mng, $UserID);
         if ($result['status'] == "Ok") {
-            if ($result['total'] +  strlen($data) > MAX_STORAGE*1024*1024) {
-                return ['status' => "No room to store file, used " . (int)($result['total']/1024/1024) . " out of ". MAX_STORAGE . " MBytes"];
+            if ($result['used'] +  strlen($data) > $result['maxStorage']) {
+                return ['status' => "No room to store the file, used " 
+                . humanReadableFileSize($result['used']) . " out of ". humanReadableFileSize($result['maxStorage'])];
             }
         } else {
             return $result;
         }
     }
+
+    $file_id = new MongoDB\BSON\ObjectID();
+    $file_id = (string)$file_id;
+    
+    $meta_js = json_decode($meta);
 
     $result = file_upload($file_id, $data);
     if ($result['status'] != "Ok") {

@@ -15,7 +15,7 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
+require_once 'src/localized-template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -25,25 +25,23 @@ setDbSessionHandler($mng);
 
 session_start();
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('hide_logout', !isset($_SESSION['PUID']))
-    ->add('help_page', true)
-    ->add('narrow', true)
+if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+    $template = LocalizedTemplate::factory('help-public.html');
+    $template
+        ->add('hide_logout', !isset($_SESSION['PUID']))
+        ->add('help_page', true)
+        ->add('narrow', true);
+
+    if (!isset($_SESSION['PUID'])) {
+        $template->add('google_analytics', true);
+    }
+    $template->render();
+    exit();
+
+}
+
+$top_template = Template::factory('src/templates/top.html')
     ->render();
 
-if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-    $help_template = Template::factory('src/templates/help-pub.html');
-} else {
-    $help_template = Template::factory('src/templates/help.html');
-
-}  
-
-$help_template->render();
-
-?>
-
-</div>
-</div>
-
-</body>
-</html>
+$template = Template::factory('src/templates/help.html')
+    ->render();

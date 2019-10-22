@@ -122,15 +122,43 @@ function error_page($message) {
     exit();
 }
 
+function message_page($title, $content) {
+    $top_template = Template::factory('src/templates/top.html');
+    $top_template->add('narrow', true)
+        ->render();
+    $message_template = Template::factory('src/templates/message_page.html')
+        ->add('title', $title)
+        ->add('content', $content)
+        ->render();
+    echo "      </div>";    
+    echo "    </div>";    
+    echo "  </body>";
+    echo "</html>";
+    exit();
+} 
+
 function sendLocalServer($to, $subject, $body) {
-    error_log('sendLocalServer');
-    $header  = 'MIME-Version: 1.0' . "\r\n";
+
+    $header = 'MIME-Version: 1.0' . "\r\n";
+    if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
+        $header  .= 'From: ' . SENDMAIL_FROM . "\r\n";
+        $header  .= 'Return-Path: ' . SENDMAIL_FROM . "\r\n";
+    } else if (isset($_POST['host'])) {
+        $header  .= 'From: noreply@' . htmlspecialchars($_POST['host']) . "\r\n";
+    }
     $header .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
     $header .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
     if (!mb_detect_encoding($subject, 'ASCII', true)) {
         $subject = '=?UTF-8?B?'.base64_encode($subject).'?=';
     }
-    $result = mail($to, $subject, $body, $header);
+
+    if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
+        $result = mail($to, $subject, $body, $header, '-f' . SENDMAIL_FROM); 
+    } else {
+        $result = mail($to, $subject, $body, $header); 
+    }
+
+    error_log('sendLocalServer ' . ( $result ? 'Ok' : 'fail'));
     return $result ? ['status' => 'Ok'] : ['status' => 'fail'];
 }
 
@@ -163,4 +191,27 @@ function sendMail($to, $subject, $body) {
         return sendSMTP($to, $subject, $body);
     }
     return sendLocalServer($to, $subject, $body);
+}
+
+/*
+function humanReadableFileSize( $bytes) {
+    if ($bytes < 10*1024) {
+        return $bytes . " Bytes";
+    }
+    if ($bytes < 10*1024*1024) {
+        return (int)($bytes/1024) . " kB";
+    }
+    return (int)($bytes/1024/1024) . " MB";
+}
+*/
+
+function humanReadableFileSize($bytes)
+{
+    if ($bytes == 0)
+        return "0 B";
+
+    $s = array(' B', ' KB', ' MB', ' GB', ' TB', ' PB');
+    $e = floor(log($bytes, 1024));
+
+    return round($bytes/pow(1024, $e), 2).$s[$e];
 }

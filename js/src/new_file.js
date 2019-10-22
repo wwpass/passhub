@@ -2,6 +2,7 @@ import forge from 'node-forge';
 import $ from 'jquery';
 import progress from './progress';
 import passhubCrypto from './crypto';
+import './account';
 
 let aesKey = '';
 
@@ -34,6 +35,29 @@ function cancelForm() {
   return 0;
 }
 
+/*
+function humanReadableFileSize(size) {
+  let units = ' Bytes';
+  if (size > 10 * 1024 * 1024) {
+    size = Math.round(size / 1024 / 1024);
+    units = ' MBytes';
+  } else if (size > 10 * 1024) {
+    size = Math.round(size / 1024);
+    units = ' kBytes';
+  }
+  return size.toLocaleString() + units;
+}
+*/
+
+function humanReadableFileSize(size) {
+  if (size < 1024) return `${size} B`;
+  const i = Math.floor(Math.log(size) / Math.log(1024));
+  let num = (size / Math.pow(1024, i));
+  const round = Math.round(num);
+  num = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round
+  return `${num} ${'KMGTPEZY'[i-1]}B`;
+}
+
 function submitForm() {
   $('#alert_message').hide();
   const curFiles = document.querySelector('#fileinput_id').files;
@@ -42,10 +66,17 @@ function submitForm() {
     return;
   }
   const theFile = curFiles[0];
-  if (theFile.size > new_file.maxFileSize * 1024 * 1024) {
-    $('#alert_message').html(`File too large. Size limit is ${new_file.maxFileSize} MBytes`).show();
+  if (theFile.size > new_file.maxFileSize) {
+    $('#alert_message').html(`File too large. Max file size is ${humanReadableFileSize(new_file.maxFileSize)}`).show();
     return;
   }
+  
+  const spareStorage = new_file.storage.maxStorage - new_file.storage.used; 
+  if (theFile.size > spareStorage) {
+    $('#alert_message').html(`File too large. Spare storage size is ${humanReadableFileSize(spareStorage)}`).show();
+    return;
+  }
+
   $('#save_button').hide();
   $('#cancel_button').hide();
   const reader = new FileReader();
@@ -123,4 +154,10 @@ $(document).ready(() => {
     $('input').css('font-size', '16px');
     $('textarea').css('font-size', '16px');
   }
+  const { storage } = new_file;
+  let text = `Storage used: ${humanReadableFileSize(storage.used)}`;
+  if ('maxStorage' in storage) {
+    text += ` out of  ${humanReadableFileSize(storage.maxStorage)}`;
+  }
+  document.querySelector('#storage_used').innerHTML = text;
 });

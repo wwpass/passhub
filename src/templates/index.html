@@ -1,9 +1,9 @@
-<div class="col-lg-3 col-md-4 col-sm-5 col-xs-12 vaults_pane" id="vault_list" style='padding-right:0; padding-left:0'>
+<div class="d-md-block col-xl-3 col-lg-4 col-md-5 col-sm-12 vaults_pane" id="vault_list" style='padding-right:0; padding-left:0'>
         <div class='vaults_scroll_control' id='safe_list_ul'></div>
-    <div id="vlist_controls" style='padding-right:15px; padding-left:15px'>
+    <div id="vlist_controls" style='padding:15px;'>
         <button type="button" class = "btn btn-vault" style="width:100%" data-toggle="modal" data-target="#newSafe">New Password Safe</button>
-        <div><span style="margin:20px auto; display:table">
-            <?php if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
+        <div><span style="margin:20px auto 0 auto; display:table">
+            <?php if (!defined('MAIL_DOMAIN')) { ?>
             <a href="#"  data-toggle="modal" data-target="#fromInviteSafe" style="color:white; text-decoration: underline;"> Accept&nbsp;invitation</a>
             <?php } ?>
             <a href="#"  data-toggle="modal" data-target="#restoreModal" style="color:white; text-decoration: underline; margin-left: 10px;">Import</a>
@@ -15,6 +15,7 @@
         </span></div>
     </div>
 </div>
+
 <div id="csrf" data-csrf='<?php echo $csrf ?>' style='display:none'></div>
 
 <?php if (isset($active_folder)) { ?>
@@ -23,19 +24,20 @@
 
 <a id="mailhref"></a>
 
-<div class="hidden-xs hidden-sm hidden-md hidden-lg btn-group table_pane" id="table_pane_nav" role="group">
-    <div class='folder_back' style='float:left;  width:20%; ; padding-left:10px; cursor: pointer'>
-        <svg width='30' height='30' style='stroke:white; float:left; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#ar-back'></use></svg>
-    </div>
-    <div style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%' id = "safe_and_folder_name">
-    </div>
-    <a href='#'  style='float:right; width:20%; padding-right:10px' id='item_list_folder_menu' >
-        <svg width='30' height='30' style='stroke:white; float:right; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#el-dots'></use></svg>
-    </a>
-</div>
 
-<div class="col-lg-9 col-md-8 col-sm-7 hidden-xs table_pane right_radius" id="table_pane_body"
- style="padding-right:0; padding-left:0; min-height:200px;" >
+<div class="col-xl-9 col-lg-8 col-md-7 d-none d-md-block table_pane right_radius" id="table_pane_body"
+ style="padding-right:0; padding-left:0; height: 100%;" >
+
+    <div class="d-none d-md-none btn-group table_pane" id="table_pane_nav" role="group">
+        <div class='folder_back' style='float:left;  width:20%; ; padding-left:10px; cursor: pointer'>
+            <svg width='30' height='30' style='stroke:white; float:left; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#ar-back'></use></svg>
+        </div>
+        <div style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%' id = "safe_and_folder_name">
+        </div>
+        <a href='#'  style='float:right; width:20%; padding-right:10px' id='item_list_folder_menu' >
+            <svg width='30' height='30' style='stroke:white; float:right; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#el-dots'></use></svg>
+        </a>
+    </div>
 
     <div  class = "not_confirmed_safe" style="margin:20px; display:none">
         <p >You have successfully accepted the invitation.<br> Please wait until the owner of the safe confirms your access rights</p>
@@ -44,14 +46,17 @@
 
     <div class="table_scroll_control confirmed_safe" style="display:none">
         <table class="table table-hover table-stipe records_table" id="records_table" >
-            <thead class="hidden-xs" ><tr>
-                    <th class="col-md-2 col-sm-2">Title</th>
-                    <th class="col-md-1 col-sm-1" style="overflow: hidden; text-overflow: ellipsis; ">Login password</th>
-                    <th class="col-md-2 col-sm-2 hidden-xs">URL</th>
-<!--                    <th class="col-md-3 hidden-sm hidden-xs">Notes</th> -->
-                    <th class="col-md-3 hidden-sm hidden-xs">Modified</th>
+
+            <thead class="d-none d-md-table-row" >
+                <tr class="d-flex">
+                    <th class="col-xl-6 col-lg-7 col-md-12">Title</th>
+<!--                    <th class="col-lg-2  d-none d-lg-table-cell" style="overflow: hidden; text-overflow: ellipsis; ">Login password</th>
+-->
+                    <th class="col-xl-3 col-lg-5 d-none d-lg-table-cell">URL</th>
+                    <th class="col-xl-3 d-none d-xl-table-cell">Modified</th>
                 </tr>
             </thead>
+
             <tbody id="item_list_tbody">
             </tbody>
         </table>
@@ -68,84 +73,119 @@
     </div>
 -->
 </div>
-
-<div class="hidden-xs hidden-sm hidden-md hidden-lg btn-group item_pane" role="group" 
-  style="width:100%;background-color: #dae6f2; color:#333; font-size:18px; padding:15px 0 10px 0">
-    <div class='item_back' style='float:left;  width:20%; ; padding-left:10px;  cursor: pointer'>
-        <svg width='30' height='30' style='stroke:#333; float:left; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#ar-back'></use></svg>
+<div  class="d-none col-12 d-md-none item_pane" style="padding:0" >
+    <div class="col-12 d-md-none btn-group item_pane_nav" role="group">
+        <div class='item_back' style='float:left;  width:20%; ; padding-left:10px;  cursor: pointer'>
+            <svg width='30' height='30' style='stroke:#333; float:left; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#ar-back'></use></svg>
+        </div>
+        <div id="item_pane_title" style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%'>
+        </div>
+        <a href='#'  style='float:right; width:20%; padding-right:10px' class='record_title'  id="item_pane_menu">
+            <svg width='30' height='30' style='stroke:#333; float:right; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#el-dots'></use></svg>
+        </a>
     </div>
-    <div id="item_pane_title" style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%'>
+
+    <div class="col-12 d-md-none" style="background:white; padding-top:20px;">
+
+    <div class="alert alert-info alert-dismissible" role="alert"  style="display:none">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <span id="alert_info_text">XXXX</span>
     </div>
-    <a href='#'  style='float:right; width:20%; padding-right:10px' class='record_title'  id="item_pane_menu">
-        <svg width='30' height='30' style='stroke:#333; float:right; vertical-align:middle;'><use xlink:href='img/SVG2/sprite.svg#el-dots'></use></svg>
-    </a>
-</div>
 
-<div class="item_pane col-xs-12 hidden-xs hidden-sm hidden-md hidden-lg" style="background:white; padding-top:20px;">
+    <div class="modified" style='font-style: italic; text-align: right;'>
 
-<div class="alert alert-info alert-dismissible" role="alert"  style="display:none">
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-  <span id="alert_info_text">XXXX</span>
-</div>
+    </div>
 
-<div class="modified" style='font-style: italic; text-align: right;'>
+    <div class="file_item">
+        <span class="item_field_label">File name</span><br>
+        <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file">item_pane_file</span></div>
+        <span class="item_field_label">Size</span><br>
+        <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_size">item_pane_file_size</span></div>
+    <!--
+        <span class="item_field_label">Date</span><br>
+        <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_date">item_pane_file_date</span></div>
+    -->
+        <button type="button" class="btn btn-primary" id="item_pane_download_button">Download</button>
+    </div>
 
-</div>
-
-<div class="file_item">
-    <span class="item_field_label">File name</span><br>
-    <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file">item_pane_file</span></div>
-    <span class="item_field_label">Size</span><br>
-    <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_size">item_pane_file_size</span></div>
+    <div class="regular_item">
+        <div class = "note_hidden">
+            <span class="item_field_label">Username</span><br>
 <!--
-    <span class="item_field_label">Date</span><br>
-    <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_date">item_pane_file_date</span></div>
+            <div class="input-group item_pane_username_div" style="margin:2px 0 10px; width:100%">
+                <span class="input-group-btn" id="item_pane_copy_username">
+                <button class="btn btn-default" type="button" id="copy_username">Copy</button>
+                </span>
+
+                <input type="text" class="form-control item_input" name="username" id="item_pane_username" readonly
+                style="font-family: '<?php echo $password_font ?>'">
+            </div>
 -->
-    <button type="button" class="btn btn-primary" id="item_pane_download_button">Download</button>
-</div>
+            <div class="input-group" style="margin:2px 0 10px; width:100%">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="item_pane_copy_username" style="cursor:pointer;">
+                      Copy
+                    </span>
+                </div>
+                <input type="text" readonly class="form-control item_input" name="username" id="item_pane_username" 
+                style="font-family: '<?php echo $password_font ?>'" >
+            </div>
 
-<div class="regular_item">
-    <div class = "note_hidden">
-        <span class="item_field_label">Username</span><br>
 
-        <div class="input-group item_pane_username_div" style="margin:2px 0 10px; width:100%">
-            <span class="input-group-btn" id="item_pane_copy_username">
-            <button class="btn btn-default" type="button" id="copy_username">Copy</button>
-            </span>
+            <div class="item_pane_username_dummy" style="height:16px; display:none">
+            </div>
 
-            <input type="text" class="form-control item_input" name="username" id="item_pane_username" readonly
-            style="font-family: '<?php echo $password_font ?>'">
+
+            <span class="item_field_label">Password</span><br>
+
+<!--
+            <div class="input-group item_pane_password_div" style="margin:2px 0 10px;">
+                <span class="input-group-btn" id="item_pane_copy_password">
+                <button class="btn btn-default" type="button" id="copy_password">Copy</button>
+                </span>
+                <input type="password" class="form-control item_input" name="password" id="item_pane_password" readonly
+                style="font-family:  '<?php echo $password_font ?>'">
+                <span class="input-group-btn">
+
+                <button class=" icon_flat_button toggle_pw_button" style="margin-left:1px" onclick="toggle_pw()">
+                    <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
+                </button>
+                </span>
+            </div>
+-->
+            <div class="input-group" style="margin:2px 0 10px;">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="item_pane_copy_password" style="cursor:pointer;">
+                    Copy
+                  </span>
+                </div>
+
+
+                <input type="password" readonly  class="form-control item_input" id="item_pane_password"
+                style="font-family:  '<?php echo $password_font ?>'">
+
+                <div class="input-group-append">
+                  <span class="input-group-text toggle_pw_button" 
+                  style="cursor:pointer;">
+                      <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
+                  </span>
+                </div>
+            </div>
+
+
+
+
+            <div class="item_pane_password_dummy" style="height:16px; display:none">
+            </div>
+
+            <span class="item_field_label">URL</span><br>
+            <div id="item_pane_url">item_pane_url</div>
+        </div>
+        <span class="item_field_label">Notes</span><br>
+        <div style="white-space: pre-wrap; overflow: auto; margin:2px 0 10px; padding:12px; font-size:16px;" id="item_pane_notes">item_pane_notes</div>
 
         </div>
-        <div class="item_pane_username_dummy" style="height:16px; display:none">
-        </div>
-
-
-        <span class="item_field_label">Password</span><br>
-        <div class="input-group item_pane_password_div" style="margin:2px 0 10px;">
-
-            <span class="input-group-btn" id="item_pane_copy_password">
-            <button class="btn btn-default" type="button" id="copy_password">Copy</button>
-            </span>
-            <input type="password" class="form-control item_input" name="password" id="item_pane_password" readonly
-            style="font-family:  '<?php echo $password_font ?>'">
-            <span class="input-group-btn">
-
-            <button class=" icon_flat_button toggle_pw_button" style="margin-left:1px" onclick="toggle_pw()">
-                <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
-            </button>
-            </span>
-        </div>
-        <div class="item_pane_password_dummy" style="height:16px; display:none">
-        </div>
-
-        <span class="item_field_label">URL</span><br>
-        <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" id="item_pane_url">item_pane_url</div>
-    </div>
-    <span class="item_field_label">Notes</span><br>
-    <div style="white-space: pre-wrap; overflow: auto; margin:2px 0 10px; padding:12px; font-size:16px;" id="item_pane_notes">item_pane_notes</div>
-
     </div>
 </div>

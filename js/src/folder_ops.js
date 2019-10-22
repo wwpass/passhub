@@ -110,6 +110,7 @@ $('#deleteFolderBtn').click(() => {
       }
       if (result.status === 'Folder not empty') {
         $('#not_empty_warning').show();
+        $('#delete_folder_warning').hide();
         return;
       }
       if (result.status === 'login') {
@@ -159,12 +160,14 @@ $('#deleteFolderModal').on('show.bs.modal', () => {
   $('#folder_to_delete').text('');
   $('#not_empty_stats').hide();
   $('#not_empty_warning').hide();
+  $('#delete_folder_warning').show();
+
   $('#deleteFolderBtn').show();
   $('#deleteFolderCancelBtn').show();
   $('#deleteFolderCloseBtn').hide();
   for (let i = 0; i < passhub.currentSafe.folders.length; i++) {
     if (passhub.currentSafe.folders[i]._id == passhub.activeFolder) {
-      $('#folder_to_delete').text(passhub.currentSafe.folders[i].cleartext[0]);
+      $('.folder_to_delete').text(passhub.currentSafe.folders[i].cleartext[0]);
       parentFolder = passhub.currentSafe.folders[i].parent;
     }
   }

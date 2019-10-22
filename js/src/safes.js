@@ -25,10 +25,10 @@ const showFolders = (folders, indent, folderPath) => {
       const folderText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'><use xlink:href='img/SVG2/sprite.svg#i-folder'></use></svg>" + utils.escapeHtml(folders[f].cleartext[0]);
       let row;
       if (passhub.activeFolder == folders[f]._id) { // active
-        row = `<div class=' hidden-xs list-item-vault-active folder_with_menu'  data-folder-id='${folders[f]._id}' style = 'padding-left:${5 + indent}px'>`;
+        row = `<div class=' d-none d-md-block list-item-vault-active folder_with_menu'  data-folder-id='${folders[f]._id}' style = 'padding-left:${5 + indent}px'>`;
         row += `${folderText} ${dots}</div>`;
       } else {
-        row = `<div class='hidden-xs list-item-vault folder-click' data-folder-id='${folders[f]._id}' style ='padding-left:${5 + indent}px'>${folderText}</div>`;
+        row = `<div class='d-none d-md-block list-item-vault folder-click' data-folder-id='${folders[f]._id}' style ='padding-left:${5 + indent}px'>${folderText}</div>`;
       }
       $('#safe_list_ul').append(row);
       if ((folderPath.length > 1) && (folderPath[1] == folders[f]._id)) {
@@ -59,15 +59,6 @@ function createPath(node) {
   return path;
 }
 
-function searchOff() {
-  if (passhub.searchMode) {
-    passhub.searchMode = false;
-    $('.search_div').hide();
-    setActiveFolder(passhub.activeFolder);
-    passhub.indexPageResize();
-  }
-}
-
 const showSafes = () => {
   $('#safe_list_ul').empty();
   for (let i = 0; i < passhub.safes.length; i++) {
@@ -76,9 +67,9 @@ const showSafes = () => {
     let safeText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'>"
       + `<use xlink:href='img/SVG2/${safeIcon}'></use></svg>${utils.escapeHtml(safe.name)}`;
     if (safe.confirm_req > 0) {
-      safeText += " <span class='badge confirmation_badge' style='float:none' >!</span>";
+      safeText += " <span class='badge badge-pill badge-light' style='float:none' >!</span>";
     } else {
-      safeText += " <span class='badge confirmation_badge' style='float:none;display:none'>!</span>";
+      safeText += " <span class='badge badge-pill badge-light' style='float:none;display:none'>!</span>";
     }
     const arrowForward = "<svg width='24' height='24' style='stroke:white; vertical-align:middle; float:right;'>"
     + "<use xlink:href='img/SVG2/sprite.svg#ar-forward'></use></svg>";
@@ -86,20 +77,20 @@ const showSafes = () => {
     let row;
     if (safe.id === passhub.currentSafe.id) {
       if (safe.key) { // safe confirmed
-        row = `<div class='visible-xs list-item-vault-active safe' data-safe-id='${safe.id}'>`;
+        row = `<div class='d-md-none list-item-vault-active safe' data-safe-id='${safe.id}'>`;
         row += `${safeText} ${arrowForward}</div>`;
 
         if (passhub.activeFolder == 0) {
-          row += `<div class='hidden-xs list-item-vault-active vault_with_menu' data-safe-id='${safe.id}'>`;
+          row += `<div class='d-none d-md-block list-item-vault-active vault_with_menu' data-safe-id='${safe.id}'>`;
           row += `${safeText} ${dots}</div>`;
         } else {
-          row += `<div class='hidden-xs list-item-vault safe' data-safe-id='${safe.id}'>`;
+          row += `<div class='d-none d-md-block list-item-vault safe' data-safe-id='${safe.id}'>`;
           row += `${safeText}</div>`;
         }
       } else {
-        row = `<div class=' visible-xs list-item-vault-active safe' data-safe-id='${safe.id}'>${safeText}`;
-        row += "<span class='visible-xs-inline glyphicon glyphicon-menu-right' aria-hidden='true' style='float:right;'></span></div>";
-        row += `<div class=' hidden-xs list-item-vault-active safe' data-safe-id='${safe.id}'>${safeText}</div>`;
+        row = `<div class=' d-md-none list-item-vault-active safe' data-safe-id='${safe.id}'>${safeText}`;
+        row += "<span class=' glyphicon glyphicon-menu-right' aria-hidden='true' style='float:right;'></span></div>";
+        row += `<div class=' d-none d-md-block list-item-vault-active safe' data-safe-id='${safe.id}'>${safeText}</div>`;
       }
       $('#safe_list_ul').append(row);
       if (safe.key) { // safe confirmed
@@ -113,6 +104,29 @@ const showSafes = () => {
   }
 };
 
+
+function searchOff() {
+  if (passhub.searchMode) {
+    passhub.searchMode = false;
+    $('.search_div').hide();
+    $('.confirmed_safe_buttons').show();
+    setActiveFolder(passhub.activeFolder);
+    passhub.indexPageResize();
+  }
+}
+
+$('.search_switch').click(() => {
+  if (!passhub.searchMode) {
+    passhub.searchMode = true;
+    $('.confirmed_safe_buttons').hide();
+    $('.search_div').show();
+    $('#search_string').focus();
+    passhub.indexPageResize();
+  } else {
+    searchOff();
+  }
+});
+
 function safeOnClick() {
   const id = $(this).attr('data-safe-id');
   if (id != passhub.currentSafe.id) {
@@ -120,7 +134,7 @@ function safeOnClick() {
     setActiveFolder(passhub.activeFolder);
     passhub.makeCurrentVaultVisible();
     searchOff();
-  } else if (passhub.activeFolder !=0) {
+  } else if (passhub.activeFolder != 0) {
     passhub.activeFolder = 0;
     setActiveFolder(passhub.activeFolder);
     passhub.makeCurrentVaultVisible();
@@ -141,7 +155,7 @@ const setItemPaneHeader = () => {
   if (!passhub.activeFolder || (passhub.activeFolder === '0')) {
     let safeText = utils.escapeHtml(passhub.currentSafe.name);
     if (passhub.currentSafe.confirm_req > 0) {
-      safeText += " <span class='badge confirmation_badge' >!</span>";
+      safeText += " <span class='badge badge-pill badge-light' >!</span>";
     }
     $('#safe_and_folder_name').html(safeText);
   } else {
@@ -191,12 +205,14 @@ const safeMenu = {
   delay: 100,
   autoHide: true,
   items: {
+    /*
     add_folder: {
       name: 'Add folder',
       callback: () => {
         $('#newFolderModal').modal('show');
       },
     },
+    */
     share: {
       name: 'Share',
       callback: () => {
@@ -212,7 +228,7 @@ const safeMenu = {
       },
     },
     users_red: {
-      name: "Users <span class='badge confirmation_badge_red' >!</span>",
+      name: "Users <span class='badge badge-pill badge-danger' >!</span>",
       isHtmlName: true,
       visible: () => passhub.currentSafe.confirm_req,
       callback: () => {
@@ -300,12 +316,14 @@ const folderMenu = {
   delay: 100,
   autoHide: true,
   items: {
+    /*
     add_folder: {
       name: 'Add folder',
       callback: () => {
         $('#newFolderModal').modal('show');
       },
     },
+    */
     rename: {
       name: 'Rename',
       callback: () => {
@@ -392,19 +410,6 @@ $('.do_search').click(() => {
   }
 });
 
-$('.search_switch').click(() => {
-  if (passhub.searchMode) {
-    passhub.searchMode = false;
-    $('.search_div').hide();
-    setActiveFolder(passhub.activeFolder);
-    passhub.indexPageResize();
-  } else {
-    passhub.searchMode = true;
-    $('.search_div').show();
-    $('#search_string').focus();
-    passhub.indexPageResize();
-  }
-});
 
 $('.export_all').click(() => {
   passhub.exportSafe = null;

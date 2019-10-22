@@ -26,9 +26,9 @@ function passhub_url_base() {
 
 const isXs = () => {
   if ($('#xs_indicator').is(':visible')) {
-    return false;
+    return true;
   }
-  return true;
+  return false;
 };
 
 function serverLog(msg) {

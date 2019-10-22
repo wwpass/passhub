@@ -29,18 +29,27 @@ passhub_err(
     . 'agent ' . $_SERVER['HTTP_USER_AGENT']
 );
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('narrow', true)
+Template::factory('src/templates/top.html')
+    ->add('narrow', true)
     ->render();
 
 $error_template = Template::factory('src/templates/error_page.html');
 
 if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
-    $error_template->add('js', $_GET['js']);
-    $error_template->render();
+
+    $header = "Your Safari browser is&nbsp;in Private mode";
+    $text = "<p style = 'font-size: larger'>Please follow"
+        . " <a href = 'https://support.apple.com/en-us/HT203036'>Apple's instructions</a>"
+        . " to&nbsp;return to&nbsp;normal mode</p>"
+        . "<p>Private mode is not compatible with Passhub, some important browser functions are disabled</p>";
+    $error_template->add('header', $header)
+        ->add('text', $text)
+        ->render();
 } else {
-    $header = "Internal Server Error";
+    $header = "Error";
+    $text=$_SESSION['error_message'];
     $js387 = false;
+
     if (isset($_GET['js']) ) {
         if ($_GET['js'] == 387) {
             $header = "Error 387";
@@ -57,23 +66,31 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
                     || stripos($_SERVER['HTTP_USER_AGENT'], "iPad")
                     || stripos($_SERVER['HTTP_USER_AGENT'], "Android")
                 ) {
-                        $js387 = 'mobile';
+                    $js387 = 'mobile';
                 }
             }
             passhub_err("Error 387:" . $_SESSION['error_message']);
+            $text = "<p>Possible reasons</p>"
+                . "<ul>"
+                . "<li>your browser is in private (incognito) mode</li>"
+                . "<li>you started PassHub in non-default browser</li>"
+                . "</ul>"
+                . "<p>Try again in this (default) browser</p>";
+
         } else if ($_GET['js'] == 'timeout') {
             $header = "Crypto operation takes too long";
-            $_SESSION['error_message'] = 'Try to relogin later or check your network quality. (Your data is safe)';
+            $text = $_SESSION['error_message'] = 'Try to relogin later or check your network quality. (Your data is safe)';
             passhub_err("Crypto timeout");
         } else {
             $header = "Internal server error";
-            $_SESSION['error_message'] = 'Consult system administrator';
+            $text=$_SESSION['error_message'] = 'Consult system administrator';
         }
     }
     passhub_err("error_page message: " . $_SESSION['error_message']);
     $error_template->add('header', $header);
+
     if (isset($_SESSION['error_message']) && (trim($_SESSION['error_message']) != "")) {
-        $error_template->add('text', $_SESSION['error_message']);
+        $error_template->add('text', '<p>' . $text . '</p>');
         $error_template->add('js387', $js387);
     } else {
         passhub_err("error_page 35");

@@ -148,8 +148,19 @@ function removeWhiteMailList($mng, $email) {
     whiteMailList($mng);
 }
 
-function is_invited($mng, $email) {
+function is_authorized($mng, $email) {
 
+    $mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
+    
+    if ($mail_domains[0] === "any") {
+        return true;
+    }
+
+    $parts = explode("@", $email);
+    if (in_array(strtolower($parts[1]), $mail_domains)) {
+        return true;
+    }
+    // is invited:
     $cursor = $mng->mail_invitations->find(['email' => strtolower($email)]);
 
     foreach ( $cursor as $row) {

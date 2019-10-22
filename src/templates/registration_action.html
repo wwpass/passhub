@@ -1,26 +1,29 @@
-<div class="col-md-2">
-</div>
-<div class="col-md-8 phub-dialog"  style="padding:20px 0">
-<?php if($success) { ?>
-    <h1  style="text-align:center">Check Your Mailbox</h1>
-    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
-        We've sent a verification message to 
-        <i><b><?php echo $email?></b></i>
-    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
-        Click on the link in the message to activate your account.
-    </p>
-    <p style="text-align:center; margin:30px 0 20px; font-size: 16px;">
-        If you do not receive this email, check your Spam e-mail folder.
-    </p>
-<?php  } else { ?>
+
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1>Check Your Mailbox</h1>
+    </div>
+    <div class="card-body">
+        <div style="max-width:40em; margin: 0 auto">
+            <p style="margin:30px 0 20px;">
+                We've sent a verification message to 
+                <i><b><?php echo $email?></b></i>
+            </p>    
+            <p style="margin:30px 0 20px;">
+                Click on the link in the message to activate your account.<br>
+                If you do not receive this email, check your Spam e-mail folder 
+                or <a href="feedback.php">contact us.</a>
+            </p>
+        </div>
+        <button class="btn btn-primary" type="button" style="float:right; margin-right:1em" 
+          onclick="window.location.href='logout.php'">Close
+        </button>
+    </div>
+            
+
+<?php if(!$success) { ?>
     <h3>Sorry, there was a problem sending a verification mail</h3>
     <h4> Please try again later</h4>
-<?php   }  ?>
-    <p style="display: flex; justify-content: center;">
-        <button type="button" class="btn btn-primary" onclick="window.location.href='index.php'">
-            Close
-        </button>
-    </p>        
-</div>
-<div class="col-md-1">
+<?php }  ?>
+
 </div>

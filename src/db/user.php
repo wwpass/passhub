@@ -20,7 +20,6 @@ function newDbConnection() {
     $client = new MongoDB\Client($uri = MONGODB_CONNECTION_LINE);
     $db = $client->selectDatabase(DB_NAME);
     return $db;
-
 }
 
 function getUserByPuid($mng, $puid)
@@ -49,6 +48,7 @@ function getUserByPuid($mng, $puid)
     return array("status" =>"internal error usr 34"); //multiple PUID records;
 }
 
+/*
 function getAcessibleStorage($mng, $UserID) {
 
     if (!ctype_xdigit($UserID)) {
@@ -64,7 +64,58 @@ function getAcessibleStorage($mng, $UserID) {
             }
         }
     }
-    return ['status' => "Ok", 'total' => $total];
+
+    $result = ['status' => "Ok", 'used' => $total];
+    if (defined('MAX_STORAGE_PER_USER')) {
+        $result['maxStorage'] = MAX_STORAGE_PER_USER;
+    } 
+    return $result;
+
+}
+*/
+
+function used_resources($mng, $UserID) {
+    $total_records = 0;
+    $total_storage = 0;
+    $total_safes = 0;
+    $result = [];
+
+    $id =  (strlen($UserID) != 24)? $UserID : new MongoDB\BSON\ObjectID($UserID);
+    $cursor = $mng->users->find(['_id' => $id]);
+
+    foreach ($cursor as $row) {
+        if (property_exists($row, 'email')) {
+            $result['email'] = $row->email;
+        }
+        if (property_exists($row, 'plan')) {
+            $result['plan'] = $row->plan;
+        }
+        break;
+    }
+
+    $safes = $mng->safe_users->find([ 'UserID' => $UserID]);
+    foreach ($safes as $safe) {
+        $total_safes += 1;
+        $records = $mng->safe_items->find([ 'SafeID' => $safe->SafeID]);
+        foreach ($records as $record) {
+            $total_records += 1;
+            if (property_exists($record, 'file')) {
+                $total_storage += $record->file->size;
+            }
+        }
+    }
+    $result['records'] = $total_records;
+    $result['used'] = $total_storage;
+    $result['safes'] = $total_safes;
+
+    if (defined('MAX_RECORDS_PER_USER')) {
+        $result['maxRecords'] = MAX_RECORDS_PER_USER;
+    } 
+    if (defined('MAX_STORAGE_PER_USER')) {
+        $result['maxStorage'] = MAX_STORAGE_PER_USER;
+    } 
+    $result['status'] = 'Ok';
+    return $result;
 }
 
 function getSharingStatus($mng, $UserID) {
@@ -383,10 +434,10 @@ function getUserData($mng, $UserID)
     } else {
         $data['active_folder'] = 0;
     }
-    if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-        $data['shareModal'] = "#safeShareModal";
-    } else {
+    if (defined('MAIL_DOMAIN')) {
         $data['shareModal'] = "#shareByMailModal";
+    } else {
+        $data['shareModal'] = "#safeShareModal";
     }
     if (isset($_REQUEST['show_table'])) {
         $data['show_table'] = true;
@@ -466,7 +517,7 @@ function process_reg_code($mng, $code, $PUID) {
     $codes = $cursor->toArray();
     $num_codes = count($codes);
     if ($num_codes == 0) {
-        return "no such registration code found: " . $code;
+        return "No such registration code found: " . $code;
     }
     if ($num_codes == 1) {
         if ($PUID === $codes[0]->PUID) {
@@ -490,8 +541,8 @@ function process_reg_code($mng, $code, $PUID) {
         }
         return "You must log in with the same PassKey that you used when submitting your e-mail address.";
     }
-    passhub_err("internal error usr 312 count " . $num_puids);
-    return "internal error usr 312"; //multiple code records;
+    passhub_err("Internal error usr 312 count " . $num_puids);
+    return "Internal error usr 312"; //multiple code records;
 }
 
 function isPuidValidated($mng, $PUID) {

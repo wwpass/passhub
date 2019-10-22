@@ -41,14 +41,8 @@ function showUsers(result) {
           if (ul[i].status == 0) {
             li += '<button class="btn btn-default btn-sm confirm_vault_user" style="font-size:16px;">Confirm</button>';
           } else {
-            li += "<span class = 'role_selector'>"
-                    + "<span class='caret' style='margin: 0 5px'></span>"
-                    + `${role}</span>`;
-            /*
-            li += "<button class='btn btn-default btn-sm role_selector' type='button' 
-                   style='font-size:16px; width: 7em; text-align: right;'>"
-            + role + "<span class='caret' style='margin-left:5px'></span></button>";
-            */
+            li += "<span class = 'role_selector dropdown-toggle'>"
+            + `${role}</span>`;
           }
           li += "<span class = 'del_user'>"
              + "Delete</span>";
@@ -64,7 +58,7 @@ function showUsers(result) {
         }
         $('#UserList').append(li);
       }
-      $.contextMenu(roleMenu);
+//      $.contextMenu(roleMenu);
     }
     return;
   }
@@ -75,8 +69,11 @@ function showUsers(result) {
   $('#safe_users_alert').text(result.status).show();
 }
 
-
 function setRole(elm, role) {
+  if (elm[0].classList.contains('add-user')) { // role_selector in Share_by_mail modal 
+    elm[0].innerText = (role === 'administrator') ? 'admin' : role;
+    return;
+  }
   $.ajax({
     url: 'safe_acl.php',
     method: 'POST',
@@ -120,6 +117,9 @@ const roleMenu = {
     },
   },
 };
+
+$.contextMenu(roleMenu);
+
 
 function confirmUserFinalize(username, eAesKey) {
   $.ajax({
@@ -198,9 +198,8 @@ $('#safeUsers').on('hidden.bs.modal', () => {
   }
 });
 
-
 // 'delete user' button functionality
-$('#UserList').on('click', '.delete_vault_user', function () {
+$('#UserList').on('click', '.del_user', function () {
   const x = $(this).parent().parent().find('span');
   $.ajax({
     url: 'safe_acl.php',
@@ -211,7 +210,10 @@ $('#UserList').on('click', '.delete_vault_user', function () {
       operation: 'delete',
       name: x[0].innerText,
     },
-    success: showUsers,
+    success: (result) => {
+      showUsers(result);
+      passhub.refreshUserData();
+    },
     error: (hdr, status, err) => {
       passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },

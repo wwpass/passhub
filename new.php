@@ -48,7 +48,28 @@ try {
 $SafeID = $_REQUEST['vault'];
 $UserID = $_SESSION['UserID'];
 
-$folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
+$note = (isset($_REQUEST['note']))? 1:0;
+$title = $note ? "Create Note" : "Create Entry";
+
+if (!can_write($mng, $UserID, $SafeID)) {
+    message_page($title, "You do not have editor rights for this safe");
+    exit();
+}
+
+$usedResources = used_resources($mng, $UserID);
+
+if (array_key_exists('maxRecords', $usedResources) 
+    && ($usedResources['records'] >= $usedResources['maxRecords'])
+) {
+    message_page(
+        $title,
+        "Sorry you have already reached maximum alowed number of " 
+        . $usedResources['maxRecords'] 
+        . " records"
+    );
+    exit();
+}
+
 
 $encrypted_key_CSE = get_encrypted_aes_key_CSE($mng, $UserID, $SafeID);
 $privateKey_CSE = get_private_key_CSE($mng, $UserID);
@@ -58,38 +79,32 @@ if (($encrypted_key_CSE == null) || ($privateKey_CSE == null)) {
     error_page("Error: (new) 46");
 }
 
-$password_font = getPwdFont();
+$folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('narrow', true)
+Template::factory('src/templates/top.html')
+    ->add('narrow', true)
     ->render();
 
-
-$note = (isset($_REQUEST['note']))? 1:0;
-
-$can_write = can_write($mng, $UserID, $SafeID);
-
-$item_template = Template::factory('src/templates/item_form.html');
-$item_template->add('vault_id', $SafeID)
+Template::factory('src/templates/item_form.html')
+    ->add('title', $title)
+    ->add('vault_id', $SafeID)
     ->add('folder', $folder)
     ->add('encrypted_key_CSE', $encrypted_key_CSE)
     ->add('privateKey_CSE', $privateKey_CSE)
-    ->add('password_font', $password_font)
+    ->add('password_font', getPwdFont())
     ->add('note', $note)
     ->add('create', 1)
     ->add('item', json_encode([]))
-    ->add('can_write', $can_write)
     ->render();
 
-$gen_password_template = Template::factory('src/templates/modals/gen_password.html');
-$gen_password_template->render();
+Template::factory('src/templates/modals/gen_password.html')
+    ->render();
 
-$progress_template = Template::factory('src/templates/progress.html');
-$progress_template->render();
+Template::factory('src/templates/progress.html')
+    ->render();
 
-$idle_and_removal_template = Template::factory('src/templates/modals/idle_and_removal.html');
-$idle_and_removal_template->render();
-
+Template::factory('src/templates/modals/idle_and_removal.html')
+    ->render();
 
 ?>
 </body>

@@ -136,10 +136,46 @@ export default {
     return Promise.all(promises);
   },
 
+
   indexPageResize() {
+    const e = document.querySelector('#probe');
+    document.getElementsByTagName('body')[0].appendChild(e);
+
+    const { bottom } = e.getBoundingClientRect();
+    const index_page_row_top = document.querySelector('#index_page_row').getBoundingClientRect().top;
+    const records_table_top = document.querySelector('.records_table').getBoundingClientRect().top;
+
+    const t0 = utils.isXs() ? 2 : 30;
+    const index_page_row_height = bottom - index_page_row_top - t0; 
+    const records_table_height = bottom - records_table_top - t0;
+    const confirmed_safe_buttons_height = $('.confirmed_safe_buttons').outerHeight();
+
+    $('#index_page_row').height(index_page_row_height);
+
+    const vaultsMaxHeight = index_page_row_height - $('#vlist_controls').outerHeight();
+
+    $('.vaults_scroll_control').css('max-height', vaultsMaxHeight);
+
+    let itemsMaxHeight = records_table_height - confirmed_safe_buttons_height;
+    if (this.searchMode) {
+      itemsMaxHeight = records_table_height;
+    }
+
+    $('.table_scroll_control').css('max-height', itemsMaxHeight);
+  },
+
+  /*
+  // not used anymore, keep for reference
+  indexPageResize1() {
+    const { bottom } = document.querySelector('#probe').getBoundingClientRect();
+
     if (utils.isXs()) {
       if (screen.height < 400) { // iPhone 5
-      } else if (navigator.userAgent.match(/Android/) && (screen.width == 360) && (screen.height == 640)) { // HTC
+      } else if (
+        navigator.userAgent.match(/Android/) 
+        && (screen.width == 360) 
+        && (screen.height == 640)) 
+      { // HTC
       } else {
         try {
           document.body.style.fontSize = '18px';
@@ -176,7 +212,7 @@ export default {
     } catch (err) {
       alert(err);
     }
-
+  
     const itrHeight = $('#index_page_row').height();
     $('#table_pane_body').height(itrHeight - $('#table_pane_nav').outerHeight());
     let vaultsMaxHeight = itrHeight - $('#vlist_controls').height() - 25 - 20;
@@ -195,38 +231,44 @@ export default {
       vaultsMaxHeight -= 80;
       itemsMaxHeight -= 80;
     }
+
     $('.vaults_scroll_control').css('max-height', vaultsMaxHeight);
     $('.table_scroll_control').css('max-height', itemsMaxHeight);
   },
+  */
 
   makeCurrentVaultVisible() {
     const vsc = $('.vaults_scroll_control');
     if (vsc[0].scrollHeight > vsc.innerHeight()) {
-      let e = document.getElementsByClassName('list-item-vault-active hidden-xs')[0];
-      if (utils.isXs()) {
-        e = document.getElementsByClassName('list-item-vault-active visible-xs')[0];
+      const e = utils.isXs() ? document.getElementsByClassName('list-item-vault-active d-md-none')[0]
+        : document.getElementsByClassName('list-item-vault-active d-md-block')[0];
+      if (e) {
+        e.scrollIntoView(false);
       }
-      e.scrollIntoView(false);
     }
   },
 
   showTable() {
-    $('.vaults_pane').addClass('hidden-xs');
-    $('.item_pane').addClass('hidden-xs');
-    $('.table_pane').removeClass('hidden-xs');
+    $('.vaults_pane').addClass('d-none');
+    $('.item_pane').addClass('d-none');
+    $('.table_pane').removeClass('d-none');
+/*    
     if (utils.isXs()) {
       $('body').css('background-color', tablePaneColor);
     }
+*/
     this.indexPageResize();
   },
 
   showSafes() {
-    $('.table_pane').addClass('hidden-xs');
-    $('.vaults_pane').removeClass('hidden-xs');
-    $('.item_pane').addClass('hidden-xs');
+    $('.table_pane').addClass('d-none');
+    $('.vaults_pane').removeClass('d-none');
+    $('.item_pane').addClass('d-none');
+/*
     if (utils.isXs()) {
       $('body').css('background-color', vaultPaneColor);
     }
+*/
     this.indexPageResize();
     this.makeCurrentVaultVisible();
   },
@@ -482,5 +524,14 @@ export default {
         $(window).resize(this.indexPageResize);
       });
     */
+  },
+
+  humanReadableFileSize(size) {
+    if (size < 1024) return `${size} B`;
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    let num = (size / Math.pow(1024, i));
+    const round = Math.round(num);
+    num = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round
+    return `${num} ${'KMGTPEZY'[i-1]}B`;
   },
 };

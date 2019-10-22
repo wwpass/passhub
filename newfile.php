@@ -1,7 +1,7 @@
 <?php
 
 /**
- * new.php
+ * newfile.php
  *
  * PHP version 7
  *
@@ -26,6 +26,11 @@ setDbSessionHandler($mng);
 
 session_start();
 
+if (!defined('FILE_DIR') && !defined('GOOGLE_CREDS') && !defined('S3_CONFIG')) {
+    error_page("site is misconfigured (error 59 F)");
+    // exit();
+}
+
 if (!isset($_SESSION['UserID'])) {
     header("Location: logout.php");
     exit();
@@ -48,18 +53,27 @@ try {
 $SafeID = $_REQUEST['vault'];
 $UserID = $_SESSION['UserID'];
 
-if (defined('FILE_DIR')  || defined('GOOGLE_CREDS')) {
-    $show_file_button = true;
-} else {
-    $show_file_button = false;
-}
-if (defined('TEST_USERS') && !in_array($UserID, TEST_USERS)) {
-    $show_file_button = false;
+$title = "Add File";
+
+$can_write = can_write($mng, $UserID, $SafeID);
+
+if (!$can_write) {
+    message_page($title, "Sorry you do not have editor rights for this safe");
+    exit();
 }
 
-if (!$show_file_button) {
-    error_page("site is misconfigured (error 59 F)");
-    // exit();
+$usedResources = used_resources($mng, $UserID);
+
+if (array_key_exists('maxRecords', $usedResources) 
+    && ($usedResources['records'] >= $usedResources['maxRecords'])
+) {
+    message_page(
+        $title,
+        "Sorry you have already reached maximum alowed number of " 
+        . $usedResources['maxRecords'] 
+        . " records"
+    );
+    exit();
 }
 
 $folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
@@ -73,47 +87,32 @@ if (($encrypted_key_CSE == null) || ($privateKey_CSE == null)) {
     error_page("Error: (new) 46");
 }
 
-$result = getAcessibleStorage($mng, $UserID);
-if ($result['status'] == "Ok") {
-    if ($result['total'] < 10*1024) {
-        $human_readable_total = $result['total'] . " Bytes";
-    } else if ($result['total'] < 10*1024*1024) {
-        $human_readable_total = (int)($result['total']/1024) . " kB";
-    } else {
-        $human_readable_total = (int)($result['total']/1024/1024) . " MB";
-    }
-    if (!defined('MAX_STORAGE')) {
-        $total = $human_readable_total;
-    } else {
-        $total = $human_readable_total . " out of " . MAX_STORAGE . " MBytes (" . sprintf("%.2f", $result['total']/MAX_STORAGE*100/1024/1024) . "%)";
-    }
-}
-
 $top_template = Template::factory('src/templates/top.html');
 $top_template->add('narrow', true)
     ->render();
 
 if (!defined('MAX_FILE_SIZE')) {
-    $max_file_size = 5;
+    $max_file_size = 5 * 1024 *1024;
 } else {
     $max_file_size = MAX_FILE_SIZE;
 }
-$item_template = Template::factory('src/templates/new_file.html');
-$item_template->add('vault_id', $SafeID)
+Template::factory('src/templates/new_file.html')
+    ->add('vault_id', $SafeID)
     ->add('folder', $folder)
     ->add('encrypted_key_CSE', $encrypted_key_CSE)
     ->add('privateKey_CSE', $privateKey_CSE)
     ->add('max_file_size', $max_file_size)
-    ->add('used', $total)
+    ->add('storage', json_encode($usedResources))
     ->render();
 
-$progress_template = Template::factory('src/templates/progress.html');
-$progress_template->render();
+Template::factory('src/templates/progress.html')
+    ->render();
 
-$idle_and_removal_template = Template::factory('src/templates/modals/idle_and_removal.html');
-$idle_and_removal_template->render();
+Template::factory('src/templates/modals/idle_and_removal.html')
+    ->render();
 
 ?>
+</div>
 </body>
 </html>
 

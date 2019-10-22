@@ -1,6 +1,33 @@
 import $ from 'jquery';
 // import passhub from './passhub';
 
+
+function createTextArea(text) {
+  const textArea = document.createElement('textArea');
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  return textArea;
+}
+
+function selectText(textArea) {
+  if (window.navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
+    const range = document.createRange();
+    range.selectNodeContents(textArea);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    textArea.setSelectionRange(0, 999999);
+  } else {
+    textArea.select();
+  }
+}
+
+function copyToClipboard(textArea) {        
+  document.execCommand('copy');
+  document.body.removeChild(textArea);
+}
+
+
 let pwShown = 0;
 let unShown = 1;
 
@@ -43,7 +70,9 @@ function toggle_un() {
 $(document).ready(() => {
   $('#show_username').click(toggle_un);
   $('.toggle_pw_button').click(toggle_pw);
+
   // $('.item_pane_back').click(passhub.showTable);
+/*
   if (window.navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
     $('#item_pane_copy_username').hide();
     $('#item_pane_copy_password').hide();
@@ -64,8 +93,45 @@ $(document).ready(() => {
       document.getElementById('item_pane_password').selectionEnd = 999;
     });
   }
+*/
 });
 
+$('#item_pane_copy_username').click(() => {
+  const textArea = createTextArea($('#item_pane_username').val());
+  selectText(textArea);
+  copyToClipboard(textArea);
+  if (true) {
+    ph_alert('Username copied to clipboard');
+  } else {
+    ph_alert('Copy username: fail');
+  }
+});
+
+
+$('#item_pane_copy_password').click(() => {
+/*
+  if (pwShown == 0) {
+    $('#item_pane_password').attr('type', 'text');
+  }
+*/
+  const textArea = createTextArea($('#item_pane_password').val());
+  selectText(textArea);
+  copyToClipboard(textArea);
+/*
+  if (pwShown == 0) {
+    $('#item_pane_password').attr('type', 'password');
+  }
+*/
+  if (true) {
+    ph_alert('Password copied to clipboard');
+  } else {
+    ph_alert('Copy password: fail');
+  }
+//  $('#show_password').focus();
+});
+
+
+/*
 $('#item_pane_copy_username').click(() => {
   if (unShown === 0) {
     $('#item_pane_username').attr('type', 'text');
@@ -102,6 +168,7 @@ $('#item_pane_copy_password').click(() => {
   }
   $('#show_password').focus();
 });
+*/
 
 //----------------------------------------------------------------------------------
 
@@ -109,8 +176,29 @@ $('#item_pane_copy_password').click(() => {
 $('#showCreds').on('show.bs.modal', () => {
   pwShown = 0;
   $('#creds1ID').attr('type', 'password');
+  $('#showCreds_info').text('');
 });
 
+
+$('#id_copy_username').click(() => {
+  $('#showCreds').modal('hide');
+  const textArea = createTextArea($('#creds0ID').val());
+  selectText(textArea);
+  copyToClipboard(textArea);
+  $('#showCreds').modal('show');
+  $('#showCreds_info').text('username copied to clipboard');
+});
+
+$('#id_copy_password').click(() => {
+  $('#showCreds').modal('hide');
+  const textArea = createTextArea($('#creds1ID').val());
+  selectText(textArea);
+  copyToClipboard(textArea);
+  $('#showCreds').modal('show');
+  $('#showCreds_info').text('password copied to clipboard');
+});
+
+/*
 $('#id_copy_username').click(() => {
   $('#showCreds').modal('hide');
 
@@ -140,6 +228,12 @@ $('#id_copy_password').click(() => {
   $('#showCreds_info').text('password copied to clipboard');
   $('#showCreds').modal('show');
 });
+*/
+
+// see that: https://gist.github.com/rproenca/64781c6a1329b48a455b645d361a9aa3
+
+
+/*
 
 if (window.navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
   $('#id_copy_username').hide();
@@ -161,3 +255,4 @@ if (window.navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
     document.getElementById('creds1ID').selectionEnd = 999;
   });
 }
+*/

@@ -1,37 +1,25 @@
-<div class="col-md-2">
-</div>
-<div class="col-md-8 phub-dialog">
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
 
-<?php if (isset($js) && $js == "SafariPrivateMode" ) { ?>
-    <h1 style="padding: 30px 0 30px;">Sorry, your Safari browser is&nbsp;in Private mode</h1>
-    <p style = 'font-size: larger'>Please follow 
-    <a href = 'https://support.apple.com/en-us/HT203036'>Apple's instructions</a> 
-    to&nbsp;return to&nbsp;normal mode</p>
-    <p>Private mode is not compatible with Passhub, some important browser functions are disabled</p>
 
-<?php } else { ?>  
-
-    <h1 style="margin:30px 0 50px 15px"><?php echo $header ?></h1>
-
-    <div style="margin:30px 0 50px 15px">
-    <p><?php echo $text ?></p>
+    <h1><?php echo $header ?>
+        <button type="button" class="close" aria-label="Close"
+        onclick='window.location.href="logout.php";'>
+        <span aria-hidden="true">&times;</span>
+        </button>    
+    </h1>
     </div>
+    <div class = "card-body">
+    <?php echo $text ?>
 
-<?php } 
 
-if( isset($js387) && ($js387 === "mobile")) { ?>
+<?php if( isset($js387) && ($js387 === "mobile")) { ?>
 
-<p>Possible reasons</p>
-<ul>
-<li>your browser is in private (incognito) mode</li>
-<li>you started PassHub in non-default browser</li>
-</ul>
-<p>
-Try again in this (default) browser
-</p>
-<button type="button" class = "btn btn-primary" style="margin:15px 15px 30px 15px;" onclick="window.location.href='logout.php'; return 0;">Try again</button>
-
+<button type="button" class = "btn btn-primary" onclick="window.location.href='logout.php';">
+    Try again
+</button>
 <?php } else { ?>
-    <button type="button" class = "btn btn-primary" style="margin:15px 15px 30px 15px;" onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
+    <button type="button" class = "btn btn-primary" style="float:right; margin: 5px"onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
 <?php } ?>
+</div>
 </div>

@@ -2,8 +2,8 @@
     <div class='modal-dialog' role='document'>
         <div class='modal-content'>
             <div class='modal-header'>
+                <h5 class='modal-title' id='shareByMailLabel'>Share Password Safe <p><b><span></span></b></p> </h5>
                 <button type='button' class='close' data-dismiss='modal' aria-label='Close'><span aria-hidden='true'>&times;</span></button>
-                <h4 class='modal-title' id='shareByMailLabel'>Share Password Safe <p><b><span></span></b></p> </h4>
             </div>
 
             <div class='modal-body'>
@@ -15,10 +15,7 @@
                 <label class='control-label' for='recipientSafeName' id='recipientSafeNameLabel' style='margin: 10px 0 5px 0'>Safe name as recipient sees it</label>
                 <input type='text' class='form-control' name='recipientSafeName' id='recipientSafeName' required>
                 <div style="margin:15px 10px 0 5px"><label class='control-label' style="margin-right:10px">Role</label>   
-                <button class='btn btn-default btn-sm share_role_selector' type='button' 
-                    style='font-size:16px; width: 7em; text-align: right;'>
-                    <span class = 'share_role_selector_text'>readonly</span>
-                    <span class='caret' style='margin-left:5px'></span>
+                    <span class = "role_selector dropdown-toggle add-user">readonly</span>
                 </button>
                 </div>
 
@@ -26,8 +23,8 @@
             </div>
 
             <div class='modal-footer'>
+                <button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>
                 <button type='button' class='btn btn-primary' id='shareByMailBtn'>Submit</button>
-                <button type='button' class='btn btn-default' data-dismiss='modal'>Close</button>
             </div>
         </div>
     </div>
