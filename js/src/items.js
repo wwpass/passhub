@@ -97,62 +97,58 @@ const itemRow = (item, searchMode) => {
   const name = utils.escapeHtml(item.cleartext[0]);
   const url = prepareUrl(utils.escapeHtml(item.cleartext[3]));
   let icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='img/SVG2/sprite.svg#i-key'></use></svg>";
-  let row = "<td colspan = '2' class='col-xs-12' style='border-right: none; padding-left:15px'>";
+  let row = "<td colspan = '2' class='col-xl-6 col-lg-7 col-md-12' style='border-right: none; padding-left:15px'>";
   if ('file' in item) {
     icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='img/SVG2/sprite.svg#i-file'></use></svg>";
   } else if ('note' in item) {
     icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='img/SVG2/sprite.svg#i-note'></use></svg>";
   } else {
-    row = "<td class='col-xs-12' style='border-right: 1px solid #b5d0f0; padding-left:15px'>";
+    row = "<td class='col-xl-5 col-lg-6 col-md-12' style='border-right: 1px solid #b5d0f0; padding-left:15px'>";
   }
   if (searchMode === undefined) {
-    row += `<div class='visible-xs item-click' data-record_nb ='${item._id}' style='cursor: pointer; padding-top:5px;padding-bottom:5px;'>`;
+    row += `<div class='d-md-none item-click' data-record_nb ='${item._id}' style='cursor: pointer; padding-top:5px;padding-bottom:5px;'>`;
   } else {
-    row += `<div class='visible-xs sync_search_safe' data-record_nb ='${item._id}'style='cursor: pointer; padding-top:5px;padding-bottom:5px;'>`;
+    row += `<div class='d-md-none sync_search_safe' data-record_nb ='${item._id}'style='cursor: pointer; padding-top:5px;padding-bottom:5px;'>`;
   }
   row += `${icon}${name}</div>`;
   if ('file' in item) {
     let sizeString = '';
     if (item.file.hasOwnProperty('size')) {
-      let size = item.file.size;
-      let units = ' B';
-      if (size > 10000) {
-        size = Math.round(size/1000);
-        units = ' kB';
-      }
-      sizeString = size.toLocaleString() + units;
+      sizeString = passhub.humanReadableFileSize(item.file.size);
     }
     if (searchMode === undefined) {
-      row += "<div class='hidden-xs file_record_title' style='cursor: pointer;' data-record_nb =";
+      row += "<div class='d-none d-md-block file_record_title' style='cursor: pointer;' data-record_nb =";
     } else {
-      row += "<div class='hidden-xs sync_search_safe file_record_title' style='cursor: pointer;' data-record_nb =";
+      row += "<div class='d-none d-md-block sync_search_safe file_record_title' style='cursor: pointer;' data-record_nb =";
     }
     row += "'" + item._id + "'";
     row += " data-record_name ='" + name + "'>" + icon + name + '</div>'
       + '</td>'
       // + "<td class = 'tdmain hidden-xs' style='cursor: default; border-right: none'>" + size + '</td>';
-      + "<td class = 'tdmain hidden-xs' align='right' style='cursor: default; border-right: none'>" + sizeString + "</td>";
+      + "<td class = 'tdmain col-xl-3 col-lg-5  d-none d-lg-table-cell' align='right' style='cursor: default; border-right: none'>" + sizeString + "</td>";
       // + "<td class = 'tdmain hidden-xs hidden-sm '>" + date + '</td>';
   } else {
     if (searchMode === undefined) {
-      row += "<div class='hidden-xs record_title' style='cursor: pointer;' data-record_nb =";
+      row += "<div class='d-none d-md-block record_title' style='cursor: pointer;' data-record_nb =";
     } else {
-      row += "<div class='hidden-xs sync_search_safe record_title' style='cursor: pointer;' data-record_nb =";
+      row += "<div class='d-none d-md-block sync_search_safe record_title' style='cursor: pointer;' data-record_nb =";
     }
     row += item._id;
-    row += " data-record_name ='" + name + "'>" + icon + name + '</div>';
+    row += ` data-record_name = "${name}">${icon}${name}</div>`;
     row += '</td>';
 
     if ('note' in item) {
-      row += "<td class='hidden-xs'></td>";
+      row += "<td class='col-xl-3 col-lg-5  d-none d-lg-table-cell'></td>";
     } else {
       // creds
-      row += "<td class='tdmain hidden-xs lp_show' style='border-right: 1px solid #b5d0f0;' data-record_nb =";
-      row += item._id;
-      row += '>'
-        + "<span class='glyphicon glyphicon-asterisk' aria-hidden='true' style='cursor: pointer; '></span>"
+      row += "<td class='col-lg-1  d-none d-lg-table-cell tdmain lp_show'";
+      row += "style='border-right: 1px solid #b5d0f0;cursor: pointer; text-align: center;'";
+      row += `data-record_nb =${item._id}>`
+
+         + "<img src='img/outline-https-24px.svg' alt= 'login/password' height='24'>"
+//        + "<span class='glyphicon glyphicon-asterisk' aria-hidden='true' style='cursor: pointer; '></span>"
         + '</td>'
-        + "<td class='tdmain hidden-xs' style='cursor: default;'>" + url + '</td>';
+        + "<td class='tdmain col-xl-3 col-lg-5 d-none d-lg-table-cell' style='cursor: default;'>" + url + '</td>';
     }
     // notes
     // row += "<td class='tdmain hidden-xs hidden-sm col-md-3' style='cursor: default;'>" + escapeHtml(item.cleartext[4]) + '</td>';
@@ -161,7 +157,7 @@ const itemRow = (item, searchMode) => {
   if (item.lastModified) {
     modified = new Date(item.lastModified).toLocaleString();
   }
-  row += "<td class='tdmain hidden-xs hidden-sm col-md-3' style='cursor: default; border-left: 1px solid #b5d0f0;'>" + modified + "</td>";
+  row += "<td class='tdmain col-xl-3 d-none d-xl-table-cell' style='cursor: default; border-left: 1px solid #b5d0f0;'>" + modified + "</td>";
 
   return row;
 };
@@ -193,7 +189,7 @@ const show = (folder) => {
       continue;
     }
     const row = '<tr>'
-      + `<td class='col-xs-12 visible-xs list-item-title folder-click' data-folder-id='${passhub.currentSafe.folders[i]._id}' style='padding-left:15px'>`
+      + `<td class='col-xs-12 d-md-none list-item-title folder-click' data-folder-id='${passhub.currentSafe.folders[i]._id}' style='padding-left:15px'>`
       + "<div style='padding-top:5px;padding-bottom:5px; cursor:pointer'>"
       + "<svg width='24' height='24' class='item_icon'><use xlink:href='img/SVG2/sprite.svg#i-folder'></use></svg>"
       + utils.escapeHtml(passhub.currentSafe.folders[i].cleartext[0])
@@ -210,7 +206,7 @@ const show = (folder) => {
     } else if (folder != 0) {
       continue;
     }
-    $('#item_list_tbody').append(`<tr> ${itemRow(passhub.currentSafe.items[i])} </tr>`);
+    $('#item_list_tbody').append(`<tr class="d-flex"> ${itemRow(passhub.currentSafe.items[i])} </tr>`);
   }
 };
 
@@ -292,10 +288,13 @@ const showItem = (id) => {
       $('.regular_item').hide();
       $('#item_pane_file').text(data[0]);
       if (item.file.hasOwnProperty('size')) {
-        let size = item.file.size;
+        let { size } = item.file;
         let units = ' Bytes';
-        if (size > 10000) {
-          size = Math.round(size / 1000);
+        if (size > 10 * 1024 * 1024) {
+          size = Math.round(size / 1024 / 1024);
+          units = ' MBytes';
+        } else if (size > 10 * 1024) {
+          size = Math.round(size / 1024);
           units = ' kBytes';
         }
         $('#item_pane_file_size').text(size.toLocaleString() + units);
@@ -339,14 +338,16 @@ const showItem = (id) => {
     }
   }
 
-  $('.table_pane').addClass('hidden-xs');
-  $('.vaults_pane').addClass('hidden-xs');
-  $('.item_pane').removeClass('hidden-xs');
+  $('.table_pane').addClass('d-none');
+  $('.vaults_pane').addClass('d-none');
+  $('.item_pane').removeClass('d-none');
 
   //  init_item_pane();
+/*  
   if (utils.isXs()) {
     $('body').css('background-color', 'white');
   }
+*/  
 };
 
 const addItemButtonMenu = {
@@ -526,7 +527,7 @@ function showSearchResult(found) {
   safes.setItemPaneHeader();
 
   for (let i = 0; i < found.length; i++) {
-    $('#item_list_tbody').append('<tr>' + itemRow(found[i], true) + '</tr>');
+    $('#item_list_tbody').append('<tr class="d-flex">' + itemRow(found[i], true) + '</tr>');
   }
   if (found.length > 0) {
     syncSearchSafe(found[0]._id);
@@ -536,7 +537,7 @@ function showSearchResult(found) {
 
 $('body').on('click', '.sync_search_safe', function () {
   syncSearchSafe($(this).attr('data-record_nb'));
-  if ($(this).hasClass('visible-xs')) {
+  if ($(this).hasClass('d-md-none')) {
     showItemModal($(this).attr('data-record_nb'));
   }
 });

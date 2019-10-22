@@ -44,7 +44,7 @@ class Safe
         $this->encrypted_key = isset($row->encrypted_key) ? $row->encrypted_key:null;
         $this->encrypted_key_CSE = isset($row->encrypted_key_CSE) ? $row->encrypted_key_CSE:null;
         $this->confirm_req = 0;
-        $this->$user_count = 1;
+        $this->user_count = 1;
     }
 
     function isConfirmed() {
@@ -261,6 +261,7 @@ function safe_acl($mng, $UserID, $post) {
         if ($myrole != ROLE_ADMINISTRATOR) {
             return "You do not have administrative rights";
         }
+
         if ($operation == 'email') { //share by email
 
             $pregUserName = preg_quote($UserName);
@@ -275,8 +276,24 @@ function safe_acl($mng, $UserID, $post) {
                 return "error acl 300";
             }
             if (count($a) == 0) {
-                passhub_err("share by mail: no user found " . $UserName);
-                return "no user found " . $UserName;
+                $email = htmlspecialchars($UserName);
+                $email_link = htmlspecialchars($UserName) 
+                    . "?subject=" 
+                    . htmlspecialchars("I would like to share a safe with you in " . $_POST['origin'])
+                    . "&amp;body="
+                    . htmlspecialchars(
+                        "I would like to share a safe with you in PassHub. "
+                        . "If you’re new to PassHub, it is easy and fast "
+                        . "to get started. To access this safe, you will first need "
+                        . "to download and initialize the WWPass PassKey mobile app "
+                        . "from the android or iOS store. Once your PassKey is ready, "
+                        . "please visit " . $_POST['origin'] . " and use the PassKey app to login"
+                        . " to your PassHub account."
+                    );  
+                    
+                passhub_err("share by mail: User with " . htmlspecialchars($UserName) . "not registered");
+                return "User " . $email . " is not registered."
+                ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
             }
             $TargetUserID = (string)($a[0]->_id);
             if ($TargetUserID == $UserID) {
@@ -379,7 +396,7 @@ function safe_acl($mng, $UserID, $post) {
             $my_encrypted_aes_key = get_encrypted_aes_key_CSE($mng, $UserID, $SafeID);
             return ['status' => "Ok", 'public_key' => $pubKey, 'my_encrypted_aes_key' => $my_encrypted_aes_key];
         } elseif ($operation == "role") {
-            if ($UserID == $TargetID) {
+            if ($UserID == $TargetUserID) {
                 return "Internal error acl 400";
             }
             if ($role == 'administrator') {
@@ -403,10 +420,10 @@ function safe_acl($mng, $UserID, $post) {
             );
 
         } elseif ($operation == "delete") {
-            if ($UserID == $TargetID) {
+            if ($UserID == $TargetUserID) {
                 return "Internal error acl 423";
             }
-            $mng->haring_codes->deleteMany(['SafeID' => $SafeID, 'RecipientID' => $TargetUserID]);
+            $mng->sharing_codes->deleteMany(['SafeID' => $SafeID, 'RecipientID' => $TargetUserID]);
 
             $result = $mng->safe_users->deleteMany(['SafeID' => $SafeID, 'UserID' => $TargetUserID]);
             if ($result->getDeletedCount() != 1) {

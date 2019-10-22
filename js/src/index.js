@@ -14,6 +14,7 @@ import './share_safe';
 import './folder_ops';
 import './item_pane';
 import './impex';
+import './account';
 
 
 $('body').on('click', '.folder_back', () => {
@@ -31,6 +32,8 @@ $('body').on('click', '.item_back', () => {
   passhub.showTable();
 });
 
+
+passhub.indexPageResize();
 passhub.getUserData();
 
 

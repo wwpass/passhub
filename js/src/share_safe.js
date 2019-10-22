@@ -76,16 +76,16 @@ function shareSafeBtnClickName() {
         generateSharingCodeBtnUpdatePage = true;
         const mailLink = 'mailto:?subject=PassHub invitation&body='
         + `${result.ownerName} shared a safe with you.`
-        + ` Please login to %0D%0A%0D%0A${urlBase}%0D%0A%0D%0A and press "Accept Invitation" link.`
+        + ` Please log in to %0D%0A%0D%0A${urlBase}%0D%0A%0D%0A and press "Accept Invitation" link.`
         + ` Use this safe sharing code: %0D%0A%0D%0A${result.code}%0D%0A%0D%0A`
         + ` NOTE: The code is set to expire in ${result.sharingCodeTTL / 60 / 60} hours`;
         /*
         + `%0D%0AThis is PassHub safe sharing code: ${result.code} %0D%0A%0D%0A`
-        + `Please login to %0D%0A%0D%0A ${urlBase} %0D%0A%0D%0A and press %22Accept Invitation%22 link.`
+        + `Please log in to %0D%0A%0D%0A ${urlBase} %0D%0A%0D%0A and press %22Accept Invitation%22 link.`
         + `%0D%0A%0D%0A NOTE: The code is set to expire in ${result.sharingCodeTTL / 60 / 60} hours`;
         */
         const msg = `${result.ownerName} shared a safe with you.`
-        + ` Please login to ${urlBase} and press "Accept Invitation" link.`
+        + ` Please log in to ${urlBase} and press "Accept Invitation" link.`
         + ` Use this safe sharing code: ${result.code}`
         + ` NOTE: The code is set to expire in ${result.sharingCodeTTL / 60 / 60} hours`;
 

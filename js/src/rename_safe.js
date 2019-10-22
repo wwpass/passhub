@@ -5,7 +5,9 @@ $('#id_SafeRename_button').click(() => {
   const safename = $('#SafeName_rename').val().trim();
   if (safename == '') {
     $('#rename_vault_alert').text(' * Safe name cannot be empty').show();
-  } else if (safename === passhub.currentSafe.name) {
+    return;
+  }
+  if (safename === passhub.currentSafe.name) {
     $('#renameVault').modal('hide');
     return;
   }

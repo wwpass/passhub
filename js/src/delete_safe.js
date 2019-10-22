@@ -46,7 +46,7 @@ $('#deleteSafeBtn').click(() => {
 
 $('#deleteSafeModal').on('show.bs.modal', () => {
   $('#delete_safe_alert').text('').hide();
-  $('#safe_to_delete').text(passhub.currentSafe.name);
+  $('.safe_to_delete').text(passhub.currentSafe.name);
   $('#not_empty_safe_stats').hide();
   $('#not_empty_safe_warning').hide();
   $('#delete_safe_warning').show();

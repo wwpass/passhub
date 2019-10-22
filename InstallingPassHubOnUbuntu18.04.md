@@ -396,6 +396,36 @@ For corporate use, a PassHub administrator should be assigned. The administrator
 
 The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
+## Advanced: store your encryptes files in the cloud
+
+It is well possible to keep all your encrypted files in the Amazon S3 compatible object storage service. This way you increase the availability of your data and simplify storage configuration for distributed deployments of PassHub.
+
+Good news is that Amason S3 API becomes a standard de-facto and the sam code works for many object storage providers, like Google Cloud Platform or Digital Ocean Spaces, Vultr and Linode.
+
+With `s3fs` solution, available for Linux, it is also possible just to mount S3-compatible storage to the filesystem, as if it was an NFS external storage. This way you do not need to write a sigle line of code.
+
+PassHub supports S3-compatible storage. To configure this option, create an Object storage account in one of the cloud service providers change  
+
+```php
+// First, comment out your storage location 
+// define('FILE_DIR', '/var/lib/passhub');
+
+// now provide S3 account data, like that for example
+
+define(
+    'S3_CONFIG', [
+        'version' => 'latest',
+        'region'  => 'sfo2',
+        'endpoint' => 'https://sfo2.digitaloceanspaces.com',
+        'credentials' => [
+            'key'    => 'kkkkkkkkk',
+            'secret' => 'ssssssssss',
+        ],
+    ] 
+); 
+define('S3_BUCKET', 'phub');
+```
+
 ## Feedback and Support
 
 Should you experience any difficulties during the installation of PassHub, please feel free to contact our support team at support@wwpass.com.

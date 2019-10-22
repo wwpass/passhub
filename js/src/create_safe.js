@@ -5,7 +5,7 @@ import passhub from './passhub';
 $('#create_new_vault_btn').click(() => {
   const safename = $('#SafeName_create').val().trim();
   if (safename == '') {
-    $('#create_vault_alert').text(' * Please fill in Vault name');
+    $('#create_vault_alert').text(' * Please fill in Safe name');
     $('#create_vault_alert').show();
   } else {
     const safe = utils.createSafe(passhub.publicKeyPem, safename);

@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import openmailclient from './openmailclient';
+import './account';
 
 page_args.verifier = document.getElementById('csrf').getAttribute('data-csrf');
 
@@ -16,21 +17,26 @@ function userTable() {
       row += '<td></td>';
       row += '<td>';
       if (users[u].site_admin) {
-        row += '<span class = "glyphicon glyphicon-check" style="color:grey; display:block; text-align:center; margin:0 auto;"></span></td>';
+        row += "<svg class='top_icon' style='stroke-width:0; fill: green' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#checked'></use></svg>";
+//        row += "<svg class='top_icon' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#i-search'></use></svg>";    
+//        '<span class = "glyphicon glyphicon-check" 
+//          style="color:grey; display:block; text-align:center; margin:0 auto;"></span></td>';
       } else {
-        row += '<span class = "glyphicon glyphicon-unchecked" style="color:black; display:block; text-align:center; margin:0 auto;"></span></td>';
+        row += "<svg class='top_icon' style='stroke: grey' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#unchecked'></use></svg></td>";
       }
       row += `<td><b>${users[u].email}</b></td>`;
       //row += `<td><b>${users[u]._id}</b></td>`;
       row += `<td><b>${users[u].safe_cnt}</b></td>`;
       row += `<td><b>${users[u].shared_safe_cnt}</b></td><td><b>That's You</b></td></tr>`;
     } else {
-      row += `<td class="delete_user" style="cursor:pointer" data-mail = ${users[u].email} data-id = ${users[u]._id}><span class = "glyphicon glyphicon-remove" style="color:red"></span></td>`;
-      row += `<td class="site_admin" data-mail = ${users[u].email} data-id = ${users[u]._id}>`;
+      row += `<td class="delete_user" style="cursor:pointer" data-mail = ${users[u].email} data-id = ${users[u]._id}>
+      <svg style='stroke-width:0; fill: red' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#cross'></use></svg>
+      </td>`;
+      row += `<td class="site_admin" style="cursor:pointer"  data-mail = ${users[u].email} data-id = ${users[u]._id}>`;
       if (users[u].site_admin) {
-        row += '<span class = "glyphicon glyphicon-check" style="color:green; cursor:pointer; display:block; text-align:center; margin:0 auto;"></span></td>';
+        row += "<svg class='top_icon' style='stroke-width:0; fill: green' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#checked'></use></svg></td>";
       } else {
-        row += '<span class = "glyphicon glyphicon-unchecked" style="color:black; cursor:pointer; display:block; text-align:center; margin:0 auto;"></span></td>';
+        row += "<svg class='top_icon' style='stroke-width:0; fill: grey' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#unchecked'></use></svg></td>";
       }
       row += `<td>${users[u].email}</td>`;
       // row += `<td>${users[u]._id}</td>`;
@@ -84,12 +90,13 @@ function fillWhiteList(mailArray) {
   mailArray.sort(cmp);
 
   for (let m = 0; m < mailArray.length; m++) {
-    const rm = `<span class = "glyphicon glyphicon-remove" data-mail = ${mailArray[m].email}></span>`;
+//    const rm = `<span class = "glyphicon glyphicon-remove" data-mail = ${mailArray[m].email}></span>`;
+    const rm = `<span style="cursor:pointer" data-mail = ${mailArray[m].email}><svg style='stroke-width:0; fill: red' width='24' height='24'><use xlink:href='img/SVG2/sprite.svg#cross'></use></svg></span>`;
     $('#white_list_ul').append(`<div class='white_list_item'>${rm} ${mailArray[m].email}</div>`);
   }
 }
 
-$('body').on('click', '.white_list_item .glyphicon-remove', function () {
+$('body').on('click', '.white_list_item>span', function () {
   const email = $(this).attr('data-mail');
   $.ajax({
     url: 'iam.php',

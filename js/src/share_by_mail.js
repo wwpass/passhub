@@ -4,9 +4,11 @@ import passhubCrypto from './crypto';
 import passhub from './passhub';
 import openmailclient from './openmailclient';
 
-let role = 'readonly';
-
 function shareByMailFinal(username, eAesKey) {
+  let role = $('.role_selector.add-user').text();
+  if (role === 'admin') {
+    role = 'administrator';
+  }
   $.ajax({
     url: 'safe_acl.php',
     method: 'POST',
@@ -29,8 +31,9 @@ function shareByMailFinal(username, eAesKey) {
       const subj = 'Passhub safe shared with you';
       const body = `${passhub.userMail} shared a Passhub safe with you.\n\n Please visit ${url}`;
       openmailclient.openMailClient(username, subj, body);
-      window.location.href = 'index.php';
-      // return;
+
+      $('#shareByMailModal').modal('hide');
+      passhub.refreshUserData();
     },
     error: (hdr, status, err) => {
       passhub.modalAjaxError($('#shareByMailAlert'), hdr, status, err);
@@ -52,6 +55,7 @@ $('#shareByMailBtn').click(() => {
       verifier: passhub.csrf,
       vault: passhub.currentSafe.id,
       operation: 'email',
+      origin: window.location.origin,
       name: recipientMail,
     },
     error: (hdr, status, err) => {
@@ -59,7 +63,7 @@ $('#shareByMailBtn').click(() => {
     },
     success: (result) => {
       if (result.status !== 'Ok') {
-        $('#shareByMailAlert').text(result.status).show();
+        $('#shareByMailAlert').html(result.status).show();
         return;
       }
       // const encryptedSrcAesKey = forge.util.hexToBytes(passhub.currentSafe.key);
@@ -74,11 +78,6 @@ $('#shareByMailBtn').click(() => {
   });
 });
 
-function setShareRole(newRole) {
-  role = newRole;
-  $('.share_role_selector_text').text((newRole === 'administrator') ? 'admin' : newRole);
-}
-
 $('#shareByMailModal').on('show.bs.modal', () => {
   $('#recipientMail').val('');
   let recipientSafeName = passhub.currentSafe.name;
@@ -90,7 +89,7 @@ $('#shareByMailModal').on('show.bs.modal', () => {
     }
     recipientSafeName += ' /' + userMail;
   }
-  setShareRole('readonly');
+  $('.role_selector.add-user').text('readonly');
   $('#recipientSafeName').val(recipientSafeName);
   $('#shareByMailAlert').text('').hide();
   $('#shareByMailLabel').find('span').text(passhub.currentSafe.name);
@@ -99,6 +98,9 @@ $('#shareByMailModal').on('show.bs.modal', () => {
 $('#shareByMailModal').on('shown.bs.modal', () => {
   $('#recipientMail').focus();
 });
+
+
+/*
 
 const shareRoleMenu = {
   selector: '.share_role_selector',
@@ -128,3 +130,4 @@ const shareRoleMenu = {
 };
 
 $.contextMenu(shareRoleMenu);
+*/

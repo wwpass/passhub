@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import progress from './progress';
 import passhubCrypto from './crypto';
+import './account';
 
 (() => {
   item_form.aes_key = '';
@@ -129,6 +130,7 @@ import passhubCrypto from './crypto';
     }
     if (item_form.note) {
       $('.note_hidden').hide();
+      /*
       if (item_form.create) {
         $('h3').text('Create Note');
       } else {
@@ -137,7 +139,7 @@ import passhubCrypto from './crypto';
     } else if (item_form.create) {
       $('h3').text('Create Entry');
     } else {
-      $('h3').text('Edit Entry'); // default
+      $('h3').text('Edit Entry'); // default */
     }
     $('#show_password').click(toggle_pw);
     $('#save_button').click(submitForm);
@@ -155,31 +157,28 @@ import passhubCrypto from './crypto';
     $('#generatePassword').modal('show');
   });
 
+
   function page_resize() {
     if (item_form.note) {
       if (document.querySelector('#notes')) { // can write
-        const dialogTop = $('.phub-dialog').offset().top;
-        const t = parseInt(20 + dialogTop);
-        let dialogHeight = $('.phub-dialog').height(`calc(100vh - ${t}px)`).height();
-        dialogHeight = parseInt(dialogHeight);
 
-        if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 812)) { // iPhone X
-          dialogHeight -= 140;
-        } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 375) && (screen.height === 667)) { // iPhone 6
-          dialogHeight -= 100;
-        } else if (navigator.userAgent.match(/iPhone/) && (screen.width === 320) && (screen.height === 568)) { // iPhone 6s, Anf, display siz
-          dialogHeight -= 60;
-        } else if (navigator.userAgent.match(/iPhone/) && ((screen.height === 320) || (screen.width === 320))) { // iPhone 5
-          dialogHeight -= 80;
-        } else if (navigator.userAgent.match(/iPhone|iPod|iPad|Android/i)) {
-          dialogHeight -= 60;
-        }
-        // 412 732: Galaxy edge 7
+        const e = document.querySelector('#probe');
+        document.getElementsByTagName('body')[0].appendChild(e);
+        const { bottom } = e.getBoundingClientRect();
+
+        const dialogTop = $('.phub-dialog').offset().top;
+        const dialogHeight = bottom - dialogTop - 20;
+        $('.phub-dialog').height(dialogHeight);
 
         const notesTop = $('#notes').offset().top;
         const notesInDialogOffset = notesTop - dialogTop;
-        $('#notes').height(dialogHeight - notesInDialogOffset - 100);
-      }  
+        const notesHeight = dialogHeight - notesInDialogOffset - 90;
+
+        console.log($('.btn-primary').height());
+        console.log(notesHeight);
+
+        $('#notes').height(notesHeight);
+      }
     }
   }
 

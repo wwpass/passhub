@@ -57,7 +57,6 @@ body {
 
 .vaults_scroll_control {
   overflow-y:auto;
-  margin: 0 0 15px 0;
 }
 
 .list-item-vault {
@@ -120,6 +119,15 @@ body {
   background-color:red;
 }
 
+.badge-pill {
+  margin-left:5px;
+}
+
+.badge-light {
+  margin-left:5px;
+  color: red;
+}
+
 /* users modal*/
 
 .role_selector {
@@ -135,10 +143,7 @@ body {
   /* color: #0366d6; */
 }
 
-
 /* item_list */
-
-
 
 .table_pane {
   background-color: #dae6f2;
@@ -257,6 +262,38 @@ thead {
     border-color:  #00b34a;
 }
 
+/**/
+.btn-secondary {
+  background-color: #fff;
+  border-color: #adadad;
+  color:#333;
+}
+
+.btn-secondary:hover {
+  background-color: #e6e6e6;
+  border-color:  #adadad;
+  color:#000;
+}
+
+.btn-secondary:focus {
+  background-color: #e6e6e6;
+  border-color:  #adadad;
+  color:#000;
+}
+
+.btn-secondary:active {
+  background-color: #e6e6e6;
+  border-color:  #adadad;
+  color:#000;
+}
+
+.btn.btn-secondary:active:focus,
+.btn.btn-secondary:active:hover {
+    background-color: #e6e6e6;
+    border-color:  #adadad;
+    color:#000;
+  }
+
 /* footer */
 
 .info_footer {
@@ -309,36 +346,12 @@ thead {
 /* phub-dialog -- e.g. edit item*/
 
 .phub-dialog {
-  background: #dae6f2;
-  color: #000;
+/*  background: #dae6f2;
+  border-radius: 5px;
+  color: #000;  */
   box-shadow: 0 20px 50px 0px rgba(0, 90, 187, .5);
-  border-radius: 5px;
-}
-
-/* panels -- e.g. help page, security */
-
-.panel {
-  box-shadow: 0 20px 50px 10px rgba(0, 90, 187, .3);
-  border-radius: 5px;
-  border:0;
-}
-
-.panel-heading {
-  padding: 5px 15px;
-  border-bottom: none;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-  font-size:18px;
-  line-height:22px;
-  color:#333;
-  background: #dae6f2;
-}
-
-.panel-footer {
-  padding: 5px 15px 15px 15px;
-  border-top: none;
-  border-bottom-right-radius: 5px;
-  border-bottom-left-radius: 5px;
+  padding:0;
+  margin:0 auto;
 }
 
 h1 {
@@ -371,6 +384,24 @@ h1 {
 
   font-size:16px;
   margin-left:1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#item_pane_url {
+  margin:2px 0 10px;
+  padding:12px; 
+  font-size:16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item_pane_nav {
+  width:100%;
+  background-color: #dae6f2;
+  color:#333;
+  font-size:18px;
+  padding:15px 0 10px 0;
 }
 
 /* multiple occasions, pw hide/show */
@@ -420,6 +451,11 @@ h1 {
 .help_li {
   margin-top:10px;
   max-width: 90ch;
+}
+
+.help_div {
+  border: 1px solid #e3e3e3; 
+  border-radius: 4px;
 }
 
 /* security page */

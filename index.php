@@ -12,20 +12,25 @@
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
+require_once 'config/config.php';
 
-if (!file_exists('vendor/autoload.php' )) {
+if (!file_exists(WWPASS_KEY_FILE)) {
+    die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist</p>');
+}
+if (!file_exists(WWPASS_CERT_FILE)) {
+    die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist</p>');
+}
+
+if (!file_exists('vendor/autoload.php')) {
     die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
 }
 
-require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
 require_once 'src/db/item.php';
 require_once 'src/template.php';
-
-// require_once 'src/cookie.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -43,36 +48,6 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     passhub_err("HTTP_USER_AGENT undefined (corrected)");
 }
 
-/*
-$hideInstructions = sniffCookie('hideInstructions');
-if (!$hideInstructions) {
-    if (stripos($_SERVER['HTTP_USER_AGENT'], "iPod")
-        || stripos($_SERVER['HTTP_USER_AGENT'], "iPhone")
-        || stripos($_SERVER['HTTP_USER_AGENT'], "iPad")
-        || stripos($_SERVER['HTTP_USER_AGENT'], "Android")
-    ) {
-        $hideInstructions = true;
-        setcookie('hideInstructions', true, time() + 60*60*50);
-    }
-}
-*/
-/*
-if (isset($_REQUEST['updateTicket'])) {
-    try {
-        $time_left = update_ticket();
-        echo json_encode(['status'=> 'Ok', 'time_left' => $time_left]);
-        exit();
-    } catch (Exception $e) {
-        $err_msg = 'Caught exception: ' . $e->getMessage();
-        passhub_err(get_class($e));
-        passhub_err($err_msg);
-        // return 500
-        echo json_encode(['status' => "fail"]);
-        exit();
-    }
-}
-*/
-
 if (isset($_REQUEST['current_safe']) && isset($_SESSION['UserID'])) {
     _set_current_safe($mng, $_SESSION['UserID'], $_REQUEST['current_safe']);
     exit();
@@ -84,12 +59,11 @@ if (defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
 }
 
 if (!isset($_SESSION['PUID'])) {
-    if (isset($_REQUEST['ref'])) {
-        $ref= $_REQUEST['ref'];
-        header("Location: login.php?ref=$ref");
-        exit();
+    if ($_SERVER['QUERY_STRING']) {
+        header("Location: login.php?". $_SERVER['QUERY_STRING']);
+    } else {
+        header("Location: login.php");
     }
-    header("Location: login.php");
     exit();
 }
 
@@ -104,17 +78,24 @@ try {
     if (!isset($_SESSION['UserID'])) {
         $result = getUserByPuid($mng, $_SESSION['PUID']);
         if ($result['status'] == "not found") {
+
             if (!isset($_SESSION['TermsAccepted']) && defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-                header("Location: accept_terms.php");
-                exit();
+                if (!defined('MAIL_DOMAIN')) {
+                    header("Location: accept_terms.php");
+                    exit();
+                } else if (!isPuidValidated($mng, $_SESSION['PUID']) && !isset($_SESSION['reg_code'])) {
+                    header("Location: accept_terms.php");
+                    exit();
+                }
             }
+
             $top_template = Template::factory('src/templates/top.html');
-            $top_template->add('narrow', true)
-                ->render();
+            $top_template->add('narrow', true);
 
             if (defined('MAIL_DOMAIN')) {
                 if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                     if (!isset($_SESSION['reg_code'])) {
+                        $top_template->render();
                         $request_mail_template  = Template::factory('src/templates/request_mail.html');
                         $request_mail_template->render();
                         exit();
@@ -124,8 +105,11 @@ try {
                         passhub_err("reg_code: " . $status);
                         error_page($status);
                     }
+                    unset($_SESSION['reg_code']);
                 }
             }
+            $top_template->render();  // workaround: error_page excludes preliminary output of top_template
+
             // $create_user_template = Template::factory('src/templates/create_user_cryptoapi.html');
             passhub_log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
             $create_user_template = Template::factory('src/templates/upsert_user.html');
@@ -140,6 +124,11 @@ try {
                 ->add('upgrade', false)
                 ->add('template_safes', $template_safes)
                 ->render();
+                echo "</div>";
+                echo "</div>";
+                echo "</body>";
+                echo "</html>";
+
             exit();
         } else if ($result['status'] == "Ok") {
             $UserID = $result['UserID'];
@@ -158,23 +147,32 @@ try {
     $UserID = $_SESSION['UserID'];
     $user = new User($mng, $UserID);
 
-    if (defined('MAIL_DOMAIN') && !$user->email) { //  remove when done
-    
-        if (!isPuidValidated($mng, $_SESSION['PUID'])) {
-            if (!isset($_SESSION['reg_code'])) {
-                $top_template = Template::factory('src/templates/top.html');
-                $top_template->add('narrow', true)
-                    ->render();
-                $request_mail_template  = Template::factory('src/templates/request_mail.html');
-                $request_mail_template->render();
-                exit();
+    if (defined('MAIL_DOMAIN')) {
+        if (!$user->email) {
+            if (!isPuidValidated($mng, $_SESSION['PUID'])) {
+                if (!isset($_SESSION['reg_code'])) {
+                    $top_template = Template::factory('src/templates/top.html');
+                    $top_template->add('narrow', true)
+                        ->render();
+                    Template::factory('src/templates/request_mail.html')
+                        ->add('existing_account', true)
+                        ->render();
+                    exit();
+                }
+                $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
+                if ($status !== "Ok") {
+                    passhub_err("reg_code: " . $status);
+                    error_page($status);
+                }
+                $user = new User($mng, $UserID);
             }
-            $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
-            if ($status !== "Ok") {
-                passhub_err("reg_code: " . $status);
-                error_page($status);
-            }
-            $user = new User($mng, $UserID);
+        } else if (isset($_SESSION['reg_code'])) {
+            unset($_SESSION['reg_code']);
+            message_page(
+                "Your account is already created",
+                "<p>The verification code is no more valid.</p>"
+                . "<p>Please proceed to your account.</p>"
+            );
         }
     }
 
@@ -241,6 +239,7 @@ $index_template = Template::factory('src/templates/index.html')
 if (array_key_exists('folder', $_GET)) {
     $index_template->add('active_folder', $_GET['folder']);
 }
+
 $index_template->render();
 ?>
 
@@ -255,7 +254,7 @@ $index_template->render();
 <div class="info_footer">
     <span>
         <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
-        <a href="terms.php">Terms of use</a>
+        <a href="privacy.php">Privacy Policy</a>
     </span>
 </div>
 
@@ -287,13 +286,12 @@ $rename_vault_template ->render();
 $rename_file_template = Template::factory('src/templates/modals/rename_file.html');
 $rename_file_template ->render();
 
-if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+if (defined('MAIL_DOMAIN')) {
+    $share_safe_template = Template::factory('src/templates/modals/share_by_mail.html');
+} else {
     $accept_sharing_template = Template::factory('src/templates/modals/accept_sharing.html');
     $accept_sharing_template->render();
-  
     $share_safe_template = Template::factory('src/templates/modals/share_safe.html');
-} else {
-    $share_safe_template = Template::factory('src/templates/modals/share_by_mail.html');
 }
 
 $share_safe_template->add('password_font', $password_font)
@@ -350,7 +348,7 @@ if(isSafariPrivateMode()) {
 
 </script>
 
-<script src="js/dist/index.js?v=190417"></script>
+<script src="js/dist/index.js?v=191015"></script>
 
 <?php
 

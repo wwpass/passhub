@@ -1,98 +1,99 @@
-<div class="col-md-2">
-</div>
-<div class="col-md-8 phub-dialog" style="display:none">
-
-<h3>Edit Entry</h3>
-<div class="alert alert-danger" role="alert" id="alert_message" style="display:none"></div>
-
-<?php if($can_write) { ?>
-
-<form class="form-horizontal" action="update.php" method="POST" id="entry_form" autocomplete="off">
-
-    <div class="form-group">
-        <label class="control-label col-sm-2" for="title">Title*</label>
-        <div class="col-sm-10">
-            <input type="text" class="form-control" id="title" required>
-        </div>
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1><?php echo $title ?>
+            <button type="button" class="close" aria-label="Close"
+            onclick='window.location.href="index.php";'>
+            <span aria-hidden="true">&times;</span>
+            </button>    
+        </h1>
     </div>
-    <div class="form-group note_hidden">
-        <label class="control-label col-sm-2" for="username">Username</label>
-        <div class="col-sm-10">
-            <input type="text" class="form-control" style="font-family: '<?php echo $password_font ?>'"
-            id="username" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-    </div>
-
-    <div class="form-group note_hidden">
-        <label class="control-label col-sm-2" for="password">Password</label>
-        <div class="col-sm-10">
-            <div class="input-group">
-            <input type="password" class="form-control" style="font-family: '<?php echo $password_font ?>'"
-            id="password"  maxlength="64" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
-            <span class="input-group-btn">
-                <button type="button" class="icon_flat_button" id="show_password"  style='height:32px'>
-                <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
-                </button>
-            </span>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group note_hidden">
-        <label class="control-label col-sm-2" for="confirm_password">Confirm Password</label>
-        <div class="col-sm-10">
-            <div class="input-group">
-                <input type="password" class="form-control" style="font-family: '<?php echo $password_font ?>'" id="confirm_password"  maxlength="64"
-                autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
-                <span class="input-group-btn">
-                <button class="btn btn-default" type="button" id="generate_password_button">
-                Generate
-                </button>
-                </span>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group note_hidden">
-        <label class="control-label col-sm-2" for="url">URL</label>
-        <div class="col-sm-10">
-            <input type="text" class="form-control" id="url" maxlength="<?php echo MAX_URL_LENGTH;?>" autocapitalize="none" autocorrect="off" spellcheck="false">
-        </div>
-    </div>
-
-    <div class="form-group note">
-        <label class="control-label col-sm-2" for="notes">Notes</label>
-        <div class="col-sm-10">
-            <textarea  class="form-control" rows="5" cols="20" id="notes" maxlength="<?php echo MAX_NOTES_SIZE; ?>"></textarea>
-        </div>
-    </div>
-    <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-        <input type="hidden" name="entryID" value="<?php echo $entry_id ?>">
-        <input type="hidden" name="vault" value="<?php echo $vault_id ?>">
-        <input type="hidden" name="folder" value="<?php echo $folder ?>">
-
-        <input type="hidden" name="verifier" value="<?php echo User::get_csrf();?>">
-        <input type="hidden" id="ios_cancel" name="ios_cancel" value="0">
-        <button type="button" class="btn btn-primary" id="save_button">Save</button>
-        <button type="button" class="btn btn-default" id="cancel_button">Cancel</button>
-        <input type="hidden" id="encrypted_data" name="encrypted_data">
-    </div>
-    </div>
-</form>
-
-<?php } else { ?>
-    <div style="padding:1em 0">
-    <div class="alert alert-danger" role="alert" >
-        You do not have editor rights for this safe 
-    </div>
-    <button type="button" class="btn btn-default" onclick="location.href='index.php'">Go back</button>
-    </div>
-<?php } ?>
     
+    <div class = "card-body">
+        <div class="alert alert-danger" role="alert" id="alert_message" style="display:none"></div>
 
-</div>
-</div>
+        <form class="form-horizontal col-md-10 col-12" style="margin: 0 auto" action="update.php" method="POST" id="entry_form" autocomplete="off">
+
+            <div class="form-group">
+                <label class="control-label" for="title">Title*</label>
+                <div >
+                    <input type="text" class="form-control" id="title" required>
+                </div>
+            </div>
+            <div class="form-group note_hidden">
+                <label class="control-label" for="username">Username</label>
+                <div>
+                    <input type="text" class="form-control" style="font-family: '<?php echo $password_font ?>'"
+                    id="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+                </div>
+            </div>
+
+            <div class="form-group note_hidden">
+                <label class="control-label" for="password">Password</label>
+                <div>
+                    <div class="input-group">
+                        <input type="password" class="form-control" style="font-family: '<?php echo $password_font ?>'"
+                            id="password"  maxlength="64" autocomplete="off" autocapitalize="none" 
+                            autocorrect="off" spellcheck="false">
+
+        <!--
+                        <span class="input-group-btn">
+                            <button type="button" class="icon_flat_button" id="show_password"  style='height:32px'>
+                            <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
+                            </button>
+                        </span>
+                -->
+                        <div class="input-group-append">
+                                <span class="input-group-text" id="show_password" 
+                                style="cursor:pointer;">
+                                    <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
+                                </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group note_hidden">
+                <label class="control-label" for="confirm_password">Confirm Password</label>
+                <div>
+                    <div class="input-group mb-3">
+                        <input type="password" class="form-control" style="font-family: '<?php echo $password_font ?>'"
+                        id="confirm_password"  maxlength="64"
+                        autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false">
+                        <div class="input-group-append">
+                            <span class="input-group-text" id="generate_password_button" 
+                            style="cursor:pointer;">Generate</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group note_hidden">
+                <label class="control-label" for="url">URL</label>
+                <div>
+                    <input type="text" class="form-control" id="url" maxlength="<?php echo MAX_URL_LENGTH;?>" autocapitalize="none" autocorrect="off" spellcheck="false">
+                </div>
+            </div>
+
+            <div class="form-group note">
+                <label class="control-label" for="notes">Notes</label>
+                <div>
+                    <textarea  class="form-control" rows="5" cols="20" id="notes" maxlength="<?php echo MAX_NOTES_SIZE; ?>"></textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="hidden" name="entryID" value="<?php echo $entry_id ?>">
+                <input type="hidden" name="vault" value="<?php echo $vault_id ?>">
+                <input type="hidden" name="folder" value="<?php echo $folder ?>">
+
+                <input type="hidden" name="verifier" value="<?php echo User::get_csrf();?>">
+                <input type="hidden" id="ios_cancel" name="ios_cancel" value="0">
+                <input type="hidden" id="encrypted_data" name="encrypted_data">
+                <button type="button" class="btn btn-primary" style="float:right; margin: 5px" id="save_button">Save</button>
+                <button type="button" class="btn btn-secondary" style="float:right; margin: 5px" id="cancel_button">Cancel</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -107,5 +108,5 @@ var item_form = {
 };
 </script>
 
-<script src="js/dist/item_form.js?v=190614"></script>
+<script src="js/dist/item_form.js?v=191015"></script>
 

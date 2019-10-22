@@ -29,6 +29,7 @@ $top_template = Template::factory('src/templates/top.html');
 $top_template->add('hide_logout', !isset($_SESSION['PUID']))
     ->add('feedback_page', true)
     ->add('narrow', true)
+//    ->add('google_analytics', true)
     ->render();
 
 $feedback_template = Template::factory('src/templates/feedback.html');

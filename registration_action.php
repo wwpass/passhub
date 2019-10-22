@@ -40,7 +40,6 @@ if (!defined('MAIL_DOMAIN')) {
     error_page("Internal error");
 }
 
-$mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
 $email = $_POST['email'];
 $url = strtolower($_POST['base_url']);
 
@@ -50,23 +49,30 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
 } else if (count($parts) != 2) {
     $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
-} else if (!in_array(strtolower($parts[1]), $mail_domains) && !is_invited($mng, $email)) {
+} else if (!is_authorized($mng, $email)) {
     $error_msg = "<p>The e-mail address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
 } else {
     $result = getRegistrationCode($mng, $_SESSION['PUID'], $email);
     if ($result['status'] == "Ok") {
         $subject = "PassHub Account Activation";
-        $body = "<p>Dear PassHub Customer,</p> <p>Please click the link below to activate your account:</p>"
+
+        $hostname = "PassHub";
+        
+        if (isset($_POST['host'])) {
+            $hostname = str_replace("passhub", "PassHub", $_POST['host']);
+        }
+
+        $body = "<p>Dear " . $hostname . " Customer,</p>"
+         .  "<p>Please click the link below to activate your account:</p>"
          . "<a href=" . $url . "login.php?reg_code=" . $result['code'] . ">"
          . $url . "login.php?reg_code=" . $result['code'] . "</a>"
 
-         . "<p>Best regards,<br>PassHub Team.</p>"; 
+         . "<p>Best regards, <br>PassHub Team.</p>"; 
 
          $result = sendMail($email, $subject, $body);
  
         passhub_log('verification mail sent to ' . $email);
         $_SESSION = [];
-        passhub_err(print_r($result, true));
         $sent = true;
         if ($result['status'] !== 'Ok') {
             passhub_err("error sending email");
@@ -82,7 +88,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
 if (!isset($error_msg)) {
     $_SESSION['form_email'] = htmlspecialchars($email);
-    passhub_err(print_r($_SESSION, true));
     header('Location: form_filled.php?registration_action');
     exit();
 }

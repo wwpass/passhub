@@ -1,14 +1,11 @@
-<div class="col-md-2 col-sm-2">
-</div>
-<div class="col-md-8 col-sm-8 phub-dialog">
-    <h1 style="margin:30px 0 50px;text-align: center;"><?php echo $h1_text; ?></h1>
-    <div style="font-size:large; margin:0 0 30px 30px">
-        <p>We have improved PassHub security algorithms and added client-side encryption</p>
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+    <h1><?php echo $h1_text; ?></h1>
+    </div>
+    <div class="card-body">
+        <p class="card-text">We have improved PassHub security algorithms and added client-side encryption</p>
         <p><?php echo $advise?></p>
     </div>
-    <?php /*echo $incompatible_browser*/ ?>
-    <?php /*echo $iOS_device*/ ?>
-
 </div>
 <script>
     window.localStorage.removeItem('wwpClientKey');
