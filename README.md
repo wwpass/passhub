@@ -27,7 +27,7 @@
 
 ## Getting passhub.business archive
 
-You may either download the latest release of the PassHub archive [passhub.business.*.tgz](https://github.com/wwpass/passhub/releases/download/v1.0.0/passhub.business.20190514.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
+You may either download the latest release of the PassHub archive [passhub.business.*.tgz](https://github.com/wwpass/passhub/releases/download/v1.2.0/passhub.business.20191022.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
 
 To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
 
