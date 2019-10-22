@@ -419,13 +419,13 @@ The first logged-in user who visits `/iam.php` page of the site:  `https://yourp
 
 ## Advanced: store your encryptes files in the cloud
 
-It is well possible to keep all your encrypted files in the Amazon S3 compatible object storage service. This way you increase the availability of your data and simplify storage configuration for distributed deployments of PassHub.
+It is well possible to keep all your encrypted files in the Amazon S3 compatible object storage service. This way, you increase the availability of your data and simplify storage configuration for distributed deployments of PassHub.
 
-Good news is that Amason S3 API becomes a standard de-facto and the sam code works for many object storage providers, like Google Cloud Platform or Digital Ocean Spaces, Vultr and Linode.
+The good news is that Amason S3 API becomes a standard de-facto, and the same code works for many object storage providers, like Google Cloud Platform or Digital Ocean Spaces, Vultr and Linode.
 
-With `s3fs` solution, available for Linux, it is also possible just to mount S3-compatible storage to the filesystem, as if it was an NFS external storage. This way you do not need to write a sigle line of code.
+With `s3fs` solution, available for Linux, it is also possible just to mount S3-compatible storage to the filesystem, as if it was an NFS external storage. This way you do not need to write a single line of code.
 
-PassHub supports S3-compatible storage. To configure this option, create an Object storage account in one of the cloud service providers change  
+PassHub supports S3-compatible storage. To configure this option, create an Object storage account in one of the cloud service providers and change the config file:  
 
 ```php
 // Comment out other storage methods 
