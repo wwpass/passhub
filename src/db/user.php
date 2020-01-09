@@ -74,7 +74,7 @@ function getAcessibleStorage($mng, $UserID) {
 }
 */
 
-function used_resources($mng, $UserID) {
+function account($mng, $UserID) {
     $total_records = 0;
     $total_storage = 0;
     $total_safes = 0;
@@ -89,6 +89,19 @@ function used_resources($mng, $UserID) {
         }
         if (property_exists($row, 'plan')) {
             $result['plan'] = $row->plan;
+            if ($row->plan == 'Premium') {
+                $result['expires'] = $row->expires;
+            }
+            if ($row->plan == 'FREE') {
+                $result['upgrade_button'] = true;
+            }
+        } else if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+            $result['plan'] = 'Premium';
+            if (property_exists($row, 'expires')) {
+                $result['expires'] = $row->expires->__toString();
+            } else {
+                $result['expires'] = 'never';
+            }
         }
         break;
     }
@@ -108,12 +121,24 @@ function used_resources($mng, $UserID) {
     $result['used'] = $total_storage;
     $result['safes'] = $total_safes;
 
-    if (defined('MAX_RECORDS_PER_USER')) {
+    if (defined('MAX_RECORDS_PER_USER')  
+        && (!isset($result['plan']) || ($result['plan'] != 'Premium'))) {
         $result['maxRecords'] = MAX_RECORDS_PER_USER;
     } 
+
+    if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_RECORDS')) {
+        passhub_err("account is free, setting max records to " . FREE_ACCOUNT_MAX_RECORDS);       
+        $result['maxRecords'] = FREE_ACCOUNT_MAX_RECORDS;
+    }
+
     if (defined('MAX_STORAGE_PER_USER')) {
         $result['maxStorage'] = MAX_STORAGE_PER_USER;
     } 
+    if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_STORAGE')) {
+        passhub_err("account is free, setting max storage to " . FREE_ACCOUNT_MAX_STORAGE);       
+        $result['maxStorage'] = FREE_ACCOUNT_MAX_STORAGE;
+    }
+
     $result['status'] = 'Ok';
     return $result;
 }
@@ -439,11 +464,6 @@ function getUserData($mng, $UserID)
     } else {
         $data['shareModal'] = "#safeShareModal";
     }
-    if (isset($_REQUEST['show_table'])) {
-        $data['show_table'] = true;
-    } else {
-        $data['show_table'] = false;
-    }
     if (WWPASS_LOGOUT_ON_KEY_REMOVAL 
         && array_key_exists('PUID', $_SESSION)
         && !isset($_SESSION['PasskeyLite'])
@@ -479,6 +499,9 @@ function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
 
     if (isset($email)) {
         $record['email'] = $email;
+    }
+    if (defined('PREMIUM')) {
+        $record['plan'] = 'FREE';
     }
 
     try {
@@ -527,13 +550,14 @@ function process_reg_code($mng, $code, $PUID) {
                 // PUID verified, delete all other codes
                 $mng->reg_codes->deleteMany(['PUID' => $PUID, 'verified' =>false]);
 
-                if ($_SESSION['UserID']) { // adding mail to already existing account (intermediate)
+                if (isset($_SESSION['UserID'])) { // adding mail to already existing account (intermediate)
                     $id =  (strlen($_SESSION['UserID']) != 24)? $_SESSION['UserID'] : new MongoDB\BSON\ObjectID($_SESSION['UserID']);
                     $result = $mng->users->updateOne(
                         ['_id' => $id], 
                         ['$set' => ['email' => $codes[0]->email]]
                     );
-                    passhub_err(print_r($result, true));
+                    // passhub_err(print_r($result, true));
+                    passhub_err("user " . $_SESSION['UserID'] . " registered mail " . $codes[0]->email);
                 }
                 return "Ok";
             }
@@ -559,3 +583,18 @@ function isPuidValidated($mng, $PUID) {
     return false; //multiple code records;
 }
 
+
+function save_paypal_transaction($mng, $UserID, $transaction, $expires) {
+
+    $record = [];
+    $record['UserID'] = $UserID;
+    $record['gateway'] = 'Paypal'; 
+    $record['transaction'] =  $transaction; 
+    $mng->payments->insertOne($record);
+
+    $id =  (strlen($_SESSION['UserID']) != 24)? $_SESSION['UserID'] : new MongoDB\BSON\ObjectID($_SESSION['UserID']);
+    $result = $mng->users->updateOne(
+        ['_id' => $id], 
+        ['$set' => ['plan' => 'Premium', 'expires' => $expires]]
+    );
+}

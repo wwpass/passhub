@@ -16,7 +16,6 @@ require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -62,7 +61,7 @@ if (!$can_write) {
     exit();
 }
 
-$usedResources = used_resources($mng, $UserID);
+$usedResources = account($mng, $UserID);
 
 if (array_key_exists('maxRecords', $usedResources) 
     && ($usedResources['records'] >= $usedResources['maxRecords'])
@@ -87,33 +86,27 @@ if (($encrypted_key_CSE == null) || ($privateKey_CSE == null)) {
     error_page("Error: (new) 46");
 }
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('narrow', true)
-    ->render();
+echo theTwig()->render(
+    'new_file.html', 
+    [
+        // layout
+        'narrow' => true, 
+        // 'title' => $title,
+        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
 
-if (!defined('MAX_FILE_SIZE')) {
-    $max_file_size = 5 * 1024 *1024;
-} else {
-    $max_file_size = MAX_FILE_SIZE;
-}
-Template::factory('src/templates/new_file.html')
-    ->add('vault_id', $SafeID)
-    ->add('folder', $folder)
-    ->add('encrypted_key_CSE', $encrypted_key_CSE)
-    ->add('privateKey_CSE', $privateKey_CSE)
-    ->add('max_file_size', $max_file_size)
-    ->add('storage', json_encode($usedResources))
-    ->render();
+        //content
+        'vault_id' => $SafeID,
+        'folder' => $folder,
+        'encrypted_key_CSE' => $encrypted_key_CSE,
+        'privateKey_CSE' => $privateKey_CSE,
+        'max_file_size' => defined('MAX_FILE_SIZE') ? MAX_FILE_SIZE : 5 * 1024 *1024,
+        'storage' => json_encode($usedResources),
+        'ticket' => $_SESSION['wwpass_ticket'],
+        'verifier' => User::get_csrf(),
 
-Template::factory('src/templates/progress.html')
-    ->render();
-
-Template::factory('src/templates/modals/idle_and_removal.html')
-    ->render();
-
-?>
-</div>
-</body>
-</html>
-
-
+        // idle_and_removal
+        'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
+        'IDLE_TIMEOUT' => IDLE_TIMEOUT,
+        'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time']),
+    ]
+);  

@@ -39,7 +39,8 @@ function showUsers(result) {
           li = `<div style="margin:12px 0;"><span class="vault_user_name">${ul[i].name}</span>`;
           li += '<div style="float:right">';
           if (ul[i].status == 0) {
-            li += '<button class="btn btn-default btn-sm confirm_vault_user" style="font-size:16px;">Confirm</button>';
+//            li += '<button class="btn btn-default btn-sm confirm_vault_user">Confirm</button>';
+            li += '<span class="confirm_vault_user">Confirm</span>';
           } else {
             li += "<span class = 'role_selector dropdown-toggle'>"
             + `${role}</span>`;
@@ -70,7 +71,7 @@ function showUsers(result) {
 }
 
 function setRole(elm, role) {
-  if (elm[0].classList.contains('add-user')) { // role_selector in Share_by_mail modal 
+  if (elm[0].classList.contains('add-user')) { // role_selector in Share_by_mail modal
     elm[0].innerText = (role === 'administrator') ? 'admin' : role;
     return;
   }

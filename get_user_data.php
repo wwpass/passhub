@@ -32,8 +32,15 @@ function getUserDataProxy($mng)
     if (!isset($_SESSION['UserID'])) {
         return ["status" => "login"];
     }
-    if (!isset($_POST['csrf']) || !User::is_valid_csrf($_POST['csrf'])) {
-        passhub_err("get user data bad verifier");
+
+    if (isset($_POST['verifier']) && !User::is_valid_csrf($_POST['verifier'])) {
+        passhub_err("get user data bad verifier " . $_POST['verifier'] . " vs " . $_SESSION['csrf']);
+        return "Internal error";
+    } else if (isset($_POST['csrf']) && !User::is_valid_csrf($_POST['csrf'])) {
+        passhub_err("get user data bad verifier " . $_POST['csrf'] . " vs " . $_SESSION['csrf']);
+        return "Internal error";
+    } else if (!isset($_POST['verifier']) && !isset($_POST['csrf']) ) {
+        passhub_err("get user data no verifier ");
         return "Internal error";
     }
 

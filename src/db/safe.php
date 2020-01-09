@@ -169,11 +169,11 @@ function create_safe1($mng, $UserID, $safe) {
         return "Please fill in new safe name";
     }
     $mng_res = $mng->safe_users->find(['UserID' => $UserID]);
-
+/*
     if (count($mng_res->toArray())  >= MAX_VAULTS_PER_USER) {
         return "Max number of Password safes reached";
     }
-
+*/
     $SafeID = (string)new MongoDB\BSON\ObjectId();
 
     $mng->safe_users->insertOne(

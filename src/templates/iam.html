@@ -1,3 +1,6 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <style>
 
 td, th {
@@ -41,7 +44,7 @@ table, th, td {
   <div class="card-body">
 
     <div class="card">
-      <pre style="margin:20px; font-size: 16px"><?php echo $stats?></pre>
+      <pre style="margin:20px; font-size: 16px">{{ stats }}</pre>
     </div>
 
     <div style='margin:20px;'>
@@ -161,48 +164,21 @@ table, th, td {
     </div>
   </div>
 </div>  
-<div id="csrf" data-csrf='<?php echo $csrf ?>' style='display:none'>
+<div id="csrf" data-csrf='{{ verifier }}' style='display:none'>
 </div>
 <a id="mailhref"></a>
 
-<!--
-<div class="modal" id="inviteByMail" tabindex="-1" role="dialog" aria-labelledby="inviteByMailLabel">
-  <div class="modal-dialog" role="document">
-        <div class="modal-content">
-
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="inviteByMailLabel">Invite new user by email address</h4>
-        </div>
-        <div class="modal-body">
-                <div class="form-group">
-                    <div class="input_group">
-                        <label class="control-label" for="newUserMail">New user e-mail address</label>
-                        <input type="email" class="form-control" name="newUserMail" maxlength=254
-                        id="newUserMail" required >
-                    </div>
-                  </div>
-        </div>
-        <div class="modal-footer">
-            <button  type="button" class="btn btn-primary "  id="id_SubmitNewUserMail" >Invite</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            <div class="alert alert-danger" role="alert" id="inviteByMailAlert" 
-            style="display: none; margin-top: 20px; text-align: left;"></div>
-        </div>
-    </div>
-  </div>
-</div>
--->
-
 <script>
 var page_args = {
-    users: JSON.parse('<?php echo json_encode($users); ?>'),
-    me: '<?php echo $me ?>'
+    users: JSON.parse('{{ users | raw }}'),
+    me: "{{ me }}"
 }
 </script>
 
-<script src = "js/dist/iam.js?v=191015"></script> 
-
+<script src = "js/dist/iam.js?v=191212"></script> 
 
 </div>
 </div>
+
+{{include ('modals/idle_and_removal.html')}}
+{% endblock %}

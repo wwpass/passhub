@@ -19,7 +19,6 @@ require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
 require_once 'src/db/item.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 

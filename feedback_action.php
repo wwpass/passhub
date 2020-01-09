@@ -16,7 +16,6 @@ require_once 'config/config.php';
 require_once 'Mail.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
     define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');

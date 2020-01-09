@@ -52,7 +52,12 @@ import './account';
     $('h3').hide();
     progress.lock();
     $('#entry_form').hide();
-    window.location.href = 'index.php?show_table';
+    const folder = document.getElementsByName('folder')[0].getAttribute('value');
+    if (folder) {
+      window.location.href = `index.php?show=${folder}`;
+    } else {
+      window.location.href = 'index.php?show=0';
+    }
     return 0;
   }
 

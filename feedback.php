@@ -15,7 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -25,18 +24,17 @@ setDbSessionHandler($mng);
 
 session_start();
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('hide_logout', !isset($_SESSION['PUID']))
-    ->add('feedback_page', true)
-    ->add('narrow', true)
-//    ->add('google_analytics', true)
-    ->render();
+echo theTwig()->render(
+    'feedback.html', 
+    [
+        // layout
+        'narrow' => true, 
+        'title' => $title,
+        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+        'feedback_page' => true,
+        'hide_logout' => !isset($_SESSION['PUID']),
 
-$feedback_template = Template::factory('src/templates/feedback.html');
-$feedback_template->render();
-?>
-
-      </div>
-    </div>
-  </body>
-</html>
+        //content
+        'verifier' => User::get_csrf() 
+    ]
+);  

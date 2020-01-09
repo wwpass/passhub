@@ -1,36 +1,73 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
     <div class="card-header" style="margin-bottom: 1em;">
         <h1>
-            <?php if(isset($existing_account)) { ?>
+            {% if existing_account is defined %}
             Account Update    
-            <?php } else { ?>
-            Account Activation
-            <?php } ?>
+            {% else %}
+                {% if de %}
+                    Konto aktivieren
+                  {% else %}
+                    Account Activation
+                  {% endif %}
+            {% endif %}
         </h1>
     </div>
             
     <div class="card-body">
-    <?php if(isset($error_msg)) { ?>
-        <div class="alert alert-danger" role="alert" ><?php echo $error_msg; ?> </div>
-    <?php } ?>
+    {% if error_msg is defined %}    
+        <div class="alert alert-danger" role="alert" >{{ error_msg }} </div>
+    {% endif %}
 
-    <?php if(isset($existing_account)) { ?>
+    {% if existing_account is defined %}
         <p>
             We have changed the sharing procedure. Your e-mail address is now required.
         </p>
-    <?php } ?>
+        {% endif %}
+
+        <div class="alert alert-danger" role="alert" id="alert_message" style="display:none"></div>
 
         <form  action="registration_action.php" method="post" onsubmit="submitMail()"  id="registration_form">
             <div class="form-group">
-                <label class="control-label" for="email">Please enter your e-mail address to activate your account</label>
+
+                <label class="control-label" for="email">
+                    {% if de %}
+                        Bitte geben Sie Ihre E-Mail-Adresse ein, um Ihr Konto zu aktivieren          
+                    {% else %}
+                        Please enter your e-mail address to activate your account
+                    {% endif %}
+                </label>
                 <input type="email" class="form-control" name="email" id="email" maxlength="100">
             </div>
             <div class="form-group">
                 <input type="hidden" id="registration_base_url" name="base_url" value="">
                 <input type="hidden" name="host" value="">
-                <button class="btn btn-primary" type="submit"  style="float:right; margin-left: 1em">Submit</button>
-                <button class="btn btn-secondary" type="button" style="float:right"
-                  onclick="location.href = 'logout.php';">Cancel</button>
+                <button class="btn btn-primary" type="submit"  style="float:right; margin-left: 1em">
+                    {% if de %}
+                        Weiter 
+                    {% else %}
+                        Submit
+                    {% endif %}
+                </button>
+
+
+                {% if existing_account is defined %}
+                    <button class="btn btn-secondary" type="button" style="float:right"
+                    onclick="location.href = 'registration_action.php?later=1';">
+                            Remind me later
+                    </button>
+                {% else %} 
+                    <button class="btn btn-secondary" type="button" style="float:right"
+                    onclick="location.href = 'logout.php';">
+                        {% if de %}
+                            Abbrechen          
+                        {% else %}
+                            Decline
+                        {% endif %}
+                    </button>
+                {% endif %}
             </div>
         </form>
     </div>
@@ -52,3 +89,5 @@ function submitMail() {
 //    $("#registration_form").submit();
 }
 </script>
+
+{% endblock %}

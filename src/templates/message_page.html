@@ -1,6 +1,9 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
   <div class="card-header" style="margin-bottom: 1em;">
-    <h1><?php echo $title ?>
+    <h1>{{ title }}
       <button type="button" class="close" aria-label="Close"
       onclick='window.location.href="index.php";'>
       <span aria-hidden="true">&times;</span>
@@ -9,7 +12,7 @@
   </div>
   <div class="card-body"> 
 
-    <?php echo $content ?>
+    {{ content }}
 
     <div>
       <button class="btn btn-primary" style="float:right; margin-left: 1em" 
@@ -17,3 +20,4 @@
     </div>
   </div>  
 </div>
+{% endblock %}

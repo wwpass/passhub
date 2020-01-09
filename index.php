@@ -30,7 +30,6 @@ require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
 require_once 'src/db/item.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -39,6 +38,12 @@ $mng = newDbConnection();
 setDbSessionHandler($mng);
 
 session_start();
+
+if (isset($_GET["show"])) {
+    $_SESSION["show"] = $_GET["show"];
+    header("Location: index.php");
+    exit();
+}
 
 if (!defined('IDLE_TIMEOUT')) {
     define('IDLE_TIMEOUT', 540);
@@ -72,6 +77,8 @@ if (isset($_SESSION['next'])) {
     unset($_SESSION['next']);
 }
 
+$twig = theTwig();
+
 try {
     // update_ticket();
     test_ticket();
@@ -88,16 +95,18 @@ try {
                     exit();
                 }
             }
-
-            $top_template = Template::factory('src/templates/top.html');
-            $top_template->add('narrow', true);
-
             if (defined('MAIL_DOMAIN')) {
                 if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                     if (!isset($_SESSION['reg_code'])) {
-                        $top_template->render();
-                        $request_mail_template  = Template::factory('src/templates/request_mail.html');
-                        $request_mail_template->render();
+
+                        echo $twig->render(
+                            'request_mail.html', 
+                            [
+                                // layout
+                                'narrow' => true, 
+                                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                            ]
+                        );
                         exit();
                     }
                     $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
@@ -108,11 +117,8 @@ try {
                     unset($_SESSION['reg_code']);
                 }
             }
-            $top_template->render();  // workaround: error_page excludes preliminary output of top_template
-
-            // $create_user_template = Template::factory('src/templates/create_user_cryptoapi.html');
             passhub_log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
-            $create_user_template = Template::factory('src/templates/upsert_user.html');
+
             $template_safes = file_get_contents('config/template.xml');
 
             if (strlen($template_safes) == 0) {
@@ -120,15 +126,17 @@ try {
                 error_page("Internal error. Please come back later.");
             }
 
-            $create_user_template->add('ticket', $_SESSION['wwpass_ticket'])
-                ->add('upgrade', false)
-                ->add('template_safes', $template_safes)
-                ->render();
-                echo "</div>";
-                echo "</div>";
-                echo "</body>";
-                echo "</html>";
-
+            echo $twig->render(
+                'upsert_user.html', 
+                [
+                    // layout
+                    'narrow' => true, 
+                    'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                    'upgrade' => false,
+                    'ticket' => $_SESSION['wwpass_ticket'],
+                    'template_safes' => json_encode($template_safes)
+                ]
+            );
             exit();
         } else if ($result['status'] == "Ok") {
             $UserID = $result['UserID'];
@@ -147,16 +155,20 @@ try {
     $UserID = $_SESSION['UserID'];
     $user = new User($mng, $UserID);
 
-    if (defined('MAIL_DOMAIN')) {
+    if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
         if (!$user->email) {
             if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                 if (!isset($_SESSION['reg_code'])) {
-                    $top_template = Template::factory('src/templates/top.html');
-                    $top_template->add('narrow', true)
-                        ->render();
-                    Template::factory('src/templates/request_mail.html')
-                        ->add('existing_account', true)
-                        ->render();
+                    echo $twig->render(
+                        'request_mail.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+                            'existing_account' => true,
+                            'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
+                        ]
+                    );
                     exit();
                 }
                 $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
@@ -224,138 +236,40 @@ if (isset($_SESSION['expired'])) {
     exit();
 }
 
-$top_template = Template::factory('src/templates/top.html');
+$twig_args = [
+    // layout
+    //'narrow' => true, 
+    // 'title' => $title,
+    'index_page' => true,
+    'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
 
-$top_template->add('index_page', true)
-    ->add('isSiteAdmin', $user->site_admin)
-    ->render();
+    // content
+    'verifier' => User::get_csrf(),
+    'password_font' => getPwdFont(),
+    'MAX_SAFENAME_LENGTH' => defined('MAX_SAFENAME_LENGTH') ? MAX_SAFENAME_LENGTH : 20,
+    'MAX_FILENAME_LENGTH' => defined('MAX_FILENAME_LENGTH') ? MAX_FILENAME_LENGTH : 40,
+    'MAIL_DOMAIN' => defined('MAIL_DOMAIN'),
+    'SHARING_CODE_TTL' => defined('SHARING_CODE_TTL') ? SHARING_CODE_TTL/60/60 : 48,  
 
-$password_font = getPwdFont();
+    // idle_and_removal
+    'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
+    'IDLE_TIMEOUT' => IDLE_TIMEOUT,
+    'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time']),
 
-$index_template = Template::factory('src/templates/index.html')
-    ->add('csrf', User::get_csrf())
-    ->add('password_font', getPwdFont());
-
-if (array_key_exists('folder', $_GET)) {
-    $index_template->add('active_folder', $_GET['folder']);
+];
+if ($user->site_admin) {
+    $twig_args['isSiteAdmin'] = true;
 }
 
-$index_template->render();
-?>
-
-   </div>
-</div>
-
-<?php   if (file_exists('config/server_name.php')) {
-        include 'config/server_name.php';
-} ?>
-
-<?php if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) { ?>
-<div class="info_footer">
-    <span>
-        <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
-        <a href="privacy.php">Privacy Policy</a>
-    </span>
-</div>
-
-<?php } 
-
-$backup_template = Template::factory('src/templates/modals/impex.html');
-$backup_template->render();
-    
-$show_creds_template = Template::factory('src/templates/modals/show_creds.html');
-$show_creds_template->add('password_font', $password_font)
-    ->render();
-
-$create_vault_template = Template::factory('src/templates/modals/create_vault.html');
-$create_vault_template->render();
-
-$folder_ops_template = Template::factory('src/templates/modals/folder_ops.html');
-$folder_ops_template->render();
-
-$delete_item_template = Template::factory('src/templates/modals/delete_item.html');
-$delete_item_template/* ->add('vault_id', htmlspecialchars($current_vault))
-                        */->render();
-
-$delete_safe_template = Template::factory('src/templates/modals/delete_safe.html');
-$delete_safe_template->render();
-
-$rename_vault_template = Template::factory('src/templates/modals/rename_vault.html');
-$rename_vault_template ->render();
-
-$rename_file_template = Template::factory('src/templates/modals/rename_file.html');
-$rename_file_template ->render();
-
-if (defined('MAIL_DOMAIN')) {
-    $share_safe_template = Template::factory('src/templates/modals/share_by_mail.html');
-} else {
-    $accept_sharing_template = Template::factory('src/templates/modals/accept_sharing.html');
-    $accept_sharing_template->render();
-    $share_safe_template = Template::factory('src/templates/modals/share_safe.html');
+if (file_exists('config/server_name.php')) {
+    $twig_args['server_name'] = file_get_contents('config/server_name.php');
 }
 
-$share_safe_template->add('password_font', $password_font)
-    ->render();
 
-$safe_users_template = Template::factory('src/templates/modals/safe_users.html');
-$safe_users_template->render();
-
-$progress_template = Template::factory('src/templates/progress.html');
-$progress_template->render();
-
-
-?>
-
-<script src="js/jquery.csv.min.js"></script>
-
-
-<script>
-
-function isSafariPrivateMode() {
-  const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
-
-  if(!isSafari || !navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
-    return false;
-  }
-  const version = parseInt(isSafari[1], 10);
-  if (version >= 11) {
-      try {
-        window.openDatabase(null, null, null, null);
-        return false;
-      } catch (_) {
-        return true;
-      };
-  } else if (version === 10) {
-    const x = localStorage.length;
-    if(localStorage.length) {
-      return false;
-    } else {
-      try {
-        localStorage.test = 1;
-        localStorage.removeItem('test');
-        return false;
-      } catch (_) {
-        return true;
-      }
-    }
-  }
-  return false;
+if (isset($_SESSION["show"])) { 
+    $twig_args['show'] = $_SESSION['show'];
+    unset($_SESSION["show"]);
 }
 
-if(isSafariPrivateMode()) {
-  window.location.href = "error_page.php?js=SafariPrivateMode";
-}
+echo $twig->render('index.html', $twig_args); 
 
-</script>
-
-<script src="js/dist/index.js?v=191015"></script>
-
-<?php
-
-$idle_and_removal_template = Template::factory('src/templates/modals/idle_and_removal.html');
-$idle_and_removal_template->add('csrf', User::get_csrf())
-    ->render();
-?>
-
-</body>
-</html>

@@ -27,7 +27,7 @@
     "install": "^0.12.2",
     "jquery-contextmenu": "^2.8.0",
     "node-forge": "^0.8.1",
-    "npm": "^6.11.3",
+    "npm": "^6.13.4",
     "wwpass-frontend": "^2.0.1"
   }
 }

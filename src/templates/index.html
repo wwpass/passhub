@@ -1,26 +1,22 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="d-md-block col-xl-3 col-lg-4 col-md-5 col-sm-12 vaults_pane" id="vault_list" style='padding-right:0; padding-left:0'>
         <div class='vaults_scroll_control' id='safe_list_ul'></div>
     <div id="vlist_controls" style='padding:15px;'>
         <button type="button" class = "btn btn-vault" style="width:100%" data-toggle="modal" data-target="#newSafe">New Password Safe</button>
         <div><span style="margin:20px auto 0 auto; display:table">
-            <?php if (!defined('MAIL_DOMAIN')) { ?>
-            <a href="#"  data-toggle="modal" data-target="#fromInviteSafe" style="color:white; text-decoration: underline;"> Accept&nbsp;invitation</a>
-            <?php } ?>
-            <a href="#"  data-toggle="modal" data-target="#restoreModal" style="color:white; text-decoration: underline; margin-left: 10px;">Import</a>
-            <?php if (!defined('DISABLE_EXPORT') || !DISABLE_EXPORT) { ?>
-<!--            <a href="#"  data-toggle="modal" data-target="#backupModal" style="color:white; text-decoration: underline; margin-left: 10px;">Export</a>
--->
-    <a href="#"  class='export_all' style="color:white; text-decoration: underline; margin-left: 10px;">Export</a>
-            <?php } ?>
+            {% if MAIL_DOMAIN %}
+            {% else %}
+                <a href="#" class='vaults_pane_control' data-toggle="modal" data-target="#fromInviteSafe"> Accept&nbsp;invitation</a>
+            {% endif %}
+            <a href="#"  class='vaults_pane_control' data-toggle="modal" data-target="#restoreModal" style="margin-left: 10px;">Import</a>
+            <a href="#"  class='vaults_pane_control export_all' style="margin-left: 10px;">Export</a>
         </span></div>
     </div>
 </div>
 
-<div id="csrf" data-csrf='<?php echo $csrf ?>' style='display:none'></div>
-
-<?php if (isset($active_folder)) { ?>
-<div data-folder='<?php echo $active_folder ?>'></div>
-<?php } ?>
+<div id="csrf" data-csrf='{{ verifier }}' style='display:none'></div>
 
 <a id="mailhref"></a>
 
@@ -50,8 +46,6 @@
             <thead class="d-none d-md-table-row" >
                 <tr class="d-flex">
                     <th class="col-xl-6 col-lg-7 col-md-12">Title</th>
-<!--                    <th class="col-lg-2  d-none d-lg-table-cell" style="overflow: hidden; text-overflow: ellipsis; ">Login password</th>
--->
                     <th class="col-xl-3 col-lg-5 d-none d-lg-table-cell">URL</th>
                     <th class="col-xl-3 d-none d-xl-table-cell">Modified</th>
                 </tr>
@@ -68,10 +62,6 @@
             <svg width='24' height='24' class='add_button_icon' ><use xlink:href='img/SVG2/sprite.svg#ar-expand'></use></svg>
         </button>
     </div>
-<!--
-    <div><p  id='log_msg'></p>
-    </div>
--->
 </div>
 <div  class="d-none col-12 d-md-none item_pane" style="padding:0" >
     <div class="col-12 d-md-none btn-group item_pane_nav" role="group">
@@ -103,26 +93,12 @@
         <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file">item_pane_file</span></div>
         <span class="item_field_label">Size</span><br>
         <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_size">item_pane_file_size</span></div>
-    <!--
-        <span class="item_field_label">Date</span><br>
-        <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_date">item_pane_file_date</span></div>
-    -->
         <button type="button" class="btn btn-primary" id="item_pane_download_button">Download</button>
     </div>
 
     <div class="regular_item">
         <div class = "note_hidden">
             <span class="item_field_label">Username</span><br>
-<!--
-            <div class="input-group item_pane_username_div" style="margin:2px 0 10px; width:100%">
-                <span class="input-group-btn" id="item_pane_copy_username">
-                <button class="btn btn-default" type="button" id="copy_username">Copy</button>
-                </span>
-
-                <input type="text" class="form-control item_input" name="username" id="item_pane_username" readonly
-                style="font-family: '<?php echo $password_font ?>'">
-            </div>
--->
             <div class="input-group" style="margin:2px 0 10px; width:100%">
                 <div class="input-group-prepend">
                     <span class="input-group-text" id="item_pane_copy_username" style="cursor:pointer;">
@@ -130,7 +106,7 @@
                     </span>
                 </div>
                 <input type="text" readonly class="form-control item_input" name="username" id="item_pane_username" 
-                style="font-family: '<?php echo $password_font ?>'" >
+                style="font-family: '{{ password_font }}'" >
             </div>
 
 
@@ -139,22 +115,6 @@
 
 
             <span class="item_field_label">Password</span><br>
-
-<!--
-            <div class="input-group item_pane_password_div" style="margin:2px 0 10px;">
-                <span class="input-group-btn" id="item_pane_copy_password">
-                <button class="btn btn-default" type="button" id="copy_password">Copy</button>
-                </span>
-                <input type="password" class="form-control item_input" name="password" id="item_pane_password" readonly
-                style="font-family:  '<?php echo $password_font ?>'">
-                <span class="input-group-btn">
-
-                <button class=" icon_flat_button toggle_pw_button" style="margin-left:1px" onclick="toggle_pw()">
-                    <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='img/SVG2/sprite.svg#i-show'></use></svg>
-                </button>
-                </span>
-            </div>
--->
             <div class="input-group" style="margin:2px 0 10px;">
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="item_pane_copy_password" style="cursor:pointer;">
@@ -164,7 +124,7 @@
 
 
                 <input type="password" readonly  class="form-control item_input" id="item_pane_password"
-                style="font-family:  '<?php echo $password_font ?>'">
+                style="font-family:  '{{ password_font }}'">
 
                 <div class="input-group-append">
                   <span class="input-group-text toggle_pw_button" 
@@ -173,9 +133,6 @@
                   </span>
                 </div>
             </div>
-
-
-
 
             <div class="item_pane_password_dummy" style="height:16px; display:none">
             </div>
@@ -189,3 +146,74 @@
         </div>
     </div>
 </div>
+
+
+{{ include('modals/impex.html') }}
+{{ include('modals/show_creds.html') }}
+{{ include('modals/create_vault.html') }}
+{{ include('modals/folder_ops.html') }}
+{{ include('modals/delete_item.html') }}
+{{ include('modals/delete_safe.html') }}
+{{ include('modals/rename_vault.html') }}
+{{ include('modals/rename_file.html') }}
+{{ include('modals/safe_users.html') }}
+
+{% if MAIL_DOMAIN  %}
+    {{ include('modals/share_by_mail.html') }}
+{% else %}
+    {{ include ('modals/accept_sharing.html') }}
+    {{ include ('modals/share_safe.html') }}
+{% endif %}
+
+{{ include ('modals/idle_and_removal.html') }}
+
+<script src="js/jquery.csv.min.js"></script>
+
+
+<script>
+
+function isSafariPrivateMode() {
+  const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
+
+  if(!isSafari || !navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
+    return false;
+  }
+  const version = parseInt(isSafari[1], 10);
+  if (version >= 11) {
+      try {
+        window.openDatabase(null, null, null, null);
+        return false;
+      } catch (_) {
+        return true;
+      };
+  } else if (version === 10) {
+    const x = localStorage.length;
+    if(localStorage.length) {
+      return false;
+    } else {
+      try {
+        localStorage.test = 1;
+        localStorage.removeItem('test');
+        return false;
+      } catch (_) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+if(isSafariPrivateMode()) {
+  window.location.href = "error_page.php?js=SafariPrivateMode";
+}
+</script>
+
+{% if show is defined  %}
+<script> var index_page_show_index = "{{ show }}";</script>;
+{% endif %}
+
+
+<script src="js/dist/index.js?v=191212"></script>
+
+
+{% endblock %}

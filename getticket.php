@@ -20,20 +20,40 @@ require_once 'src/functions.php';
 
 try {
     $t0 = microtime(true);
-    $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
-    if (isset($_REQUEST['ref'])) {  //older versioins of Passkey Lite
-        $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'':'');
+    $test4 = WWPass\Connection::VERSION == '4.0';
+    passhub_log($test4);
+    $pin_required = defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false;
+    
+    if ($test4) {
+        $wwc = new WWPass\Connection(
+            ['key_file' => WWPASS_KEY_FILE, 
+            'cert_file' => WWPASS_CERT_FILE, 
+            'ca_file' => WWPASS_CA_FILE]
+        );
+        $ticket = $wwc->getTicket(
+            ['pin' => $pin_required,
+            'client_key' => true,
+            'ttl' => WWPASS_TICKET_TTL]
+        );
+        $sp = explode("@", $ticket['ticket'])[1];
     } else {
-        $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
-        $dt = number_format((microtime(true) - $t0), 3);
+        $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
+        $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, $pin_required?'pc':'c');
         $sp = explode("@", $ticket)[1];
-
-        timing_log("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
     }
-} catch (Exception $e) {
-    $err_msg = 'Caught exception: '. $e->getMessage();
+    $dt = number_format((microtime(true) - $t0), 3);
+    timing_log("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+} catch (WWPass\Exception $e) {
+    $err_msg = 'Caught WWPass exception: ' . $e->getMessage();
+    passhub_err(get_class($e));
     passhub_err($err_msg);
-    exit();
+    $_SESSION['expired'] = true;
+} catch (Exception $e) {
+    $err_msg = 'Caught exception: ' . $e->getMessage();
+    passhub_err(get_class($e));
+    passhub_err($err_msg);
+    // return 500
+    error_page("Internal server error idx 159");
 }
 
 // Prevent caching.
@@ -43,7 +63,11 @@ header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
 // The JSON standard MIME header.
 header('Content-type: application/json');
 
-$data = array("ticket" => $ticket, "ttl" => WWPASS_TICKET_TTL);
+if ($test4) {
+    $data = $ticket;
+} else {
+    $data = array("ticket" => $ticket, "ttl" => WWPASS_TICKET_TTL);
+}
 
 // Send the data.
 echo json_encode($data);

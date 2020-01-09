@@ -15,7 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 require_once 'src/db/SessionHandler.php';
 
 $mng = newDbConnection();
@@ -24,27 +23,23 @@ setDbSessionHandler($mng);
 
 session_start();
 
-passhub_err(
-    'error_page: ' . print_r($_GET, true)
-    . 'agent ' . $_SERVER['HTTP_USER_AGENT']
-);
 
-Template::factory('src/templates/top.html')
-    ->add('narrow', true)
-    ->render();
+$twig_args = [
+    'narrow' => true, 
+    'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false
+];
 
-$error_template = Template::factory('src/templates/error_page.html');
 
 if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
 
-    $header = "Your Safari browser is&nbsp;in Private mode";
-    $text = "<p style = 'font-size: larger'>Please follow"
+    $twig_args['header'] = "Your Safari browser is&nbsp;in Private mode";
+    $twig_args['text'] = "<p style = 'font-size: larger'>Please follow"
         . " <a href = 'https://support.apple.com/en-us/HT203036'>Apple's instructions</a>"
         . " to&nbsp;return to&nbsp;normal mode</p>"
         . "<p>Private mode is not compatible with Passhub, some important browser functions are disabled</p>";
-    $error_template->add('header', $header)
+    /*$error_template->add('header', $header)
         ->add('text', $text)
-        ->render();
+        ->render(); */
 } else {
     $header = "Error";
     $text=$_SESSION['error_message'];
@@ -87,22 +82,20 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
         }
     }
     passhub_err("error_page message: " . $_SESSION['error_message']);
-    $error_template->add('header', $header);
+    $twig_args['header'] = $header;
 
     if (isset($_SESSION['error_message']) && (trim($_SESSION['error_message']) != "")) {
-        $error_template->add('text', '<p>' . $text . '</p>');
-        $error_template->add('js387', $js387);
+        $twig_args['text'] = '<p>' . $text . '</p>';
+
+        if (isset($js387) && ($js387 === "mobile")) {
+            $twig_args['try_again'] = $js387;
+        }
     } else {
         passhub_err("error_page 35");
-        $error_template->add('text', "");
+        $twig_args['text'] = "";
     }
-    $error_template->render();
 }
-
-?>
-</div>
-</div>
-</body>
-</html>
-
+echo theTwig()->render(
+    'error_page.html', $twig_args
+); 
 

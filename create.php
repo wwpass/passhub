@@ -52,17 +52,19 @@ if (!isset($_POST['vault']) || (ctype_xdigit($_POST['vault']) == false)) {
 }
 
 $SafeID = $_POST['vault'];
+$folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
 
 if (isset($_POST['ios_cancel']) && ($_POST['ios_cancel'] == "1" )) {
-    header("Location: index.php?show_table&vault=$SafeID");
+    header("Location: index.php?show=" . $folder);
     exit();
 }
 
-$folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
-
 $encrypted_data = $_POST['encrypted_data'];
 
+$result = create_items_cse($mng, trim($_SESSION["UserID"]), $SafeID, $encrypted_data, $folder);
 
-create_items_cse($mng, trim($_SESSION["UserID"]), $SafeID, $encrypted_data, $folder);
-
-header("Location: index.php?show_table&vault=" . $SafeID . "&folder=" . $folder);
+if ($result['status'] == "Ok") {
+    header("Location: index.php?show=" . $result['firstID']);
+} else {
+    header("Location: index.php?show=" . $folder);
+}

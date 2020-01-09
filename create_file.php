@@ -57,11 +57,6 @@ if (!isset($_POST['vault']) || (ctype_xdigit($_POST['vault']) == false)) {
 $SafeID = $_POST['vault'];
 $UserID = $_SESSION['UserID'];
 
-if (isset($_POST['ios_cancel']) && ($_POST['ios_cancel'] == "1" )) {
-    header("Location: index.php?show_table&vault=$SafeID");
-    exit();
-}
-
 $folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
 
 $meta = $_POST['meta'];

@@ -8,11 +8,13 @@
         <div class="modal-body">    
             <div class = "card bg-light p-3 m-3">
                 <p><b>Select output format:</b></p>
-                <div class="radio">
-                    <label><input type="radio" name="export_format" value="XML" checked>XML (KeePass2.x compatible) </label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="export_format" value="XML" checked> 
+                    <label class="form-check-label">XML (KeePass2.x compatible)</label>
                 </div>
-                <div class="radio">
-                    <label><input type="radio" name="export_format" value="CSV">CSV (readable, Excel and KeePassXC compatible)</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="export_format" value="CSV">
+                    <label class="form-check-label">CSV (readable, Excel and KeePassXC compatible)</label>
                 </div>
             </div>
 
@@ -46,12 +48,14 @@
 
             <div class = "card bg-light p-3 m-3">
                 <p><b>Select mode:</b></p>
-                <div class="radio">
-                    <label><input type="radio" name="restore_mode" value="Import" checked>Import into a new safe</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="restore_mode" value="Import" checked>
+                    <label class="form-check-label">Import into a new safe</label>
                 </div>
-                <div class="radio">
-                    <label><input type="radio" name="restore_mode" value="Restore">Restore (Merge into existing safes where possible)</label>
-                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="restore_mode" value="Restore">
+                    <label class="form-check-label">Restore (Merge into existing safes where possible)</label>
+                    </div>
             </div>
 
             <input type="file" id="fileinput_id" name="filename" accept=".xml,.csv" style="margin:20px 20px 0 20px">
