@@ -16,7 +16,6 @@ require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -47,7 +46,7 @@ try {
 
 $UserID = $_SESSION['UserID'];
 
-$result = used_resources($mng, $UserID);
+$result = account($mng, $UserID);
 if (gettype($result) == "string") {
     $result = array("status" => $result);
 }

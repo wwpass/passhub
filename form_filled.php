@@ -32,35 +32,52 @@ if (isset($_GET['check_mail'])) {
 /* if (isset($_GET['enterprize_form_filled'])) {
     $template = Template::factory('src/templates/form_filled.html'); 
 } else */
+
+$twig = theTwig();
+
 if (isset($_GET['registration_action'])) {
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('hide_logout', true)
-        ->add('narrow', true)
-        ->render();
 
-    $template = Template::factory('src/templates/registration_action.html');
-    $template->add('success', true);
-/* } else if (defined('PUBLIC_SERVICE') && !isset($_SESSION['PUID'])) {
-    $template = Template::factory('src/templates/form_filled.html'); */
-} else if (isset($_GET['setup_account'])) {
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('hide_logout', !isset($_SESSION['PUID']))
-        ->add('feedback_page', true)
-        ->add('narrow', true)
-        ->render();
-
-    $template = Template::factory('src/templates/setup_account_action.html');
-    $template->add('success', true);
-} else {
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('hide_logout', !isset($_SESSION['PUID']))
-        ->add('feedback_page', true)
-        ->add('narrow', true)
-        ->render();
-
-    $template = Template::factory('src/templates/feedback_action.html');
-    $template->add('success', true);
+    echo $twig->render(
+        'registration_action.html', 
+        [
+            // layout
+            'narrow' => true, 
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+            'hide_logout' => true,
+    
+            //content
+            'email' => $_SESSION['form_email'],
+            'success' => true,
+            'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
+        ]
+    );
+    exit();  
 }
+if (isset($_GET['setup_account'])) {
+    echo $twig->render(
+        'setup_account_action.html',
+        [
+            'narrow' => true, 
+            'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+            'hide_logout' => true,
+            'feedback_page' => true,
+            'email' => $_SESSION['form_email'],
+            'success' => true            
+        ]
+    );
+    exit();
+}
+echo $twig->render(
+    'feedback_action.html', 
+    [
+        // layout
+        'narrow' => true, 
+        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+        'feedback_page' => true,
+        'hide_logout' => !isset($_SESSION['PUID']),
 
-$template->add('email', $_SESSION['form_email']);
-$template->render();
+        //content
+        'email' => $_SESSION['form_email'],
+        'success' => true
+    ]
+);

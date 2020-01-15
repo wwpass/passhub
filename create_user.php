@@ -27,9 +27,7 @@ $mng = newDbConnection();
 
 setDbSessionHandler($mng);
 
-
 session_start();
-
 
 function createUser_proxy($mng) {
 

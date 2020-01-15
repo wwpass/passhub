@@ -35,18 +35,3 @@ $('body').on('click', '.item_back', () => {
 
 passhub.indexPageResize();
 passhub.getUserData();
-
-
-/*
-if (passhub.invitation_accept_pending || (passhub.current_safe.key ==null)) {
-  setTimeout(getSharingStatus, 30 * 1000);
-}
-
-if (passhub.show_table_req) {
-  passhub.show_table();
-}
-
-$(document).ready(function() {
-  $(window).resize(passhub.index_page_resize);
-});
-*/

@@ -1,3 +1,6 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
   <div class="card-header" style="margin-bottom: 1em;">
     <h1>Send us a message</h1>
@@ -17,12 +20,12 @@
         <textarea class="form-control" id="message" name="message" rows="10" cols="20" maxlength="2048"
           required></textarea>
       </div>
-      <input type="hidden" name="verifier" value="<?php echo User::get_csrf();?>">
+      <input type="hidden" name="verifier" value="{{ verifier }}">
       <input type="hidden" name="host" value="">
       <div class="form-group">
         <button class="btn btn-primary" type="submit"  style="float:right; margin-left: 1em">Send message</button>
         <button type="button" class="btn btn-secondary" style="float:right"
-          onclick="location.href = 'index.php';">Cancel</button>
+          onclick="location.href = 'index.php'">Cancel</button>
       </div>
     </form>
   </div>  
@@ -33,3 +36,4 @@
     document.querySelector('input[name="host"]').value=window.location.host;
   })();
 </script>
+{% endblock %}

@@ -13,7 +13,7 @@
        <div class="alert alert-danger" role="alert" id="create_vault_alert"></div>
        <label class="control-label" for="Safename_create">Safe name</label>
        <input type="text" class="form-control" name="newSafeName" 
-        maxlength="<?php echo MAX_SAFENAME_LENGTH; ?>"  id="SafeName_create" required>
+        maxlength="{{ MAX_SAFENAME_LENGTH }}"  id="SafeName_create" required>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>

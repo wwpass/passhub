@@ -30,11 +30,8 @@ require_once 'vendor/autoload.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
 // require_once 'src/cookie.php';
-require_once 'src/template.php';
-require_once 'src/localized-template.php';
 
 require_once 'src/db/SessionHandler.php';
-
 
 $mng = newDbConnection();
 
@@ -90,28 +87,23 @@ if (stripos($_SERVER['HTTP_USER_AGENT'], "Trident")) {
 
 
 $isAndroid = stripos($_SERVER['HTTP_USER_AGENT'], "Android");
-/*
-// UCBrowser on Android works again!
-if( stripos($_SERVER['HTTP_USER_AGENT'],"UCBrowser")) {
-    $incompatible_browser = "UCBrowser";
-    $h1_text = "Sorry, UC Browser is no longer supported";
-    $advise = "Please get Chrome from Google Play and set it as your default browser";
-}
-*/
+
 if ($incompatible_browser) {
     session_destroy();
     passhub_err("incompatible browser " . $_SERVER['HTTP_USER_AGENT']);
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('narrow', true)
-        ->add('hide_logout', true)
-        ->render();
 
-    $notsupported_template = Template::factory('src/templates/notsupported.html');
-    $notsupported_template->add('h1_text', $h1_text)
-        ->add('advise', $advise)
-        ->add('incompatible_browser', $incompatible_browser)
-        ->add('iOS_device', $iOS)
-        ->render();
+    echo theTwig()->render(
+        'notsupported.html',
+        [
+            'hide_logout' => true,
+            'narrow' => true,
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE'), 
+            'h1_text'=> $h1_text,
+            'advise' => $advise,
+            'incompatible_browser' => $incompatible_browser,
+            'iOS_device' => $iOS
+        ]
+    );
     exit();
 }
 
@@ -119,32 +111,6 @@ if (isset($_SESSION['PUID'])) {
     header("Location: index.php");
     exit();
 }
-
-// Referred and Passkey Lite
-/*
-if (isset($_REQUEST['ref'])) {  // ?ref=ios-passkey-lite
-    if ($iOS || $isAndroid) {
-        if (!array_key_exists('wwp_status', $_REQUEST) && !array_key_exists('wwp_ticket', $_REQUEST)) {
-            // move to functions.cpp
-            try {
-                $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
-                $ticket = $wwc->getTicket(WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'p:c':'c');
-            } catch (Exception $e) {
-                $err_msg = 'Caught exception: '. $e->getMessage();
-                exit($err_msg);
-            }
-            $top_template = Template::factory('src/templates/top.html');
-            $top_template->add('narrow', true)
-                ->render();
-
-            $lom_template = Template::factory('src/templates/login_on_mobile.html');
-            $lom_template->add('ticket', $ticket)
-                ->render();
-            exit();
-        }
-    }
-}
-*/
 
 if (isset($_GET['next']) && !isset($_SESSION['PUID'])) {
     $_SESSION['next'] = $_GET['next'];
@@ -168,26 +134,45 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
         $err_msg = "General Problem" .  htmlspecialchars($_REQUEST['wwp_status']);
     }
 } else if (array_key_exists('wwp_ticket', $_REQUEST)) {
-    if ((strpos($_REQUEST['wwp_ticket'], ':c:') == false) && (strpos($_REQUEST['wwp_ticket'], ':pc:') == false) && (strpos($_REQUEST['wwp_ticket'], ':cp:') == false)) {
-        /*
-        if($iOS) {
-            $err_msg = "Old Passkey Lite app, please update";
-         } else {
-            $err_msg = "Old Passkey Lite app, please update";
-         }
-        */
+    if ((strpos($_REQUEST['wwp_ticket'], ':c:') == false) 
+        && (strpos($_REQUEST['wwp_ticket'], ':pc:') == false) 
+        && (strpos($_REQUEST['wwp_ticket'], ':cp:') == false)
+    ) {
+        // do nothing
     } else {
         // clear all keys but req_code if present
         $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "",'next' => ""));
         $ticket = $_REQUEST['wwp_ticket'];
         try {
-            $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
+            $test4 = WWPass\Connection::VERSION == '4.0';
+
+            if ($test4) {
+                $wwc = new WWPass\Connection(
+                    ['key_file' => WWPASS_KEY_FILE, 
+                    'cert_file' => WWPASS_CERT_FILE, 
+                    'ca_file' => WWPASS_CA_FILE]
+                );
+                $new_ticket = $wwc->putTicket(
+                    ['ticket' => $ticket,
+                    'pin' =>  defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false,
+                    'client_key' => true,
+                    'ttl' => WWPASS_TICKET_TTL]
+                );
+
+                $_SESSION['wwpass_ticket'] = $new_ticket['ticket'];
+                $_SESSION['wwpass_ticket_renewal_time'] = time() + $new_ticket['ttl'] / 2;
+                $puid = $wwc->getPUID(['ticket' => $ticket]);
+                $puid = $puid['puid']; 
+            } else { // version 3
+                $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
+                $new_ticket = $wwc->putTicket($ticket, WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
+                $_SESSION['wwpass_ticket'] = $new_ticket;
+                $_SESSION['wwpass_ticket_renewal_time'] = time() + WWPASS_TICKET_TTL/2;
+                $puid = $wwc->getPUID($ticket);
+            }
             
-            $puid = $wwc->getPUID($ticket);
-            $new_ticket = $wwc->putTicket($ticket, WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
             $_SESSION['PUID'] = $puid;
-            $_SESSION['wwpass_ticket'] = $new_ticket;
-            $_SESSION['wwpass_ticket_renewal_time'] = time() + WWPASS_TICKET_TTL/2;
+
             $_SESSION['wwpass_ticket_creation_time'] = time();
 
             if (!isset($_REQUEST['wwp_hw'])) {
@@ -204,28 +189,31 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
     }
 }
 
-if (defined('LOGIN_PAGE')) {
-    $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
-} else {
-    $login_template = Template::factory('src/templates/login.html');
-}
-
 if (isset($_SESSION['reg_code'])) {
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('hide_logout', !isset($_SESSION['PUID']))
-        ->add('narrow', true)
-        ->render();
 
-    $login_template = Template::factory('src/templates/login_reg.html');
+    echo theTwig()->render(
+        'login_reg.html',
+        [
+            'narrow' => true,
+            'hide_logout' => true,
+            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE')
+        ]
+    );
+    exit();
 }
 
-if (isset($err_msg)) {
-    $login_template->add('err_msg', $err_msg);
-}
 
-$login_template->add('complete_registration', isset($_SESSION['reg_code']))
-    ->add('isAndroid', $isAndroid)
-    ->add('isIOS', $iOS)
-    // ->add('hideInstructions', $hideInstructions)
-    // ->add('showHardwareLogin', sniffCookie('showHardwareLogin'))
-    ->render();
+if (defined('PUBLIC_SERVICE')) {
+    require_once 'src/localized-template.php';
+
+    include_once 'src/policy.php';
+    if (defined('LOGIN_PAGE')) {
+        $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
+        $login_template->render();
+    }
+    exit();
+} 
+
+echo theTwig()->render(
+    'login.html'
+);

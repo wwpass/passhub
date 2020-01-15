@@ -16,7 +16,6 @@ require_once 'config/config.php';
 require_once 'Mail.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 require_once 'src/db/iam_ops.php';
 
 require_once 'src/db/SessionHandler.php';
@@ -39,6 +38,14 @@ if (!defined('MAIL_DOMAIN')) {
     passhub_err("mail domain not defined");
     error_page("Internal error");
 }
+
+
+if (isset($_SESSION['UserID']) && isset($_GET['later'])) {
+    $_SESSION['later'] = true;
+    passhub_err("user " . $_SESSION['UserID'] . " mail registration: later");
+    header('Location: index.php');
+    exit();
+} 
 
 $email = $_POST['email'];
 $url = strtolower($_POST['base_url']);
@@ -71,7 +78,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
          $result = sendMail($email, $subject, $body);
  
-        passhub_log('verification mail sent to ' . $email);
+        passhub_err('verification mail sent to ' . $email);
         $_SESSION = [];
         $sent = true;
         if ($result['status'] !== 'Ok') {
@@ -92,19 +99,18 @@ if (!isset($error_msg)) {
     exit();
 }
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('hide_logout', true)
-    ->add('narrow', true)
-    ->render();
+echo theTwig()->render(
+    'request_mail.html', 
+    [
+        // layout
+        'narrow' => true, 
+        'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+        'hide_logout' => true,
 
-$request_mail_template  = Template::factory('src/templates/request_mail.html');
-passhub_err($error_msg);
-$request_mail_template->add('error_msg', $error_msg)
-    ->render();
-
-?>
-
-</div>
-</div>
-</body>
-</html>
+        //content
+        'email' => $_SESSION['form_email'],
+        'success' => true,
+        'error_msg' => $error_msg,
+        'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
+    ]
+);

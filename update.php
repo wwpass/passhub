@@ -65,7 +65,7 @@ $encrypted_data = $_POST['encrypted_data'];
 $result = update_item_cse($mng, trim($_SESSION["UserID"]), $SafeID, trim($_POST['entryID']), $encrypted_data);
 
 if ($result['status'] == "Ok") {
-    header("Location: index.php?show_table&vault=" . $SafeID . "&folder=" . $result['item']['folder']);
+    header("Location: index.php?show=" . trim($_POST['entryID']));
 } else {
-    header("Location: index.php?show_table&vault=$SafeID");
+    header("Location: index.php?show=0");
 }

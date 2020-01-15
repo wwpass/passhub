@@ -15,7 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -26,14 +25,10 @@ setDbSessionHandler($mng);
 session_start();
 session_destroy();
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('narrow', true)
-            ->render();
-
-$expired_template = Template::factory('src/templates/expired.html');
-$expired_template->render();
-?>
-      </div>
-    </div>
-  </body>
-</html>
+echo theTwig()->render(
+    'expired.html',
+    [
+      'narrow' => true,
+      'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false
+    ]
+);

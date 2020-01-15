@@ -17,7 +17,6 @@ require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
 require_once 'src/db/iam_ops.php';
-require_once 'src/template.php';
 
 
 require_once 'src/db/SessionHandler.php';
@@ -102,42 +101,6 @@ if (isset($_POST['deleteMail'])) {
     return;
 }
 
-
-//function getUserArray($mng) {
-/*
-$query = new MongoDB\Driver\Query([], ['projection' => ["_id" => true, "lastSeen" => true, "email" => true, "site_admin" =>true]]);
-$cursor = $mng->executeQuery(DB_NAME . ".users", $query);
-$user_array = $cursor->toArray();
-
-$i_am_admin = false;
-$admins_found = false;
-foreach ($user_array as $user) {
-    if (isset($user->site_admin) && ($user->site_admin == true)) {
-        $admins_found = true;
-        if ($UserID == (string)$user->_id) {
-            $i_am_admin = true;
-            break;
-        }
-    }
-}
-
-//    passhub_err("- " . $admins_found . " + " . $i_am_admin . " -");
-
-if ($admins_found === false) {
-    $id =  (strlen($UserID) != 24)? $UserID : new MongoDB\BSON\ObjectID($UserID);
-    $bulk = new MongoDB\Driver\BulkWrite();
-    $bulk->update(['_id' => $id], ['$set' =>['site_admin' => true]]);
-    $mng->executeBulkWrite(DB_NAME . ".users", $bulk);
-
-    $query = new MongoDB\Driver\Query([], ['projection' => ["_id" => true, "lastSeen" => true, "email" => true, "site_admin" =>true]]);
-    $cursor = $mng->executeQuery(DB_NAME . ".users", $query);
-    $user_array = $cursor->toArray();
-} else if ($i_am_admin === false) {
-    error_page("not enough rights");
-}
-
-*/
-
 $user_array = getUserArray($mng, $UserID);
 
 if (count($user_array) == 0) {
@@ -189,30 +152,20 @@ foreach ($user_array as $user) {
     }
 }
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template /*->add('narrow', false) */
-    ->add('iam_page', true)
-    ->render();
 
-$iam_template = Template::factory('src/templates/iam.html');
-$iam_template->add('users', $user_array)
-    ->add('csrf', User::get_csrf())
-    ->add('me', $UserID)
-    ->add('stats', $stats)
-    ->render();
-/*
-$invite_template = Template::factory('src/templates/modals/invite_by_mail.html');
-$invite_template->render();
-*/
+echo theTwig()->render(
+    'iam.html',
+    [
+        'iam_page' => true,
+        'verifier' => User::get_csrf(),
+        'me' => $UserID,
+        'stats' => $stats,
+        'users' => json_encode($user_array),
 
-$progress_template = Template::factory('src/templates/progress.html');
-$progress_template->render();
-
-$idle_and_removal_template = Template::factory('src/templates/modals/idle_and_removal.html');
-$idle_and_removal_template->render();
-
-?>
-</body>
-</html>
-
-
+        // idle_and_removal
+        'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
+        'IDLE_TIMEOUT' => IDLE_TIMEOUT,
+        'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time']),
+       
+    ]  
+);

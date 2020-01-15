@@ -99,7 +99,8 @@ function create_items_cse($mng, $UserID, $SafeID, $items, $folder) {
 
         if ($result->getInsertedCount() == count($items)) {
             passhub_log('user ' . $UserID . ' activity ' .count($items) . ' item(s) created');
-            return "Ok";
+            $firstID = (string) $result->getInsertedIds()[0];
+            return ["status" =>  "Ok", "firstID" => $firstID];
         }
         passhub_err(print_r($result, true));
         exit();
@@ -542,7 +543,7 @@ function import_folder($mng, $UserID, $SafeID, $parent, $folder) {
     if ($result['status'] == 'Ok') {
         $id = $result['id'];
         if (isset($folder['entries']) && (count($folder['entries']) > 0)) {
-                create_items_cse($mng, $UserID, $SafeID, $folder['entries'], $id);
+            create_items_cse($mng, $UserID, $SafeID, $folder['entries'], $id);
         }
         if (isset($folder['folders'])) {
             foreach ($folder['folders'] as $child) {

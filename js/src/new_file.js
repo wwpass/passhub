@@ -31,7 +31,11 @@ function showAlert(message) {
 
 function cancelForm() {
   progress.lock();
-  window.location.href = 'index.php?show_table';
+  if  (new_file.folder) {
+    window.location.href = `index.php?show=${new_file.folder}`;
+  } else {
+    window.location.href = 'index.php?show=0';
+  }
   return 0;
 }
 
@@ -67,7 +71,7 @@ function submitForm() {
   }
   const theFile = curFiles[0];
   if (theFile.size > new_file.maxFileSize) {
-    $('#alert_message').html(`File too large. Max file size is ${humanReadableFileSize(new_file.maxFileSize)}`).show();
+    $('#alert_message').html(`File too large. Max allowed file size is ${humanReadableFileSize(new_file.maxFileSize)}`).show();
     return;
   }
   
@@ -125,7 +129,11 @@ function submitForm() {
       timeout: 600000,
       success: (result) => {
         if (result.status === 'Ok') {
-          window.location.href = `index.php?show_table&vault=${new_file.vault}&folder=${new_file.folder}`;
+          if (typeof result.firstID === 'undefined') {
+            window.location.href = `index.php?show=${new_file.folder}`;
+          } else {
+            window.location.href = `index.php?show=${result.firstID}`;
+          }
           return;
         }
         progress.unlock();

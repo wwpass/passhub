@@ -1,12 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
     <div class="card-header" style="margin-bottom: 1em;">
-    <h1><?php echo $h1_text; ?></h1>
+    <h1>{{ h1_text }}</h1>
     </div>
     <div class="card-body">
         <p class="card-text">We have improved PassHub security algorithms and added client-side encryption</p>
-        <p><?php echo $advise?></p>
+        <p>{{ advise }}</p>
     </div>
 </div>
 <script>
     window.localStorage.removeItem('wwpClientKey');
 </script>
+{% endblock %}

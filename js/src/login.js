@@ -30,10 +30,16 @@ function compatibleBrowser() {
   return false;
 }
 
+const isIOS = navigator.userAgent.match(/iPhone|iPod|iPad/i)
+|| (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // crazy ios13 on iPad..
+
+const mobileDevice = isIOS || navigator.userAgent.match(/Android/i);
+
+
 function isSafariPrivateMode() {
   const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
 
-  if (!isSafari || !navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
+  if (!isSafari || !isIOS) {
     return false;
   }
   const version = parseInt(isSafari[1], 10);
@@ -78,7 +84,6 @@ WWPass.authInit({
   callbackURL: `${urlBase}login.php`,
 });
 
-const mobileDevice = navigator.userAgent.match(/iPhone|iPod|iPad|Android/i);
 
 if (mobileDevice) {
   // $('#qrcode').addClass('qrtap');

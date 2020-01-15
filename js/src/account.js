@@ -16,7 +16,15 @@ $('#account_modal').on('show.bs.modal', () => {
           data += `<p>email: <b>${result.email}</b></p>`;
         }
         if ('plan' in result) {
-          data += `<p>plan: ${result.plan}</p>`;
+          data += `<p>Account type: <b>${result.plan}</b></p>`;
+        }
+        if ('expires' in result) {
+          let { expires } = result;
+          if (expires !== 'never') {
+            expires = new Date(expires);
+            expires = expires.toLocaleDateString();
+          }
+          data += `<p>Expires: <b>${expires}</b></p>`;
         }
         let recordsLine = `records: ${result.records}`;
         if ('maxRecords' in result) {
@@ -30,6 +38,13 @@ $('#account_modal').on('show.bs.modal', () => {
         data += `<p>${recordsLine}</p>`;
         data += `<p>${storageLine}</p>`;
         document.querySelector('#account_data').innerHTML = data;
+
+        if ('upgrade_button' in result) {
+          document.querySelector('#upgrade').style.display = 'block';
+        } else {
+          document.querySelector('#upgrade').style.display = 'none';
+        }
+
         return;
       }
       if (result.status === 'login') {

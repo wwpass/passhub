@@ -15,7 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -37,18 +36,13 @@ if (isset($_GET['js']) && ($_GET['js'] == 2)) {
     $advise = "Please use latest versions of Chrome or Firefox browsers";
 }
 
-$top_template = Template::factory('src/templates/top.html');
-$top_template->add('narrow', true)
-    ->add('hide_logout', true)
-    ->render();
-
-$notsupported_template = Template::factory('src/templates/notsupported.html');
-$notsupported_template->add('h1_text', $h1_text)
-    ->add('advise', $advise)
-    ->render();
-
-?>
-</body>
-</html>
-
-
+echo theTwig()->render(
+    'notsupported.html',
+    [
+        'hide_logout' => true,
+        'narrow' => true,
+        'PUBLIC_SERVICE' => PUBLIC_SERVICE,
+        'h1_text'=> $h1_text,
+        'advise' => $advise
+    ]
+);

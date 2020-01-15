@@ -1,8 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
 <div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
     <div class="card-header" style="margin-bottom: 1em;">
 
 
-    <h1><?php echo $header ?>
+    <h1>{{ header | raw }}
         <button type="button" class="close" aria-label="Close"
         onclick='window.location.href="logout.php";'>
         <span aria-hidden="true">&times;</span>
@@ -10,16 +13,15 @@
     </h1>
     </div>
     <div class = "card-body">
-    <?php echo $text ?>
+    {{ text | raw }}
 
-
-<?php if( isset($js387) && ($js387 === "mobile")) { ?>
-
+{% if try_again is defined %}
 <button type="button" class = "btn btn-primary" onclick="window.location.href='logout.php';">
     Try again
 </button>
-<?php } else { ?>
-    <button type="button" class = "btn btn-primary" style="float:right; margin: 5px"onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
-<?php } ?>
+{% else %}
+    <button type="button" class = "btn btn-primary" style="float:right; margin: 5px" onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
+{% endif %}
 </div>
 </div>
+{% endblock %}

@@ -17,7 +17,6 @@ require_once 'src/functions.php';
 require_once 'src/db/user.php';
 require_once 'src/db/safe.php';
 require_once 'src/db/item.php';
-require_once 'src/template.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -76,31 +75,31 @@ if (($encrypted_key_CSE == null) || ($privateKey_CSE == null)) {
 
 $folder = isset($item->folder)? $item->folder:0;
 
-Template::factory('src/templates/top.html')
-    ->add('narrow', true)
-    ->render();
+echo theTwig()->render(
+    'item_form.html', 
+    [
+        // layout
+        'narrow' => true, 
+        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
 
-Template::factory('src/templates/item_form.html')
-    ->add('title', $title)
-    ->add('item', json_encode($item))
-    ->add('encrypted_key_CSE', $encrypted_key_CSE)
-    ->add('privateKey_CSE', $privateKey_CSE)
-    ->add('vault_id', htmlspecialchars($SafeID))
-    ->add('entry_id', htmlspecialchars($entryID))
-    ->add('folder', $folder)
-    ->add('password_font', getPwdFont())
-    ->add('create', 0)
-    ->add('note', $note)
-    ->render();
+        // content
+        'title' => $title,
+        'vault_id' => $SafeID,
+        'folder' => $folder,
+        'entry_id' => htmlspecialchars($entryID),
+        'encrypted_key_CSE' => $encrypted_key_CSE,
+        'privateKey_CSE' => $privateKey_CSE,
+        'password_font' => getPwdFont(),
+        'note' => $note,
+        'create' => 0,
+        'ticket' => $_SESSION['wwpass_ticket'],
+        'verifier' =>  User::get_csrf(), 
+        'item' => json_encode($item),
+        'MAX_NOTES_SIZE' => defined('MAX_NOTES_SIZE') ? MAX_NOTES_SIZE : 2048,
 
-Template::factory('src/templates/modals/gen_password.html')
-    ->render();
-
-Template::factory('src/templates/progress.html')
-    ->render();
-
-Template::factory('src/templates/modals/idle_and_removal.html')
-    ->render();
-?>
-</body>
-</html>
+        // idle_and_removal
+        'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
+        'IDLE_TIMEOUT' => IDLE_TIMEOUT,
+        'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time'])
+    ] 
+);

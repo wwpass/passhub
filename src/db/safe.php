@@ -169,11 +169,11 @@ function create_safe1($mng, $UserID, $safe) {
         return "Please fill in new safe name";
     }
     $mng_res = $mng->safe_users->find(['UserID' => $UserID]);
-
+/*
     if (count($mng_res->toArray())  >= MAX_VAULTS_PER_USER) {
         return "Max number of Password safes reached";
     }
-
+*/
     $SafeID = (string)new MongoDB\BSON\ObjectId();
 
     $mng->safe_users->insertOne(
@@ -291,7 +291,7 @@ function safe_acl($mng, $UserID, $post) {
                         . " to your PassHub account."
                     );  
                     
-                passhub_err("share by mail: User with " . htmlspecialchars($UserName) . "not registered");
+                passhub_err("share by mail: User with " . htmlspecialchars($UserName) . " not registered");
                 return "User " . $email . " is not registered."
                 ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
             }

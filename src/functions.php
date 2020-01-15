@@ -122,18 +122,28 @@ function error_page($message) {
     exit();
 }
 
+function theTwig() {
+    $loader = new \Twig\Loader\FilesystemLoader('src/templates');
+    return new \Twig\Environment(
+        $loader, 
+        [
+ //           'cache' => 'src/templates/cache',
+            'cache' => false,
+        ]
+    );
+}
+
 function message_page($title, $content) {
-    $top_template = Template::factory('src/templates/top.html');
-    $top_template->add('narrow', true)
-        ->render();
-    $message_template = Template::factory('src/templates/message_page.html')
-        ->add('title', $title)
-        ->add('content', $content)
-        ->render();
-    echo "      </div>";    
-    echo "    </div>";    
-    echo "  </body>";
-    echo "</html>";
+
+    echo theTwig()->render(
+        'message_page.html',
+        [
+            'narrow' => true,
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+            'title' => $title,
+            'content' => $content
+        ]
+    );
     exit();
 } 
 

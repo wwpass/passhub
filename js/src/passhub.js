@@ -81,21 +81,6 @@ export default {
     return null;
   },
   
-/*
-  init(params) {
-    //  { csrf, publicKeyPem, safes, shareModal } = params;
-    this.csrf = params.csrf;
-    this.publicKeyPem = params.publicKeyPem;
-    this.safes = params.safes;
-    this.invitationAcceptPending = params.invitation_accept_pending;
-    this.currentSafe = this.getSafeById(params.current_safe);
-    this.userMail = params.user_mail;
-    this.activeFolder = params.active_folder;
-    this.shareModal = params.shareModal;
-    this.showTableReq = params.show_table;
-  },
-*/
-
   decryptSafeData: (aesKey, safe) => {
     for (let i = 0; i < safe.items.length; i += 1) {
       safe.items[i].cleartext = passhubCrypto.decodeItem(safe.items[i], aesKey);
@@ -252,11 +237,6 @@ export default {
     $('.vaults_pane').addClass('d-none');
     $('.item_pane').addClass('d-none');
     $('.table_pane').removeClass('d-none');
-/*    
-    if (utils.isXs()) {
-      $('body').css('background-color', tablePaneColor);
-    }
-*/
     this.indexPageResize();
   },
 
@@ -264,11 +244,6 @@ export default {
     $('.table_pane').addClass('d-none');
     $('.vaults_pane').removeClass('d-none');
     $('.item_pane').addClass('d-none');
-/*
-    if (utils.isXs()) {
-      $('body').css('background-color', vaultPaneColor);
-    }
-*/
     this.indexPageResize();
     this.makeCurrentVaultVisible();
   },
@@ -415,8 +390,40 @@ export default {
     passhubCrypto.getPrivateKey(ePrivateKey, ticket)
       .then(() => this.decryptSafes(this.safes))
       .then(() => {
-        safes.setActiveFolder(this.activeFolder);
-        this.indexPageResize();
+        if (typeof index_page_show_index != 'undefined') {
+          if (index_page_show_index) {
+            let found = false;
+            for (let s = 0; s < this.safes.length; s++) {
+              for (let i = 0; i < this.safes[s].items.length; i++ ) {
+                if (this.safes[s].items[i]._id == index_page_show_index) {
+                  found = true;
+                  if (typeof this.safes[s].items[i].folder === 'undefined') {
+                    this.activeFolder = 0;
+                  } else {
+                    this.activeFolder = this.safes[s].items[i].folder;
+                  }
+//                  safes.setActiveFolder(this.activeFolder);
+                }
+              }
+              if (!found) {
+                for (let i = 0; i < this.safes[s].folders.length; i++ ) {
+                  if (this.safes[s].folders[i]._id == index_page_show_index) {
+                    found = true;
+                    this.activeFolder = this.safes[s].folders[i]._id;
+//                    safes.setActiveFolder(this.activeFolder);
+                  }
+                }
+              }
+            }
+            index_page_show_index = false;
+            safes.setActiveFolder(this.activeFolder);
+            this.showTable();
+            this.indexPageResize();
+          }
+        } else {
+          safes.setActiveFolder(this.activeFolder);
+          this.indexPageResize();
+        }
         this.makeCurrentVaultVisible();
         progress.unlock();
         return true;
@@ -435,7 +442,7 @@ export default {
       url: 'get_user_data.php',
       type: 'POST',
       data: {
-        csrf: this.csrf,
+        verifier: this.csrf,
       },
 
       error: () => {},
@@ -460,16 +467,12 @@ export default {
 
   getUserData() {
     this.csrf = document.getElementById('csrf').getAttribute('data-csrf');
-    const t = document.querySelectorAll('[data-folder]');
-    if (t.length === 1) {
-      this.activeFolder = t[0].getAttribute('data-folder');
-    }
 
     $.ajax({
       url: 'get_user_data.php',
       type: 'POST',
       data: {
-        csrf: this.csrf,
+        verifier: this.csrf,
       },
       error: () => {},
       success: (result) => {
@@ -495,35 +498,6 @@ export default {
         window.location.href = `error_page.php?error=${result.status}`;
       },
     });
-
-    /*
-    + this.csrf = params.csrf;
-    + this.publicKeyPem = params.publicKeyPem;
-    + this.safes = params.safes;
-    this.invitationAcceptPending = params.invitation_accept_pending;
-    + this.currentSafe = this.getSafeById(params.current_safe);
-    + this.userMail = params.user_mail;
-    this.activeFolder = params.active_folder;
-    + this.shareModal = params.shareModal;
-    this.showTableReq = params.show_table;
-    */
-
-    /*
-    fetch('get_user_data.php', {
-      credentials: 'same-origin',
-    })
-      .then(response => response.json())
-      .then((myJson) => {
-        // $('#log_msg').text(JSON.stringify(myJson));
-        this.csrf = myJson.data.csrfToken;
-        this.safes = myJson.data.safes;
-        // passhub.safes.sort(cmpSafeNames);
-        this.currentSafe = this.getSafeById(myJson.data.currentSafe);
-        this.publicKeyPem = myJson.data.publicKeyPem;
-        this.decodeKeys(myJson.data.ticket, myJson.data.ePrivateKey);
-        $(window).resize(this.indexPageResize);
-      });
-    */
   },
 
   humanReadableFileSize(size) {

@@ -26,6 +26,7 @@ setDbSessionHandler($mng);
 session_start();
 
 if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+    require_once 'src/policy.php';
     $template = LocalizedTemplate::factory('help-public.html');
     $template
         ->add('hide_logout', !isset($_SESSION['PUID']))
@@ -40,8 +41,6 @@ if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
 
 }
 
-$top_template = Template::factory('src/templates/top.html')
-    ->render();
-
-$template = Template::factory('src/templates/help.html')
-    ->render();
+echo theTwig()->render(
+    'help.html'
+);

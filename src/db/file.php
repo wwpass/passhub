@@ -129,7 +129,7 @@ function create_file_item_cse($mng, $UserID, $SafeID, $folder, $meta, $file) {
     }
 
     if (defined('MAX_STORAGE_PER_USER')) {
-        $result = used_resources($mng, $UserID);
+        $result = account($mng, $UserID);
         if ($result['status'] == "Ok") {
             if ($result['used'] +  strlen($data) > $result['maxStorage']) {
                 return ['status' => "No room to store the file, used " 
@@ -170,7 +170,8 @@ function create_file_item_cse($mng, $UserID, $SafeID, $folder, $meta, $file) {
             );
             if ($result->getInsertedCount() == 1) {
                 passhub_log('user ' . $UserID . ' activity file upload ' . strlen($data) . ' bytes');
-                return ["status" => "Ok"];
+                $firstID = (string) $result->getInsertedId();
+                return ["status" =>  "Ok", "firstID" => $firstID];
             }
         } else {
             passhub_err(print_r($js, true));
