@@ -139,6 +139,7 @@ function message_page($title, $content) {
         'message_page.html',
         [
             'narrow' => true,
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
             'title' => $title,
             'content' => $content
         ]

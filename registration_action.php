@@ -78,7 +78,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
          $result = sendMail($email, $subject, $body);
  
-        passhub_log('verification mail sent to ' . $email);
+        passhub_err('verification mail sent to ' . $email);
         $_SESSION = [];
         $sent = true;
         if ($result['status'] !== 'Ok') {

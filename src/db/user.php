@@ -527,10 +527,9 @@ function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
     */
 
     if (isset($email)) {
-        passhub_log("new user $email $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
-    } else {
-        passhub_log("new user $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
+        passhub_err("new user $email $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
     }
+    passhub_log("new user $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
 
     return array("UserID" => (string)$UserID, "status" => "Ok");
 }

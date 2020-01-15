@@ -98,7 +98,7 @@ try {
             if (defined('MAIL_DOMAIN')) {
                 if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                     if (!isset($_SESSION['reg_code'])) {
-
+                        passhub_err("requesting mail for new user");
                         echo $twig->render(
                             'request_mail.html', 
                             [
@@ -159,6 +159,8 @@ try {
         if (!$user->email) {
             if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                 if (!isset($_SESSION['reg_code'])) {
+                    passhub_err("requesting mail for existing user");
+
                     echo $twig->render(
                         'request_mail.html', 
                         [
@@ -180,6 +182,7 @@ try {
             }
         } else if (isset($_SESSION['reg_code'])) {
             unset($_SESSION['reg_code']);
+            passhub_err('index 183, reg_code used by exisiting user');  
             message_page(
                 "Your account is already created",
                 "<p>The verification code is no more valid.</p>"

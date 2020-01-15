@@ -291,7 +291,7 @@ function safe_acl($mng, $UserID, $post) {
                         . " to your PassHub account."
                     );  
                     
-                passhub_err("share by mail: User with " . htmlspecialchars($UserName) . "not registered");
+                passhub_err("share by mail: User with " . htmlspecialchars($UserName) . " not registered");
                 return "User " . $email . " is not registered."
                 ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
             }
