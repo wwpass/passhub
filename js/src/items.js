@@ -472,6 +472,8 @@ const itemMenu = {
     cut: {
       name: 'Cut',
       callback: function () {
+        $('.toast_header_text').text('Move item to another safe');
+        $('.toast').toast('show');
         const now = new Date();
         sessionStorage.setItem('clip', JSON.stringify({
           operation: 'move',
@@ -484,6 +486,8 @@ const itemMenu = {
     copy: {
       name: 'Copy',
       callback: function () {
+        $('.toast_header_text').text('Copy item to another safe');
+        $('.toast').toast('show');
         const now = new Date();
         sessionStorage.setItem('clip', JSON.stringify({
           operation: 'copy',
@@ -503,10 +507,6 @@ const itemMenu = {
   },
 };
 $.contextMenu(itemMenu);
-
-// file_item_menu.trigger = 'left';
-// $.contextMenu(file_item_menu);
-
 
 function syncSearchSafe(itemID) {
   const item = passhub.getItemById(itemID);

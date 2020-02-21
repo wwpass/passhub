@@ -499,4 +499,17 @@ article h3 {
   margin-right: 10px;
 }
 
+.toast {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: lightyellow;
+  font-size: 1rem;
+}
+
+.toast:not(:last-child) {
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+}
+
 /*# sourceMappingURL=style-int.biz.css.map */

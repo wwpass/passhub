@@ -167,8 +167,48 @@
 
 {{ include ('modals/idle_and_removal.html') }}
 
+
+
+<div class="toast hide" role="status" aria-live="polite" aria-atomic="true"
+  data-autohide="false" data-animation="true">
+    <div class="toast-header" style="background:lemonchiffon">
+      <strong class="mr-auto toast_header_text">Copy item to another safe</strong>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body" style="padding: 10px;">
+        Select target safe/folder to copy the item to.  Choose "Paste" in the target menu.
+    </div>
+</div>
+
 <script src="js/jquery.csv.min.js"></script>
 
+<script>
+
+$(document).ready(function(){
+
+  let toastTimerID = 0;
+
+  $('.toast').on('hide.bs.toast', function () {
+    if(toastTimerID) {
+      clearTimeout(toastTimerID);
+      toastTimerID = 0;
+    }
+  })
+
+  $('.toast').on('show.bs.toast', function () {
+    if(toastTimerID) {
+      clearTimeout(toastTimerID);
+    }
+    toastTimerID = setTimeout(function() {
+      toastTimerID = 0;
+      $('.toast').toast('hide');
+    }, 35000)
+  })
+});
+
+</script>
 
 <script>
 

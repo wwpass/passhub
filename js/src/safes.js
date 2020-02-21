@@ -198,6 +198,9 @@ const setActiveFolder = (id, search) => {
   }
 };
 
+
+const cutCopyTimeout = 40000;
+
 const safeMenu = {
   selector: '.vault_with_menu',
   className: 'safeMenu',
@@ -244,6 +247,8 @@ const safeMenu = {
     paste: {
       name: 'Paste',
       callback: () => {
+        $('.context-menu-list').trigger('contextmenu:hide');
+        $('.toast').toast('hide');
         let clip = sessionStorage.getItem('clip');
         if (clip == null) {
           return true;
@@ -268,7 +273,7 @@ const safeMenu = {
         // TODO check parse exceptions
         clip = JSON.parse(clip);
         const now = new Date();
-        if ((now.getTime() - clip.timestamp) > 30000) {
+        if ((now.getTime() - clip.timestamp) > cutCopyTimeout) {
           sessionStorage.removeItem('clip');
           return true;
         }
@@ -333,6 +338,8 @@ const folderMenu = {
     paste: {
       name: 'Paste',
       callback: () => {
+        $('.context-menu-list').trigger('contextmenu:hide');
+        $('.toast').toast('hide');
         let clip = sessionStorage.getItem('clip');
         if (clip == null) {
           return true;
@@ -357,7 +364,7 @@ const folderMenu = {
         // TODO check parse exceptions
         clip = JSON.parse(clip);
         const now = new Date();
-        if ((now.getTime() - clip.timestamp) > 30000) {
+        if ((now.getTime() - clip.timestamp) > cutCopyTimeout) {
           sessionStorage.removeItem('clip');
           return true;
         }

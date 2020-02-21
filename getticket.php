@@ -13,18 +13,17 @@
  */
 
 require_once 'config/config.php';
-//require_once 'src/lib/wwpass.php';
 require_once 'vendor/autoload.php';
 require_once 'src/functions.php';
 
 
 try {
     $t0 = microtime(true);
-    $test4 = WWPass\Connection::VERSION == '4.0';
-    passhub_log($test4);
+    $version4 = WWPass\Connection::VERSION == '4.0';
+
     $pin_required = defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false;
     
-    if ($test4) {
+    if ($version4) {
         $wwc = new WWPass\Connection(
             ['key_file' => WWPASS_KEY_FILE, 
             'cert_file' => WWPASS_CERT_FILE, 
@@ -63,7 +62,7 @@ header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
 // The JSON standard MIME header.
 header('Content-type: application/json');
 
-if ($test4) {
+if ($version4) {
     $data = $ticket;
 } else {
     $data = array("ticket" => $ticket, "ttl" => WWPASS_TICKET_TTL);
