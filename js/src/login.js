@@ -78,7 +78,8 @@ if (!navigator.userAgent.match(/electron/)) {
 }
 
 WWPass.authInit({
-  qrcode: document.querySelector('#qrcode'),
+//  qrcode: document.querySelector('#qrcode'),
+  qrcode: '#qrcode',
   passkey: document.querySelector('#button--login'),
   ticketURL: `${urlBase}getticket.php`,
   callbackURL: `${urlBase}login.php`,
@@ -91,7 +92,7 @@ if (mobileDevice) {
   document.querySelector('#qrcode').classList.add('qrtap');
 
   if (document.querySelector('.qr_code_instruction')) { // pre-2019
-    document.querySelector('.qr_code_instruction').innerHTML = 'Tap the QR code or scan it with <b>WWPass&nbsp;PassKey&nbsp;app</b> to open your PAssHub vault';
+    document.querySelector('.qr_code_instruction').innerHTML = 'Tap the QR code or scan it with <b>WWPass&nbsp;Key&nbsp;app</b> to open your PAssHub vault';
   }
 } else {
   $(document).ready(() => {
@@ -135,9 +136,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (qrtext) {
     if (mobileDevice) {
       // qrtext.innerText = 'Tap the QR code or ';
-      qrtext.innerHTML = 'Download <b>WWPass&nbsp;Passkey&nbsp;App</b> and tap the QR code';
+      qrtext.innerHTML = 'Download <b>WWPass&nbsp;Key&nbsp;App</b> and tap the QR code';
     } else {
-      qrtext.innerText = 'Scan the QR code with WWPass™ PassKey App';
+      qrtext.innerText = 'Scan the QR code with WWPass™ Key App';
       // qrtext.classList.add('text--qrcode');
     }
     qrtext.style.display = 'block';

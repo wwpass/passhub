@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
     <link rel="icon" type="image/png" href="img/favicon.ico">
     <title>PassHub</title>
@@ -31,12 +31,11 @@
 <!--    echo file_get_contents('config/google_script.js') -->
 {% endif %}
 
-    <script src="js/jquery.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
 
     <link rel="stylesheet" href="css/jquery.contextMenu.min.css">
-  </head>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    </head>
 
 
 {% if onload is defined %}
@@ -170,7 +169,7 @@
   </div>
 
   {% if PUBLIC_SERVICE and index_page is defined %}
-  <div class="info_footer">
+  <div class="info_footer d-none d-lg-block">
       <span>
           <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
           <a href="privacy.php">Privacy Policy</a>
@@ -181,5 +180,7 @@
     {% endif %} 
   {% endif %}
         
+  {% block scripts %}{% endblock %}
   </body>
+
 </html>

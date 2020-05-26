@@ -57,8 +57,8 @@ filelist+=" js/dist/new_file.js"
 filelist+=" js/dist/timers.js"
 filelist+=" js/dist/upsert_user.js"
 filelist+=" js/jquery.min.js"
-filelist+=" js/popper.min.js"
-filelist+=" js/bootstrap.min.js"
+filelist+=" js/bootstrap.bundle.min.js"
+filelist+=" js/bootstrap.bundle.min.js.map"
 filelist+=" js/jquery.csv.min.js"
 filelist+=" js/password-generator.js"
 filelist+=" js/landing.js"
@@ -150,6 +150,7 @@ filelist+=" update_vault.php"
 echo "Arch"
 
 rm -f /tmp/passhub.business.$timestamp.tgz
+cp css/src/style-int.biz.css css/style-int.css
 tar czf /tmp/passhub.business.$timestamp.tgz --transform 's,^,passhub/,' $filelist
 mv /tmp/passhub.business.$timestamp.tgz .
 
