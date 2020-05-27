@@ -169,11 +169,6 @@ function create_safe1($mng, $UserID, $safe) {
         return "Please fill in new safe name";
     }
     $mng_res = $mng->safe_users->find(['UserID' => $UserID]);
-/*
-    if (count($mng_res->toArray())  >= MAX_VAULTS_PER_USER) {
-        return "Max number of Password safes reached";
-    }
-*/
     $SafeID = (string)new MongoDB\BSON\ObjectId();
 
     $mng->safe_users->insertOne(
@@ -193,9 +188,6 @@ function create_safe($mng, $UserID, $SafeName, $hex_crypted_key = null) {
     }
     $mng_res = $mng->safe_users->find(['UserID' => $UserID]);
 
-    if (count($mng_res->toArray())  >= MAX_VAULTS_PER_USER) {
-        return "Max number of Password safes reached";
-    }
     $cursor = $mng->safe_users->find(['UserID' => $UserID, 'SafeName' => $SafeName]);
 
     foreach ($cursor as $row) {
@@ -241,17 +233,32 @@ function pending_confirmation($mng, $UserID, $SafeID) {
 function safe_acl($mng, $UserID, $post) {
 
     $SafeID = $post['vault'];
+    $operation = isset($post['operation']) ? $post['operation']: null;
     
     if (!ctype_xdigit($UserID) || !ctype_xdigit($SafeID)) {
         return "Bad arguments";
     }
 
     $myrole = get_user_role($mng, $UserID, $SafeID);
+
+    if ($operation == "unsubscribe") {
+        if ($myrole == ROLE_ADMINISTRATOR) {
+            return "Administrators cannot leave the safe users group";
+        }
+        $mng->sharing_codes->deleteMany(['SafeID' => $SafeID, 'RecipientID' => $UserID]);
+
+        $result = $mng->safe_users->deleteMany(['SafeID' => $SafeID, 'UserID' => $UserID]);
+        if ($result->getDeletedCount() == 1) {
+            return "Ok";
+        }
+        passhub_err(print_r($result, true));
+        return "Internal error acl 442";
+    }
+ 
     if (!$myrole) {
         return "error 275";
     }
 
-    $operation = isset($post['operation']) ? $post['operation']: null;
     $UserName = isset($post['name']) ? $post['name']: null;
     $RecipientKey = isset($post['key']) ? $post['key']: null;
     $role = isset($post['role']) ? $post['role']: null;
@@ -297,7 +304,7 @@ function safe_acl($mng, $UserID, $post) {
             }
             $TargetUserID = (string)($a[0]->_id);
             if ($TargetUserID == $UserID) {
-                return "You try to share the safe with yourself (" . $UserName . ")";
+                return "You cannot share the safe with yourself (" . $UserName . ")";
             }
             $filter = ['UserID' => $TargetUserID, 'SafeID' => $SafeID];
             $cursor = $mng->safe_users->find($filter);
@@ -655,7 +662,7 @@ function delete_safe($mng, $UserID, $SafeID, $operation) {
     }
 
     if (!is_admin($mng, $UserID, $SafeID)) {
-        return "You do not have enough rights";
+        return "unsubscribe";
     }
 
     // check if the vault is not shared

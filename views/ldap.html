@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1>
+          New User Registration
+        </h1>
+    </div>
+            
+    <div class="card-body">
+      {% if alert %}
+        <div class="alert alert-danger" role="alert">{{alert}}</div>
+      {% endif %}  
+        <form action="ldap.php" method="POST">
+          <div class="form-group">
+            <label class = "control-label" for="username">Username:</label>
+            <input class="form-control" type="text" name ="username" autofocus> 
+          </div>          
+          <div class="form-group">
+            <label class = "control-label" for="username">Password:</label>
+            <input class="form-control" type="password" name ="password"> 
+          </div>
+          <input type="hidden" name ="verifier" value={{verifier}}> 
+          <button class="btn btn-primary submit" type="submit"  style="float:right; margin-left: 1em">
+            Submit
+          </button>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

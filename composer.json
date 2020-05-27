@@ -1,9 +1,9 @@
 {
     "require": {
         "google/apiclient": "^2.2",
-        "wwpass/apiclient": "^3.0",
         "mongodb/mongodb": "1.2",
         "aws/aws-sdk-php": "^3.112",
-        "twig/twig": "^3.0"
+        "twig/twig": "^3.0",
+        "wwpass/apiclient": "^4.0"
     }
 }

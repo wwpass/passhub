@@ -1,0 +1,134 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<style>
+.qrtap {
+  position: relative; }
+
+.qrtap::before {
+  pointer-events: none;
+  position: absolute;
+  display: block;
+  content: '';
+/*  width: 170px;
+  height: 170px; */
+  width: 246px;
+  height: 246px;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  background-color: rgba(0, 0, 0, 0.65);
+  background-image: url("img/landing/pic_hand.svg");
+  animation-name: qrtabAnimation;
+  animation-timing-function: ease;
+  animation-iteration-count: infinite;
+  animation-duration: 2.5s;
+  animation-direction: alternate; 
+}
+
+@keyframes qrtabAnimation {
+  0%,
+  55% {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: alpha(opacity=0);
+    opacity: 0;
+    background-color: transparent; }
+  80%,
+  to {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+    filter: alpha(opacity=100);
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.6); } 
+}
+
+    .landingContent__hardTokenButton {
+        background-color: rgb(34, 119, 230);
+        border: 1px solid rgb(34, 119, 230); 
+        border-radius: 3px; 
+        color: white; 
+        display: block; 
+        font-size: 18px; 
+        line-height: 36px; 
+        margin: 0 auto; 
+        position: relative; 
+        padding-left: 60px;
+        width: 255px;
+    }
+
+    .landingContent__hardTokenText {
+        align-items:center;
+        display: flex;
+        flex-wrap: wrap; 
+        font-size: 18px;
+        font-weight: 300;
+        justify-content: center;
+        line-height: 24px;
+        margin: 13px auto;
+        max-width: 260px; 
+        text-align: center;
+    }
+
+    .hardware {
+        display: none;
+    }
+</style>
+
+    <div style='max-width: 320px; background: white; border-radius: 10px; 
+        margin: 0 auto; box-shadow: 0px 25px 50px 0px rgba(0, 51, 153, 0.5);
+        padding-bottom: 15px; margin-bottom: 15px'>
+
+
+
+        <div class="landingContent__codeHeading"
+            style='background: #eee; border-radius: 10px 10px 0 0'>
+            <h4 class="heading heading--center heading--h4 heading--dark heading--code"
+            style='font-size: 24px; line-height: 30px; padding: 10px 20px; 
+            margin:0; width: 100%; text-align: center'>E-mail address confirmed, please log in to complete account activation</h4>
+<!--
+            <h5 class="heading heading--center heading--h5 heading--code heading--getStarted button--getStarted"
+            style='font-size: 18px; line-height: 24px; padding: 13px 20px;
+            color: white; background-color:rgb(0, 179, 74); 
+            margin:0; width: 100%; border-top-right-radius: 9px; text-align: center'>Get started</h5>
+-->
+        </div>
+            <div class="landingContent__text"
+            style='font-size: 18px; line-height: 24px; font-weight: 300;'>
+            <p class="text--sm text--center text--dark landingContent__text--qr"
+            style='margin: 13px auto; max-width: 260px; 
+                    display: flex;flex-wrap: wrap; justify-content: center; align-items:center; text-align: center'>
+                <span class="qr_code_instruction">Scan the QR code with 
+                <span class="landingContent__text--qr-bold"
+                style='font-weight: 400;'>WWPass&trade;&nbsp;Key&nbsp;App</span>
+                </span> to&nbsp;open&nbsp;your vault
+            </p>
+        </div>
+        <div class="landingContent__code-qr" id="qrcode"
+            style='width: 256px; height: 256px; padding:5px; margin: 0 auto;'>
+            <canvas width="160" height="160"></canvas>
+        </div>
+
+        <div class="text--sm text--center text--dark landingContent__text--qr hardware landingContent__hardTokenText"
+        >
+            Or connect&nbsp;<span class="landingContent__text--qr-bold" style='font-weight: 400'>PassKey</span>
+        </div>
+
+        <button id="button--login" class="button button--wide button--icon landingContent__hardToken landingContent__hardTokenButton hardware" type="button" name="button"
+            >
+                <svg class="landingContent__icon landingContent__icon--hardLogo" width="15" height="15"
+                style='fill: none;
+                    left: 28px;
+                    stroke-width: 2px;
+                    width: 35px;
+                    height: 25px;
+                    top: 5px;
+                    position: absolute;'>
+
+                  <use xlink:href="public/img/landing/sprite.svg#icon-button_logo"></use>
+                </svg>
+                Log in with PassKey
+        </button>
+    </div>
+
+<script src="public/js/dist/login.js?v=191212"></script>
+{% endblock %}

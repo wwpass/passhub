@@ -156,6 +156,10 @@ function is_authorized($mng, $email) {
         return true;
     }
 
+    if ($mail_domains[0] === strtolower($email)) {
+        return true;
+    }
+
     $parts = explode("@", $email);
     if (in_array(strtolower($parts[1]), $mail_domains)) {
         return true;

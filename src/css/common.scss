@@ -1,0 +1,373 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto+Mono|Roboto:300,400,700);
+
+body {
+  font-family: -apple-system,'Roboto',sans-serif;
+  line-height: 1.5;
+}
+
+.header__user {
+  padding-left: 5px;
+}
+
+.header__user a {
+  color: #fff;
+  font-size: 14px;
+  margin-right: 20px;
+  text-decoration: none;
+}
+
+.top_icon {
+  stroke:white;
+  vertical-align:middle;
+  margin-right:10px
+}
+
+.is-table-row {
+  border-radius: 5px;
+  box-shadow: 0 20px 50px 0px rgba(0, 90, 187, .5);
+}
+  
+.right_radius {
+  border-radius: 0 5px 5px 0;
+}
+
+.left_radius {
+  border-radius: 5px 0 0 5px;
+}
+
+@import 'safe_pane';
+
+
+/* users modal*/
+
+.role_selector {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.confirm_vault_user {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.del_user {
+  cursor: pointer;
+  text-decoration: underline;
+  margin-left: 1em;
+}
+
+/* item_list */
+
+@import 'table_pane';
+
+
+.add_button_icon {
+  stroke:white;
+  vertical-align:middle;
+}
+
+.contextmenu-customheight ul{
+  padding:0;
+  border-width:5px;
+  background-color:green;
+}
+
+.contextmenu-customheight li {
+  padding-top:12px;
+  padding-bottom:12px;
+}
+
+/* make finger-size on mobile, in this order (after e.g. list_item_vault) :-O */
+ 
+.list-item-xs {
+  padding-top:15px;
+  padding-bottom:15px;
+}
+
+/* buttons */
+
+
+.btn-primary {
+  background-color: $btn_primary_background;
+  border-color:  $btn_primary_border;
+}
+
+.btn-primary:hover {
+  background-color: $btn_primary_active_background;
+  border-color: $btn_primary_active_background;
+}
+
+.btn-primary:focus {
+  background-color: $btn_primary_background;
+  border-color: $btn_primary_border;
+}
+
+.btn-primary:active {
+  background-color: $btn_primary_active_background;
+  border-color: $btn_primary_border;
+}
+
+.btn.btn-primary:active:focus,
+.btn.btn-primary:active:hover {
+    background-color: $btn_primary_active_background;
+    border-color: $btn_primary_border;
+}
+
+/**/
+.btn-secondary {
+  border-width: 2px;
+  background-color: $btn_secondary_background;
+  border-color: $btn_secondary_border;
+  color: $btn_secondary_color;
+}
+
+.btn-secondary:hover {
+    color: $btn_secondary_hover_color;
+    background-color: $btn_secondary_hover_background;
+    border-color: $btn_secondary_hover_border;
+}
+
+.btn-secondary:focus {
+  background-color: $btn_secondary_background;
+  border-color: $btn_secondary_border;
+  color:  $btn_secondary_color;
+}
+
+.btn-secondary:active {
+  box-shadow: 0px 2px 6px #0070FF80;
+  background-color: $btn_secondary_active_background;
+  border-color:  $btn_secondary_border;
+  color:  $btn_secondary_active_color;
+}
+
+.btn.btn-secondary:active:focus,
+.btn.btn-secondary:active:hover {
+  background-color: $btn_secondary_active_background;
+  border-color:  $btn_secondary_border;
+  color:  $btn_secondary_active_color;
+}
+
+/* footer */
+
+.info_footer {
+  position: fixed;
+  bottom:0%;
+  width:100%;
+  text-align:center;
+}
+
+.info_footer a {
+  font-size: 14px;
+  color: rgba(0, 112, 255, .75); 
+  margin:10px
+}
+
+/* progress */
+
+.progress-lock {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  padding-top: 100px;
+  position:absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #fff;
+  background-color: #000;
+  background-color: rgba(0,0,0,0.4);
+}
+
+.progress-lock--hidden {
+  display: none;
+}
+
+.progress-lock__inner {
+  margin: auto;
+  width: 320px;
+}
+
+.progress-lock__message {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-weight: lighter;
+  font-size: 22px;
+  text-align: center;
+}
+
+/* phub-dialog -- e.g. edit item*/
+
+.phub-dialog {
+  box-shadow: 0 20px 50px 0px rgba(0, 90, 187, .5);
+  border-radius: 5px;
+  padding:0;
+  margin:0 auto;
+}
+
+h1 {
+  font-weight:400;
+  font-size:28px;
+}
+
+/* item-view */
+
+.item_field_label {
+  color: #959595;
+}
+
+.form-control.item_input {
+  background:white;
+  border:none;
+  box-shadow: inset 0 -1px rgba(0,0,0,.075);
+  -webkit-box-shadow:  inset 0 -1px rgba(0,0,0,.075);
+
+  font-size:16px;
+  margin-left:1px;
+}
+
+.item_view_url {
+  background:white;
+  border:none;
+  box-shadow: inset 0 -1px rgba(0,0,0,.075);
+  -webkit-box-shadow:  inset 0 -1px rgba(0,0,0,.075);
+
+  font-size:16px;
+  margin-left:1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#item_pane_url {
+  margin:2px 0 10px;
+  padding:12px; 
+  font-size:16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item_pane_nav {
+  width:100%;
+  background-color: $item_pane_nav_background;
+  color:#333;
+  font-size:18px;
+  padding:15px 0 10px 0;
+}
+
+/* multiple occasions, pw hide/show */
+.icon_flat_button {
+  background: white;
+  border:none;
+  outline:0;
+}
+
+/* help page */
+
+.icon {
+  cursor: pointer;
+  width: 23px; 
+  /* 24 does not fit iPhone 5*/
+  height: 24px;
+  border: 0;
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon--collapse_down {
+  background-image: url(../img/collapse_down.svg);
+  margin-right:10px;
+}
+
+.icon--collapse_up {
+  background-image: url(../img/collapse_up.svg);
+  margin-right:10px;
+}
+
+.help {
+  min-height: calc(100vh - 180px);
+  line-height:1.6em;
+  font-size: 16px;
+}
+
+.help > h3 {
+  color: #005abb;
+  margin: 10px 0;
+  cursor: pointer;
+  font-size:18px;
+  line-height:22px;
+}
+
+.help_li {
+  margin-top:10px;
+  max-width: 90ch;
+}
+
+.help_div {
+  border: 1px solid #e3e3e3; 
+  border-radius: 4px;
+}
+
+/* security page */
+
+h2 {
+  margin-left: 60px;
+  margin-top: 60px;
+  margin-bottom: 20px;
+}
+
+article {
+  max-width: 38em;
+  margin-left: 40px;
+  padding-top: 2em;
+  font-size: 16px;
+  line-height: 1.6em;
+}
+
+article p {
+  margin: 0 0 1.25em;
+}
+
+article h2 {
+  margin-top: 2em;
+  margin-left: 0;
+}
+
+article h3 {
+  margin-top: 2em;
+  margin-bottom: 0.7em;
+  font-size: 1.5em;
+}
+
+/* terms page */
+
+.terms_text {
+  padding-top: 2em;
+  padding-left: 30px;
+  font-size: 16px;
+  line-height: 1.6em;
+}
+
+.terms_text > h3 {
+  font-size:22px;
+}
+
+.terms_text > p {
+  max-width: 75ch;
+  margin-right:10px;
+}
+
+
+.toast {
+  position: absolute; 
+  bottom: 0;
+  right: 0;
+  background: lightyellow;
+  font-size: 1rem
+}
+
+.toast:not(:last-child) {
+  margin-right: 1rem;
+  margin-bottom: 1rem;
+}

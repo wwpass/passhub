@@ -72,38 +72,42 @@ if (!isset($_SESSION['PUID'])) {
     exit();
 }
 
-if (isset($_SESSION['next'])) {
-    $next_page = $_SESSION['next'];
-    unset($_SESSION['next']);
-}
-
-$twig = theTwig();
-
 try {
     // update_ticket();
     test_ticket();
     if (!isset($_SESSION['UserID'])) {
         $result = getUserByPuid($mng, $_SESSION['PUID']);
         if ($result['status'] == "not found") {
+            if (defined('LDAP')) {
+                echo theTwig()->render(
+                    'ldap.html', 
+                    [
+                        // layout
+                        'narrow' => true, 
+                        'verifier' => User::get_csrf(),
+                        'hide_logout' => true,
+                        'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                    ]
+                );
+                exit();
+            }
 
-            if (!isset($_SESSION['TermsAccepted']) && defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-                if (!defined('MAIL_DOMAIN')) {
-                    header("Location: accept_terms.php");
-                    exit();
-                } else if (!isPuidValidated($mng, $_SESSION['PUID']) && !isset($_SESSION['reg_code'])) {
+            if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+                if (!isset($_SESSION['TermsAccepted'])) {
                     header("Location: accept_terms.php");
                     exit();
                 }
-            }
-            if (defined('MAIL_DOMAIN')) {
+            } else {
                 if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                     if (!isset($_SESSION['reg_code'])) {
                         passhub_err("requesting mail for new user");
-                        echo $twig->render(
+
+                        echo theTwig()->render(
                             'request_mail.html', 
                             [
                                 // layout
                                 'narrow' => true, 
+                                'hide_logout' => true,
                                 'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
                             ]
                         );
@@ -117,26 +121,8 @@ try {
                     unset($_SESSION['reg_code']);
                 }
             }
-            passhub_log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
 
-            $template_safes = file_get_contents('config/template.xml');
-
-            if (strlen($template_safes) == 0) {
-                passhub_err("template.xml absent or empty");
-                error_page("Internal error. Please come back later.");
-            }
-
-            echo $twig->render(
-                'upsert_user.html', 
-                [
-                    // layout
-                    'narrow' => true, 
-                    'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-                    'upgrade' => false,
-                    'ticket' => $_SESSION['wwpass_ticket'],
-                    'template_safes' => json_encode($template_safes)
-                ]
-            );
+            showCreateUserPage();
             exit();
         } else if ($result['status'] == "Ok") {
             $UserID = $result['UserID'];
@@ -146,11 +132,6 @@ try {
             exit($result['status']);//multiple PUID records;
         }
     }
-    // ???
-    if (isset($next_page) && (($next_page == 'iam.php') || ($next_page == 'account.php'))) {
-        header("Location: " . $next_page);
-        exit();
-    }
 
     $UserID = $_SESSION['UserID'];
     $user = new User($mng, $UserID);
@@ -159,9 +140,9 @@ try {
         if (!$user->email) {
             if (!isPuidValidated($mng, $_SESSION['PUID'])) {
                 if (!isset($_SESSION['reg_code'])) {
-                    passhub_err("requesting mail for existing user");
+                    passhub_err("requesting mail for existing user " . $UserID);
 
-                    echo $twig->render(
+                    echo theTwig()->render(
                         'request_mail.html', 
                         [
                             // layout
@@ -251,6 +232,9 @@ $twig_args = [
     'password_font' => getPwdFont(),
     'MAX_SAFENAME_LENGTH' => defined('MAX_SAFENAME_LENGTH') ? MAX_SAFENAME_LENGTH : 20,
     'MAX_FILENAME_LENGTH' => defined('MAX_FILENAME_LENGTH') ? MAX_FILENAME_LENGTH : 40,
+    'MAX_NOTES_SIZE' => defined('MAX_NOTES_SIZE') ? MAX_NOTES_SIZE : 2048,
+    'MAX_URL_LENGTH' => defined('MAX_URL_LENGTH') ? MAX_URL_LENGTH : 2500,
+
     'MAIL_DOMAIN' => defined('MAIL_DOMAIN'),
     'SHARING_CODE_TTL' => defined('SHARING_CODE_TTL') ? SHARING_CODE_TTL/60/60 : 48,  
 
@@ -274,5 +258,5 @@ if (isset($_SESSION["show"])) {
     unset($_SESSION["show"]);
 }
 
-echo $twig->render('index.html', $twig_args); 
+echo theTwig()->render('index.html', $twig_args); 
 

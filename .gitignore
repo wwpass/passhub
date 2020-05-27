@@ -1,4 +1,8 @@
+test.php
 test_output/
+views/cache
 vendor/
 node_modules/
-js/dist
+public/js/dist
+helpers
+tests_output

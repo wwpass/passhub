@@ -29,7 +29,6 @@ require_once 'vendor/autoload.php';
 
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-// require_once 'src/cookie.php';
 
 require_once 'src/db/SessionHandler.php';
 
@@ -85,9 +84,6 @@ if (stripos($_SERVER['HTTP_USER_AGENT'], "Trident")) {
     $advise = "Please use Chrome, Firefox or Edge browsers";
 }
 
-
-$isAndroid = stripos($_SERVER['HTTP_USER_AGENT'], "Android");
-
 if ($incompatible_browser) {
     session_destroy();
     passhub_err("incompatible browser " . $_SERVER['HTTP_USER_AGENT']);
@@ -107,32 +103,55 @@ if ($incompatible_browser) {
     exit();
 }
 
+/*
+if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
+    passhub_err("session clean2");
+    $_SESSION = [];
+    $_SESSION['reg_code'] = $_GET['reg_code'];
+    passhub_err("login rc " . print_r($_SESSION, true));
+    echo theTwig()->render(
+        'login_reg.html',
+        [
+            'narrow' => true,
+            'hide_logout' => true,
+            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE')
+        ]
+    );
+    exit();
+}
+*/
+
+if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
+    $_SESSION = [];
+    $status = process_reg_code1($mng, $_GET['reg_code']);
+
+    if ($status !== "Ok") {
+        passhub_err("reg_code: " . $status);
+        error_page($status);
+    }
+    echo theTwig()->render(
+        'login_reg.html',
+        [
+            'narrow' => true,
+            'hide_logout' => true,
+            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE')
+        ]
+    );
+    exit();
+}    
+
 if (isset($_SESSION['PUID'])) {
     header("Location: index.php");
     exit();
 }
 
-if (isset($_GET['next']) && !isset($_SESSION['PUID'])) {
-    $_SESSION['next'] = $_GET['next'];
-}
-
-if (defined('MAIL_DOMAIN') && isset($_GET['reg_code']) && !isset($_SESSION['PUID'])) {
-    $_SESSION['reg_code'] = $_GET['reg_code'];
-} else if (!isset($_GET['wwp_status'])) {
+if (!isset($_GET['wwp_status'])) {
     unset($_SESSION['reg_code']);
 }
 
 if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 200)) {
-    $_SESSION = array();
-    if (array_key_exists('wwp_reason', $_REQUEST)) {
-        if ($_REQUEST['wwp_status'] == 603) {
-            // $err_msg = $_REQUEST['wwp_reason'];
-        } else {
-            $err_msg = "Error: " . htmlspecialchars($_REQUEST['wwp_reason']);
-        }
-    } else {
-        $err_msg = "General Problem" .  htmlspecialchars($_REQUEST['wwp_status']);
-    }
+    $_SESSION = [];
+    passhub_err("wwp_status: " . print_r($_REQUEST, true));
 } else if (array_key_exists('wwp_ticket', $_REQUEST)) {
     if ((strpos($_REQUEST['wwp_ticket'], ':c:') == false) 
         && (strpos($_REQUEST['wwp_ticket'], ':pc:') == false) 
@@ -141,7 +160,8 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
         // do nothing
     } else {
         // clear all keys but req_code if present
-        $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "",'next' => ""));
+        $_SESSION = array_intersect_key($_SESSION, array('reg_code' => ""));
+
         $ticket = $_REQUEST['wwp_ticket'];
         try {
             $test4 = WWPass\Connection::VERSION == '4.0';
@@ -184,22 +204,10 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             exit();
 
         }  catch (Exception $e) {
-            $err_msg = $e->getMessage() . ". Please try again";
+            # $err_msg = $e->getMessage() . ". Please try again";
+            passhub_err("wwp exception: " . $e->getMessage());
         }
     }
-}
-
-if (isset($_SESSION['reg_code'])) {
-
-    echo theTwig()->render(
-        'login_reg.html',
-        [
-            'narrow' => true,
-            'hide_logout' => true,
-            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE')
-        ]
-    );
-    exit();
 }
 
 

@@ -79,7 +79,10 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
          $result = sendMail($email, $subject, $body);
  
         passhub_err('verification mail sent to ' . $email);
-        $_SESSION = [];
+
+        if (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE || !isset($_SESSION['UserID'])) {
+            $_SESSION = [];
+        }
         $sent = true;
         if ($result['status'] !== 'Ok') {
             passhub_err("error sending email");

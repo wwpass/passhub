@@ -1,0 +1,77 @@
+<div class="modal" id="backupModal" tabindex="-1" role="dialog" aria-labelledby="BackupLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="ExportLabel">Export/Backup</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">    
+            <div class = "card bg-light p-3 m-3">
+                <p><b>Select output format:</b></p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="export_format" value="XML" checked> 
+                    <label class="form-check-label">XML (KeePass2.x compatible)</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="export_format" value="CSV">
+                    <label class="form-check-label">CSV (readable, Excel and KeePassXC compatible)</label>
+                </div>
+            </div>
+
+            <p>
+            Copy of all your data will be saved to <b><span id="export_filename">passhub.xml</span></b> file
+            </p>
+            <div class="alert alert-danger" role="alert" id="backup_alert"></div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="backup_button">Export</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="restoreModal" tabindex="-1" role="dialog" aria-labelledby="RestoreLabel">
+  <div class="modal-dialog" role="document">
+        <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title" id="RestoreLabel">Import / Restore</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+
+        <div class="modal-body">
+            <div class="alert alert-danger" role="alert" 
+                id="restore_alert" style="margin-top:15px">
+            </div>
+
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="import_form_fileinput_id" name="filename" accept=".xml,.csv">
+                <label class="custom-file-label text-truncate" for="customFile">Choose file</label>
+            </div>
+
+            <div class = "card bg-light p-3" style='margin: 1rem 0'>
+                <p><b>Select mode:</b></p>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="restore_mode" value="Import" checked>
+                    <label class="form-check-label">Import into a new safe</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="restore_mode" value="Restore">
+                    <label class="form-check-label">Restore (Merge into existing safes where possible)</label>
+                    </div>
+            </div>
+
+            <p>
+            Supported file types  are CSV and KeePass 2.x XML
+            </p>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" id="import_button">Import</button>
+        </div>
+    </div>
+  </div>
+</div>

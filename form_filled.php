@@ -15,7 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/localized-template.php';
 
 require_once 'src/db/SessionHandler.php';
 $mng = newDbConnection();
@@ -36,21 +35,31 @@ if (isset($_GET['check_mail'])) {
 $twig = theTwig();
 
 if (isset($_GET['registration_action'])) {
+    $public_service = defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false;
+    if ($public_service && isset($_SESSION['UserID'])) {
+        include_once 'src/localized-template.php';
 
+        $_SESSION['later'] = true;
+        $close_action = '\'index.php\'';
+    } else {
+        $close_action = '\'logout.php\'';
+    }
     echo $twig->render(
         'registration_action.html', 
         [
             // layout
             'narrow' => true, 
-            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+            'PUBLIC_SERVICE' => $public_service, 
             'hide_logout' => true,
     
             //content
             'email' => $_SESSION['form_email'],
             'success' => true,
+            'close_action' => $close_action, 
             'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
         ]
     );
+    unset($_SESSION['form_email']);
     exit();  
 }
 if (isset($_GET['setup_account'])) {

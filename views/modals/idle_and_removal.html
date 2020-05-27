@@ -1,0 +1,31 @@
+<div class="modal" id="idleModal" tabindex="-1" role="dialog" aria-labelledby="idleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="idleModalLabel">You have not used the site for a while</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+<!--        <div class="alert alert-danger" role="alert" id="idle_modal_alert" style="display:none"></div> -->
+            <p>
+For your security, your connection will be closed if there is no activity within one minute. Would you like to extend your connection?
+</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Extend</button>
+            <button type="button" class="btn btn-primary" id="id_Idle_logout_button" onclick= "window.location.href='logout.php';">Logout</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    const timersArgs = {
+        ttl: {{ WWPASS_TICKET_TTL }}, 
+        idleTimeout: {{ IDLE_TIMEOUT }},
+        csrf: "{{ verifier }}",
+        ticketAge: {{ ticketAge }} 
+    };
+</script>        
+
+<script src="public/js/dist/timers.js"></script>
