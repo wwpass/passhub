@@ -3,8 +3,6 @@
         "google/apiclient": "^2.2",
         "mongodb/mongodb": "1.2",
         "aws/aws-sdk-php": "^3.112",
-        "paypal/paypal-checkout-sdk": "^1.0",
-        "paypal/rest-api-sdk-php": "*",
         "twig/twig": "^3.0",
         "wwpass/apiclient": "^4.0"
     }

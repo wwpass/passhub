@@ -155,7 +155,7 @@ echo "Arch"
 
 rm -f /tmp/passhub.business.$timestamp.tgz
 cp public/css/style-int.biz.css public/css/style-int.css
-cp public/img/favicon.ico.net public/img/favicon.ico
+cp public/img/favicon.net.ico public/img/favicon.ico
 tar czf /tmp/passhub.business.$timestamp.tgz --transform 's,^,passhub/,' $filelist
 mv /tmp/passhub.business.$timestamp.tgz .
 
