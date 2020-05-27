@@ -26,8 +26,6 @@ setDbSessionHandler($mng);
 
 session_start();
 
-
-passhub_err("old ticket " . $_SESSION['wwpass_ticket']);
 $t0 = microtime(true);
 try {
     $test4 = WWPass\Connection::VERSION == '4.0';
@@ -60,8 +58,6 @@ try {
     timing_log("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 
     $_SESSION['wwpass_ticket_creation_time'] = time();
-    passhub_err("new ticket " .  $_SESSION['wwpass_ticket']);
-    passhub_err("ticket_updated");
 } catch (Exception $e) {
     passhub_err("updateTicket error " . $e->getMessage());
 }

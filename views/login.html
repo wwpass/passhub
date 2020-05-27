@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#005ABB">
+    <title>PassHub - Login</title>
+
+    <link rel="icon" type="image/png" href="public/img/favicon.ico">
+    <link rel="stylesheet" href="public/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" crossorigin="anonymous" 
+    integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"></script>
+
+  </head>
+  <body class="loginPage" style="background-image: url('public/img/formentera-beach.jpeg'); background-size: cover">
+    <header class="container">
+      <nav class="main-nav">
+        <ul class="nav nav--header">
+          <li class="nav__item nav__item--header nav__item--logo">
+            <a class="nav__link nav__link--logo" href="#">
+              <img class="main-nav__logo" src="public/img/landing/logo.svg" width="122" height="24" alt="PassHub logo">
+            </a>
+          </li>
+          <li class="nav__item nav__item--header nav__item--help">
+            <a class="nav__link nav__link--header nav__link--help" href="help.php">
+              <svg class="nav__icon nav__icon--help" width="25" height="25">
+                <use xlink:href="public/img/landing/sprite.svg#icon-help"></use>
+              </svg>
+              Help
+            </a>
+          </li>
+          <li class="nav__item nav__item--header nav__item--contact">
+            <a class="nav__link nav__link--header nav__link--contact" href="feedback.php">
+              <svg class="nav__icon nav__icon--contacts" width="25" height="25">
+                <use xlink:href="public/img/landing/sprite.svg#icon-contact"></use>
+              </svg>
+              Contact Us
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main class="loginMain">
+      <section class="popup landingContent landingContent--instruction">
+        <h5 class="heading heading--h5 heading--instruction popup__title">
+          New to PassHub?
+          <svg class="landingContent__icon landingContent__icon--close" width="20" height="20">
+            <use xlink:href="public/img/landing/sprite.svg#icon-x"></use>
+          </svg>
+        </h5>
+        <article class="landingContent__instruction landingContent__instruction--hidden">
+          <div class="landingContent__text--hidden">
+            <p class="text">Complete the following steps before using the service</p>
+            <ol class="landingContent__list landingContent__list--ordered">
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">Install WWPass PassKey app</h5>
+                <p class="text">PassKey app is your key to access PassHub. You need to install and initialize PassKey app on your smartphone before you can log in to PassHub.</p>
+                <a class="button button--store button--store-ios" href="https://itunes.apple.com/us/app/wwpass-passkey-lite/id984532938">AppStore</a>
+                <a class="button button--store button--store-google" href="https://play.google.com/store/apps/details?id=com.wwpass.android.passkey">Google Play</a>
+              </li>
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">PassHub on your desktop</h5>
+                <p class="text">Scan QR code on PassHub login page with your PassKey app to access PassHub on your desktop.</p>
+              </li>
+              <li class="landingContent__item landingContent__item--ordered">
+                <h5 class="heading heading--h5 heading--instruction">PassHub on your smartphone</h5>
+                <p class="text">Tap the QR code on PassHub login page on your phone. PassKey app pops up automatically to log you in.</p>
+              </li>
+            </ol>
+            <button class="button button--wide button--icon button--instruction" type="button" name="button">I already have PassKey</button>
+          </div>
+        </article>
+      </section>
+      <section class="landingContent landingContent--main">
+        <article class="landingContent__info landingContent__infoShare container">
+          <a class="nav__link nav__link--logo-bottom" href="#">
+            <img class="main-nav__logo main-nav__logo--bottom" src="public/img/landing/logo.svg" width="122" height="24" alt="PassHub logo">
+          </a>
+          <h3 class="heading heading--h3 heading--left heading--nopadding-left">
+
+            <!-- Making convenient collaboration secure -->
+            The smarter way to protect your data
+          </h3>
+          <div class="nav nav--bottom">
+            <a class="nav__link nav__link--header nav__link--help" href="help.php">
+              <svg class="nav__icon nav__icon--help" width="25" height="25">
+                <use xlink:href="public/img/landing/sprite.svg#icon-help"></use>
+              </svg>
+              Help
+            </a>
+            <a class="nav__link nav__link--header nav__link--contact" href="feedback.php">
+              <svg class="nav__icon nav__icon--contacts" width="25" height="25">
+                <use xlink:href="public/img/landing/sprite.svg#icon-contact"></use>
+              </svg>
+              Contact Us
+            </a>
+          </div>
+        </article>
+        <article class="landingContent__code">
+          <div class="landingContent__code-container">
+            <div class="landingContent__codeHeading">
+              <h4 class="heading heading--center heading--h4 heading--dark heading--code">Log in</h4>
+              <h5 class="heading heading--center heading--h5 heading--code heading--getStarted button--getStarted">Get started</h5>
+            </div>
+            <div class="landingContent__text">
+              <p class="text--sm text--center text--dark landingContent__text--qr"
+                style="max-width:260px;">
+                Scan the QR code with <span class="landingContent__text--qr-bold button--getStarted"
+                  style="cursor:pointer; color:black;">
+                  WWPass<sup>™</sup>&nbsp;PassKey&nbsp;App</span> to&nbsp;open&nbsp;your&nbsp;vault
+<!--
+                  &nbsp;
+                <svg class="landingContent__icon--hint landingContent__icon--hintTop" width="20" height="20">
+                  <use xlink:href="public/img/landing/sprite.svg#icon-hint"></use>
+                </svg>
+                -->
+              </p>
+              <div class="landingContent__hintInfo landingContent__hintInfo--top">
+                <p class="text text--sm text--dark">
+                  WWPass PassKey is a mobile application for iOS and Android platforms that turns a mobile device into a lightweight and easy-to-use WWPass PassKey. WWPass PassKey app allows users to authenticate on unlimited WWPass-enabled websites and WWPass-enabled applications. WWPass PassKey app does not require users to install software on their computers.
+                </p>
+                <a class="text--sm" href="#TODO">Learn More</a>
+              </div>
+            </div>
+            <div class="landingContent__code-qr" id="qrcode">
+              <canvas width="256" height="256"></canvas>
+            </div>
+            <p class="text--sm text--center text--dark landingContent__text--qr landingContent__hardTokenText landingContent__hardToken">
+              Or connect&nbsp;<span class="landingContent__text--qr-bold">PassKey</span>
+<!--              
+              &nbsp;
+              <svg class="landingContent__icon--hint landingContent__icon--hintQr" width="20" height="20">
+                <use xlink:href="public/img/landing/sprite.svg#icon-hint"></use>
+              </svg>
+              --> 
+              </p>
+<!--              <div class="landingContent__hintInfo landingContent__hintInfo--bottom">
+                <p class="text text--sm text--dark">
+                  The PassKey is based on a cryptographic microcomputer that is used to authenticate a user to web sites and applications.
+                  It is also responsible for end-to-end mail encryption,
+                  local ciphering of files and other user data.
+                  Personal data is encrypted, fragmented, and dispersed,
+                  so it cannot be accessed without the user’s PassKey and access code.
+                </p>
+                <a class="text--sm" href="#TODO">Learn More</a>
+              </div>
+-->
+            <button class="button button--wide button--icon landingContent__hardToken landingContent__hardTokenButton" type="button"  id="button--login" name="button">
+              <svg class="landingContent__icon landingContent__icon--hardLogo" width="15" height="15">
+                <use xlink:href="public/img/landing/sprite.svg#icon-button_logo"></use>
+              </svg>
+              Log in with PassKey
+            </button>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="overlay"></div>
+    <script src="public/js/landing.js"></script>
+    <script src="public/js/dist/login.js?v=191212"></script>    
+  </body>
+</html>

@@ -271,7 +271,6 @@ define('MAX_RECORDS_PER_USER', 100);
 define('MAX_STORAGE_PER_USER', 100 * 1024 * 1024);
 
 // Some upper limits
-define('MAX_VAULTS_PER_USER',2048);
 define('MAX_SAFENAME_LENGTH',20);
 define('MAX_FILENAME_LENGTH',40);
 define('MAX_URL_LENGTH',2048);

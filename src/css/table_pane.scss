@@ -1,0 +1,64 @@
+.table_pane {
+  background-color: $table_pane_background;
+}
+
+#table_pane_nav {
+  background-color: $table_pane_nav_background;
+  color: white;
+  font-size: 18px;
+  padding: 15px 0 10px 0;
+  width: 100%;
+}
+
+.table_scroll_control {
+  overflow-y: visible;
+  overflow-x: hidden;
+  border-radius: 0px 5px 0px 0px;
+}
+
+.records_table {
+  background-color: $table_pane_background;
+  table-layout: fixed;
+}
+
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: $item_hover_background;
+}
+
+.records_table > tbody > tr > td {
+  border-top: 1px solid #b5d0f0;
+  line-height: 1.5;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  color: $item_color;
+}
+
+.records_table > thead > tr > th {
+  border-bottom: 2px solid #b5d0f0;
+}
+
+thead {
+  font-weight: bold; 
+}
+
+.tdmain {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 10px;
+}
+
+.item_icon {
+  stroke: $item_icon_stroke;
+  opacity: 0.5;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+.record_title {
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

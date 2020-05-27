@@ -27,11 +27,6 @@ setDbSessionHandler($mng);
 
 session_start();
 
-if (!isset($_SESSION['PUID'])) {
-    header("Location: login.php?next=iam.php");
-    exit();
-}
-
 if (!isset($_SESSION['UserID'])) {
     header("Location: logout.php");
     exit();

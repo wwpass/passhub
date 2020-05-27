@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
+    <link rel="icon" type="image/png" href="public/img/favicon.ico">
+    <title>PassHub</title>
+    <link rel="stylesheet" href="public/css/bootstrap.min.css">
+    <link rel="stylesheet" href="public/css/style-int.css">
+
+
+{% if google_analytics is not defined and hideContentSecurityPolicy is not defined %}  
+
+<meta http-equiv="Content-Security-Policy" 
+
+  content="default-src 
+    'unsafe-inline' 
+    'self' 
+    https://www.youtube-nocookie.com/
+
+    wss://spfews.wwpass.com 
+    https://fonts.gstatic.com;
+  style-src 
+    'unsafe-inline'
+    'self' 
+    https://fonts.googleapis.com">    
+
+{% else %}
+<!--    echo file_get_contents('config/google_script.js') -->
+{% endif %}
+
+
+    <link rel="stylesheet" href="public/css/jquery.contextMenu.min.css">
+    <script src="public/js/jquery.min.js"></script>
+    <script src="public/js/bootstrap.bundle.min.js"></script>
+    </head>
+
+
+{% if onload is defined %}
+  <body onload=$onload>
+{% else %}
+  <body>
+{% endif %}
+
+{% if google_analytics is defined %}  
+<!--  echo file_get_contents('config/google_noscript.js'); -->
+{% endif %}
+
+
+<div id='probe' style="background: red; width:0; height: 0; position: fixed; bottom:0; left:0;"></div>
+
+<div class="modal" id="account_modal" tabindex="-1" role="dialog" aria-labelledby="accountLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title" id="accounttLabel">My Account</h1>
+        <button type="button" class="close" data-dismiss="modal" 
+        aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger" role="alert" id="account_alert"></div>
+        <div id="account_data">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id = "upgrade" style = "display:none"
+          onclick='window.location.href="payment.php"'>Upgrade to Premium</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12 d-none d-dm-block" style="height:18px"></div>
+        <div class="col-xs-12 d-dm-none" style="height:12px"></div>
+      </div>
+      <div class="row vertical-align">
+
+{% if narrow is defined %}  
+    <div class=" col-12  col-lg-10 col-xl-8" style="padding:0; margin:0 auto;">
+{% else %}
+    <div class=" col-12 col-lg-12"  style="padding:0; margin:0 auto;">
+{% endif %}
+
+<span style="padding-left:1em" class="d-md-none"></span>
+          <a href="index.php" style="text-decoration: none;">
+            <img src="public/img/new_ph_logo.svg" alt= "logo" width="98">
+          </a>
+
+          <!--
+          <?php   if(file_exists('img/logo.png')) { ?>
+            <img src="img/logo.png" style="height:32px; margin-left:16px; vertical-align:middle" class="d-none d-md-inline">
+          <?php } ?>
+          -->
+     
+          <span  class="float-right header__user" style="margin-top:4px">
+            <span id="timing" style="color:white;padding-right:1px;"></span>
+            <span class='d-md-none' id="xs_indicator"></span>
+
+{% if index_page is defined %}
+            <a href="#" class="search_switch" title="Search">
+              <svg class='top_icon' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#i-search'></use></svg>
+            </a>
+{% endif %}
+
+
+{% if isSiteAdmin is defined %}          
+          <a href="iam.php">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#i-wrench'></use></svg>
+          </a>
+{% elseif feedback_page is not defined %}          
+        <a href="feedback.php" title="Contact us">
+            <svg class='top_icon' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#i-contact'></use></svg>
+          </a>
+{% endif %}
+
+{% if help_page is not defined %} 
+        <a href="help.php" title="Help">
+          <svg class='top_icon' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#i-help'></use></svg>
+        </a>
+{% endif %}        
+
+{% if not hide_logout %}
+        <img id='account_button' title="My account" src='public/img/account.svg'/ title="My account">
+        <span style="padding-left:1em" class="d-md-none"></span>
+{% endif %}        
+
+        </span>
+        </div>
+      </div>
+      <div class="row">
+       <!-- <div class="col-md-12 d-none d-md-block" style="width:100%;height:18px"></div> -->
+        <div class="search_div col-12 col-md-5 col-lg-4 col-xl-3" style="display:none; margin-top:12px; padding-left:0; padding-right:0;">
+
+          <div class="input-group">
+            <input class="form-control" id="search_string" type="text">
+            <div class="input-group-append input-group-text do_search"  style="cursor:pointer; border-radius:0; padding: 0 7px 0 5px">
+                <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-search'></use></svg>
+            </div>
+            <div class="input-group-append input-group-text search_switch"  
+              style="cursor:pointer; border-top-left-radius:0; border-bottom-left-radius:0; padding: 3px 7px 0 5px">
+                <svg width='20' height='20' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#el-x'></use></svg>
+            </div>
+          </div>          
+        </div>
+        <div class="col-xs-12 visible-xs" style="width:100%;height:12px"></div>
+      </div>
+{% if index_page is defined %}
+<div id='probe_top' style="background: red; width:0; height: 0;"></div>
+
+{% else %}
+      <div class="row">
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% if index_page is defined %}
+{% else %}
+    </div>
+{% endif %}
+
+    
+  </div>
+  <div id="progress-lock" class="progress-lock progress-lock--hidden">
+    <div class="progress-lock__inner">
+        <div class="progress-lock__message">
+            <span>Please wait…</span>
+        </div>
+    </div>
+  </div>
+
+  {% if PUBLIC_SERVICE and index_page is defined %}
+  <div class="info_footer d-none d-lg-block">
+      <span>
+          <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
+          <a href="privacy.php">Privacy Policy</a>
+      </span>
+  </div>
+    {% if server_name is defined %}
+      {{ server_name | raw }}
+    {% endif %} 
+  {% endif %}
+        
+  {% block scripts %}{% endblock %}
+  </body>
+
+</html>

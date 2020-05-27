@@ -1,0 +1,71 @@
+$gradient_from: #65D9FF;
+$gradient_to: #1B8DFE;
+
+// #3399FF -> #2277e6 
+
+// #D9EFFF ->#dae6f2
+// 3399FF ->353f68
+// 0070ff ->adadad
+// 0070ff -> e6e6e6
+
+
+$safe_background: #2277e6;
+$safe_hover_background: rgba(255, 255, 255, 0.1);
+$safe_active_background: rgba(255, 255, 255, 0.2);
+$safe-active-border: #73adf0;
+
+$btn_vault_background: #fff;
+$btn_vault_border: #fff;
+$btn_vault_color: #2277e6;
+
+$btn_vault_hover_background: #dae6f2;
+$btn_vault_hover_border: #dae6f2;
+$btn_vault_hover_color: #2277e6;
+
+$btn_vault_active_background: #dae6f2;
+$btn_vault_active_border: #FFF;
+$btn_vault_active_color: #2277e6;
+
+$table_pane_background: #dae6f2;
+$table_pane_nav_background: rgb(53, 63, 104);
+
+$item_color: #333333;
+$item_background: #D9EFFF;
+$item_hover_background: rgba(0, 112, 255, 0.1);
+$item_active_background: rgba(0, 112, 255, 0.2);
+
+$item_icon_stroke: #2277e6;
+
+$btn_primary_background: #00b34a;
+$btn_primary_border: #00b34a;
+$btn_primary_active_background: #009940;
+
+$btn_secondary_background: #fff;
+$btn_secondary_border: #adadad;
+$btn_secondary_color: #333;
+
+$btn_secondary_hover_background: #e6e6e6;
+$btn_secondary_hover_border: #adadad;
+$btn_secondary_hover_color: #000;
+
+$btn_secondary_active_background: #e6e6e6;
+$btn_secondary_active_border: #0070ff;
+$btn_secondary_active_color: #000;
+
+$item_pane_nav_background: #dae6f2;
+
+
+
+.container:before {
+  background: #005abb;
+  z-index: -1;
+  height: 136px;
+
+  content: '';
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+@import 'common.scss';

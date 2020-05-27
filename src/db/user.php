@@ -40,11 +40,11 @@ function getUserByPuid($mng, $puid)
             return array("status" => "not found");
         }
         if ($num_puids == 1) {
-            passhub_err("PUID " . $puid . " found in puids " . $puids[0]->UserID);
+            // passhub_err("PUID " . $puid . " found in puids " . $puids[0]->UserID);
             return array("UserID" => $puids[0]->UserID, "status" => "Ok");
         }
     }
-    passhub_err("internal error usr 34 count " . $num_puids);
+    passhub_err("internal error usr 34 count " . $num_puids . " puid " . $puid);
     return array("status" =>"internal error usr 34"); //multiple PUID records;
 }
 
@@ -304,6 +304,10 @@ class User
                 $this->current_safe = $row->currentSafe;
             }
         }
+        if (isset($row->plan) && ($row->plan == 'FREE')) {
+            $_SESSION['plan'] = 'FREE';
+        }
+
         // side effect: costs nothing, used when called from constructor
         if (isset($row->publicKey_CSE) && isset($row->privateKey_CSE)) {
             $this->privateKey_CSE = $row->privateKey_CSE;
@@ -321,9 +325,17 @@ class User
 
     function getData() {
         $response = array();
+        $storage_used = 0;
+        $total_records = 0;
         foreach ($this->safe_array as $safe) {
             if ($safe->isConfirmed()) {
                 $items = get_item_list_cse($this->mng, $this->UserID, $safe->id);
+                foreach ($items as $record) {
+                    if (property_exists($record, 'file')) {
+                        $storage_used += $record->file->size;
+                    }
+                } 
+                $total_records += count($items);
                 $folders = get_folder_list_cse($this->mng, $this->UserID, $safe->id);
             } else {
                 $items = [];
@@ -342,6 +354,8 @@ class User
             ];
             array_push($response, $safe_entry);
         }
+        $_SESSION['STORAGE_USED'] = $storage_used;
+        $_SESSION['TOTAL_RECORDS'] = $total_records;
         return $response;
     }
 
@@ -480,7 +494,10 @@ function getUserData($mng, $UserID)
 
 function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
 
-    if (defined('MAIL_DOMAIN')) {
+    if (defined('LDAP')) {
+        $email = $_SESSION['email'];
+        $samaccountname = $_SESSION['samaccountname'];
+    } else if (defined('MAIL_DOMAIN')) {
         $cursor = $mng->reg_codes->find(['PUID' => $puid, 'verified' => true]);
         $puids = $cursor->toArray();
         $num_puids = count($puids);
@@ -500,6 +517,10 @@ function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
     if (isset($email)) {
         $record['email'] = $email;
     }
+    if (isset($samaccountname)) {
+        $record['samaccountname'] = $samaccountname;
+    }
+
     if (defined('PREMIUM')) {
         $record['plan'] = 'FREE';
     }
@@ -558,6 +579,59 @@ function process_reg_code($mng, $code, $PUID) {
                     // passhub_err(print_r($result, true));
                     passhub_err("user " . $_SESSION['UserID'] . " registered mail " . $codes[0]->email);
                 }
+                return "Ok";
+            }
+            return "Verification code already used";
+        }
+        return "You must log in with the same PassKey that you used when submitting your e-mail address.";
+    }
+    passhub_err("Internal error usr 312 count " . $num_puids);
+    return "Internal error usr 312"; //multiple code records;
+}
+
+function process_reg_code1($mng, $code) {
+
+    passhub_err("process_reg_code1 " . $code);
+    $cursor = $mng->reg_codes->find(['code' => $code]);
+    $codes = $cursor->toArray();
+    $num_codes = count($codes);
+    if ($num_codes == 0) {
+        return "No such registration code found: " . $code;
+    }
+    if ($num_codes == 1) {
+        if (true) {
+//        if ($PUID === $codes[0]->PUID) {
+            if ($codes[0]->verified == false) {
+                $mng->reg_codes->updateOne(['code' => $code], ['$set' => ['verified' => true]]);
+                $PUID = $codes[0]->PUID;
+
+                // PUID verified, delete all other codes
+                $mng->reg_codes->deleteMany(['PUID' => $PUID, 'verified' =>false]);
+
+
+                $result = getUserByPuid($mng, $PUID);
+                if ($result['status'] != "not found") {
+                    $UserID = $result['UserID'];
+                    $id =  (strlen($UserID) != 24)? $UserID : new MongoDB\BSON\ObjectID($UserID);
+                    $result = $mng->users->updateOne(
+                        ['_id' => $id], 
+                        ['$set' => ['email' => $codes[0]->email]]
+                    );
+                    // passhub_err(print_r($result, true));
+                    passhub_err("user " . $UserID  . " registered mail " . $codes[0]->email);
+                }
+        
+                /*
+                if (isset($_SESSION['UserID'])) { // adding mail to already existing account (intermediate)
+                    $id =  (strlen($_SESSION['UserID']) != 24)? $_SESSION['UserID'] : new MongoDB\BSON\ObjectID($_SESSION['UserID']);
+                    $result = $mng->users->updateOne(
+                        ['_id' => $id], 
+                        ['$set' => ['email' => $codes[0]->email]]
+                    );
+                    // passhub_err(print_r($result, true));
+                    passhub_err("user " . $_SESSION['UserID'] . " registered mail " . $codes[0]->email);
+                }
+                */
                 return "Ok";
             }
             return "Verification code already used";

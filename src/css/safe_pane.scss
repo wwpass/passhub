@@ -1,0 +1,91 @@
+/* safes pane */
+
+.vaults_pane {
+  background-color: $safe_background;
+  height:100%;
+}
+
+.vaults_scroll_control {
+  overflow-y:auto;
+}
+
+.list-item-vault {
+  cursor: pointer;
+  color:white;
+  border-style: none  none solid none;
+  border-width: 1px;
+  padding: 10px 15px;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.list-item-vault:hover {
+  background-color: $safe_hover_background;
+}
+
+.list-item-vault-active {
+  cursor: pointer;
+  color:white;
+  background-color: $safe_active_background;
+  border-style: none none solid none;
+  border-width: 1px;
+  padding: 10px 10px 10px 15px;
+  border-color: $safe-active-border;
+}
+
+
+.btn-vault {
+  border-width: 2px;
+  background-color: $btn_vault_background;
+  border-color: $btn_vault_border;
+  color: $btn_vault_color;
+}
+
+.btn-vault:hover {
+  background-color: $btn_vault_hover_background;
+  border-color: $btn_vault_hover_border;
+  color: $btn_vault_hover_color;
+}
+
+.btn-vault:active {
+  background-color: $btn_vault_active_background;
+  border-color: $btn_vault_active_border;
+  color: $btn_vault_active_color;
+  box-shadow: 0px 2px 6px #FFFFFF80;
+}
+
+.btn-vault:focus {
+  background-color: $btn_vault_active_background;
+  border-color: $btn_vault_active_border;
+  color: $btn_vault_active_color;
+}
+
+
+
+.confirmation_badge {
+  margin-left:5px;
+  background-color:white;
+  color:red;
+}
+
+.confirmation_badge_red {
+  margin-left:5px;
+  background-color:red;
+}
+
+.badge-pill {
+  margin-left:5px;
+}
+
+.badge-light {
+  margin-left:5px;
+  color: red;
+}
+
+.vaults_pane_control {
+  color:white;
+  text-decoration: underline;
+}
+
+.vaults_pane_control:hover {
+  color: #D9EFFF;
+}

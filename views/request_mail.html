@@ -1,0 +1,105 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1>
+            {% if existing_account is defined %}
+            Mail Verification    
+            {% else %}
+                {% if de %}
+                    Konto aktivieren
+                  {% else %}
+                    Account Activation
+                  {% endif %}
+            {% endif %}
+        </h1>
+    </div>
+            
+    <div class="card-body">
+    {% if error_msg is defined %}    
+        <div class="alert alert-danger" role="alert" id="alert_message">{{ error_msg | raw }} </div>
+    {% endif %}
+
+    {% if existing_account is defined %}
+        <p>
+        PassHub needs your verified e-mail address. <a id="why" href="#" onclick="whyLink()">Why?</a>
+        </p>
+        <p id="because">
+            When you share safes, passwords and files, PassHub uses email addresses of both parties.  
+        </p>
+
+        {% endif %}
+
+        <form  action="registration_action.php" method="post" onsubmit="submitMail()"  id="registration_form">
+            <div class="form-group">
+
+                <label class="control-label" for="email">
+                    {% if de %}
+                        Bitte geben Sie Ihre E-Mail-Adresse ein, um Ihr Konto zu aktivieren          
+                    {% else %}
+                        Please enter your e-mail address
+                    {% endif %}
+                </label>
+                <input type="email" class="form-control" name="email" id="email" maxlength="100" autofocus required>
+            </div>
+            <div class="form-group">
+                <input type="hidden" id="registration_base_url" name="base_url" value="">
+                <input type="hidden" name="host" value="">
+                <button class="btn btn-primary" type="submit"  style="float:right; margin-left: 1em">
+                    {% if de %}
+                        Weiter 
+                    {% else %}
+                        Submit
+                    {% endif %}
+                </button>
+
+
+                {% if existing_account is defined %}
+                    <button class="btn btn-secondary" type="button" style="float:right"
+                    onclick="location.href = 'registration_action.php?later=1';">
+                            Remind me later
+                    </button>
+                {% else %} 
+                    <button class="btn btn-secondary" type="button" style="float:right"
+                    onclick="location.href = 'logout.php';">
+                        {% if de %}
+                            Abbrechen          
+                        {% else %}
+                            Decline
+                        {% endif %}
+                    </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+
+$('#because').hide();
+
+document.querySelector('#email').oninput = () => {
+    $('#alert_message').hide();    
+};
+
+function passhub_url_base() {
+    var url_base = window.location.href;
+    url_base = url_base.substring(0, url_base.lastIndexOf("/")) + '/';
+    return url_base;
+ }
+
+function submitMail() {
+    document.querySelector('input[name="host"]').value=window.location.host;
+    $("#registration_base_url").val(passhub_url_base());
+    return true;
+}
+
+function whyLink() {
+    $('#why').hide();
+    $('#because').show();
+    return true;
+}
+
+</script>
+
+{% endblock %}

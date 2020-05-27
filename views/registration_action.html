@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+
+        <h1>
+            {% if de %}
+                Überprüfen Sie Ihre Mailbox
+            {% else %}
+                Check Your Mailbox
+            {% endif %}
+        </h1>
+    </div>
+    <div class="card-body">
+        <div style="max-width:40em; margin: 0 auto">
+            <p style="margin:30px 0 20px;">
+                {% if de %}
+                    Wir haben eine Bestätigung an <i><b>{{ email }}</b></i>  gesendet
+                {% else %}
+                    We've sent a verification message to 
+                    <i><b>{{ email }}</b></i>
+                {% endif %}
+
+            </p>    
+            <p style="margin:30px 0 20px;">
+                {% if de %}
+                    Klicken Sie auf den Link in der Nachricht, um Ihr Konto zu aktivieren.
+
+                    Sollten Sie diese E-Mail nicht erhalten haben, überprüfen Sie Ihren Spam- Ordner oder <a href="feedback.php">kontaktieren Sie uns</a>.                    
+                {% else %}
+                    Click on the link in the message to activate your account.<br>
+                    If you do not receive this email, check your Spam e-mail folder 
+                    or <a href="feedback.php">contact us.</a>
+                {% endif %}
+            </p>
+        </div>
+        <button class="btn btn-primary" type="button" style="float:right; margin-right:1em" 
+          onclick="window.location.href={{close_action}}">
+            {% if de %}
+                Schließen
+            {% else %}
+                Close
+            {% endif %}
+        </button>
+    </div>
+            
+
+{% if success == false %}
+    <h3>Sorry, there was a problem sending a verification mail</h3>
+    <h4> Please try again later</h4>
+{% endif %}
+
+</div>
+{% endblock %}

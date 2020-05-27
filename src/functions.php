@@ -123,11 +123,11 @@ function error_page($message) {
 }
 
 function theTwig() {
-    $loader = new \Twig\Loader\FilesystemLoader('src/templates');
+    $loader = new \Twig\Loader\FilesystemLoader('views');
     return new \Twig\Environment(
         $loader, 
         [
- //           'cache' => 'src/templates/cache',
+ //           'cache' => 'views/cache',
             'cache' => false,
         ]
     );
@@ -224,4 +224,31 @@ function humanReadableFileSize($bytes)
     $e = floor(log($bytes, 1024));
 
     return round($bytes/pow(1024, $e), 2).$s[$e];
+}
+
+
+function showCreateUserPage() {
+
+    passhub_err(print_r($_SESSION, true));
+
+    passhub_log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
+
+    $template_safes = file_get_contents('config/template.xml');
+    
+    if (strlen($template_safes) == 0) {
+        passhub_err("template.xml absent or empty");
+        error_page("Internal error. Please come back later.");
+    }
+    
+    echo theTwig()->render(
+        'upsert_user.html', 
+        [
+            // layout
+            'narrow' => true, 
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+            'upgrade' => false,
+            'ticket' => $_SESSION['wwpass_ticket'],
+            'template_safes' => json_encode($template_safes)
+        ]
+    );
 }
