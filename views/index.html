@@ -167,8 +167,7 @@
       <div id="vlist_controls" style='padding:15px;'>
           <button type="button" class = "btn btn-vault" style="width:100%" data-toggle="modal" data-target="#newSafe">New Password Safe</button>
           <div><span style="margin:20px auto 0 auto; display:table">
-              {% if MAIL_DOMAIN %}
-              {% else %}
+              {% if ANONYMOUS %}
                   <a href="#" class='vaults_pane_control' data-toggle="modal" data-target="#fromInviteSafe"> Accept&nbsp;invitation</a>
               {% endif %}
               <a href="#"  class='vaults_pane_control' data-toggle="modal" data-target="#restoreModal" style="margin-left: 10px;">Import</a>
@@ -328,11 +327,11 @@
 {{ include('modals/rename_file.html') }}
 {{ include('modals/safe_users.html') }}
 
-{% if MAIL_DOMAIN  %}
-    {{ include('modals/share_by_mail.html') }}
+{% if ANONYMOUS  %}
+  {{ include ('modals/accept_sharing.html') }}
+  {{ include ('modals/share_safe.html') }}
 {% else %}
-    {{ include ('modals/accept_sharing.html') }}
-    {{ include ('modals/share_safe.html') }}
+  {{ include('modals/share_by_mail.html') }}
 {% endif %}
 
 {{ include ('modals/idle_and_removal.html') }}
