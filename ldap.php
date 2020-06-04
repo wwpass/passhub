@@ -36,9 +36,10 @@ function ldap() {
 
     ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
     ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
-    
+    ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
     for ( $i = 0; $i < 3; $i++) {
         $r=ldap_bind($ds, $bind_rdn, $bind_pwd);
+
         if ($r) {
             break;
         } 

@@ -353,16 +353,16 @@ define(
 define(
     'LDAP', [
       // Active directory server schema, name and port
-      'url' => 'ldaps://ad.wwpass.lan:636',
+      'url' => 'ldaps://ad.xxxx.lan:636',
 
-      'base_dn' => "ou=office,dc=wwpass,dc=lan", 
+      'base_dn' => "ou=office,dc=xxxx, dc=lan",
 
       // When creating new user account, Passhub identifies a user by UserPrincipal name, which consists of user name (logon name), separator (the @ symbol), and domain name (UPN suffix). In case the user provides only username, without @-symbol and domain, the `domain` parameter is added to obtain UPN
 
-      'domain' => "wwpass.lan",
+      'domain' => "xxxx.lan",
 
       // Group, which allows to access PassHub:
-      'group' => "CN=Passhub Users,OU=Security,OU=Groups,OU=Office,DC=wwpass,DC=lan",
+      'group' => "CN=Passhub Users,OU=Groups,OU=Office,DC=xxxx,DC=lan",
 
       // cerdentials used by Passhub itself when cheking user membership to the above group
       'bind_dn' => "cn=xxxxx,ou=xxxxx,dc=wwpass,dc=lan",
