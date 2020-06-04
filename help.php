@@ -15,8 +15,6 @@
 require_once 'config/config.php';
 require_once 'src/functions.php';
 require_once 'src/db/user.php';
-require_once 'src/localized-template.php';
-
 require_once 'src/db/SessionHandler.php';
 
 $mng = newDbConnection();
@@ -26,7 +24,8 @@ setDbSessionHandler($mng);
 session_start();
 
 if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-    require_once 'src/policy.php';
+    include_once 'src/localized-template.php';
+    include_once 'src/policy.php';
     $template = LocalizedTemplate::factory('help-public.html');
     $template
         ->add('hide_logout', !isset($_SESSION['PUID']))
