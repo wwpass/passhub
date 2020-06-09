@@ -76,13 +76,13 @@ sudo apt install zip unzip
 
 ## Step 4: Extract PassHub Files
 
-Download [passhub](https://github.com/wwpass/passhub/releases/download/v1.0.0/passhub.business.20190514.tgz) archive and put it to your server home directory.
+Go to Github latest [passhub release](https://github.com/wwpass/passhub/releases/latest), download passhub.business.xxxxx.tgz archive and put it to your server home directory.
 
-We need to extract the contents of the archive into the `/var/www` directory:
+Extract the contents of the archive into the `/var/www` directory:
 
 ```sh
 cd /var/www
-sudo tar xvzf ~/passhub.tgz
+sudo tar xvzf ~/passhub.xxxx.tgz
 ```
 
 Change ownership of the extracted files:
