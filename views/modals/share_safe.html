@@ -1,0 +1,62 @@
+<div class="modal" id="safeShareModal" tabindex="-1" role="dialog" aria-labelledby="safeShareLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="safeShareLabel">Share Password Safe <p><b><span></span></b></p> </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert" id="gen_share_with_name_alert"></div>
+
+                <label class="control-label" for="sharingName" id="sharingNameLabel">This is the first time you share the safe. Enter your name as you'd like it to be seen by recipients</label>
+                <input type="text" class="form-control" name="sharingName" id="sharingName" required>
+
+                <label class="control-label" for="SharingCodeValue" id ="SharingCodeLabel" >
+                    <p style="margin-top:1em">
+                    Here is your sharing code.<br>
+                    Email or text it to the person you’d like to share this safe with.
+                    </p>
+                    <p>
+                    NOTE: The code is set to expire in {{ SHARING_CODE_TTL }}  hours.
+                    </p>
+                </label>
+
+                <div class="input-group" style="margin:2px 0 10px;">
+                    <div class="input-group-prepend">
+                      <span class="input-group-text" id="id_copy_sharing_code" style="cursor:pointer;">
+                        Copy
+                      </span>
+                    </div>
+  
+
+                    <input type="text" readonly  class="form-control item_input" id="SharingCodeValue"
+                    style="font-family:  '{{ password_font }}'">
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div id="share_safe_info" style="margin-right:20px; display:none"><small>code copied to clipboard</small></div>
+
+                <a href="mailto:" id="send_sharing_code_by_email" style="display:none; margin-right:20px;">Send by email</a>
+<!--                <a href="#" id="send_sharing_code_as_message" style="display:none; margin-right:20px;">Send as message</a> -->
+
+                <span id="send_sharing_code_as_message" style="display:none; margin-right:20px;">Send as message</span>
+                
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generate_sharing_code_btn">Get Sharing Code</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+#send_sharing_code_as_message {
+     background:none!important;
+     color:#337ab7;
+     border:none; 
+     padding:0!important;
+     font: inherit;
+     /*border is optional*/
+     /* border-bottom:1px solid #337ab7; */
+     cursor: pointer;
+}</style>

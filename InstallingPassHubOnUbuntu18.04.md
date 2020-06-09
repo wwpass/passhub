@@ -49,6 +49,12 @@ Type the following command to install PHP and additional modules required by Pas
 ```sh
 sudo apt install -y php-fpm php-curl php-mbstring php-mongodb php-mail php-pear php-net-smtp
 ```
+To configure LDAP connection, add php-ldap module:
+
+```sh
+sudo apt install -y php-ldap
+```
+
 
 Finally, you need to restart php7.2-fpm so that your configuration changes take effect:
 
@@ -70,13 +76,13 @@ sudo apt install zip unzip
 
 ## Step 4: Extract PassHub Files
 
-Download [passhub](https://github.com/wwpass/passhub/releases/download/v1.0.0/passhub.business.20190514.tgz) archive and put it to your server home directory.
+Go to Github latest [passhub release](https://github.com/wwpass/passhub/releases/latest), download passhub.business.xxxxx.tgz archive and put it to your server home directory.
 
-We need to extract the contents of the archive into the `/var/www` directory:
+Extract the contents of the archive into the `/var/www` directory:
 
 ```sh
 cd /var/www
-sudo tar xvzf ~/passhub.tgz
+sudo tar xvzf ~/passhub.xxxx.tgz
 ```
 
 Change ownership of the extracted files:
@@ -253,37 +259,32 @@ define('WWPASS_KEY_FILE', "/etc/ssl/yourcompany.com.key");
 // Path to the WWPass certificate authority file.
 define('WWPASS_CA_FILE', "config/wwpass_sp_ca.crt");
 
-// Set to true to request PIN or biometrics each time user signs in, set to false otherwise.
-define('WWPASS_PIN_REQUIRED', true);
-
 // Session expiration timeout in seconds, prolonged automatically by user activity.
 define('WWPASS_TICKET_TTL', 1200);
+
+// Set to true to request PIN or biometrics each time user signs in, set to false otherwise.
+define('WWPASS_PIN_REQUIRED', true);
 
 // Log out on hardware PassKey removal, default true
 define('WWPASS_LOGOUT_ON_KEY_REMOVAL', true);
 
-// User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
-define('IDLE_TIMEOUT', 540);
-
-
-// MAX allocated resources
-define('MAX_RECORDS_PER_USER', 100);
-define('MAX_STORAGE_PER_USER', 100 * 1024 * 1024);
+// MAX allocated resources, storage size in bytes
+define('MAX_RECORDS_PER_USER', 10000);
+define('MAX_STORAGE_PER_USER', 1024 * 1024 * 1024);
 
 // Some upper limits
-define('MAX_SAFENAME_LENGTH',20);
-define('MAX_FILENAME_LENGTH',40);
-define('MAX_URL_LENGTH',2048);
+define('MAX_SAFENAME_LENGTH', 20);
+define('MAX_FILENAME_LENGTH', 40);
+define('MAX_URL_LENGTH', 2048);
 define('MAX_NOTES_SIZE', 2000);
 
-// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
-define('SHARING_CODE_TTL', 48*60*60);
+// User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
+define('IDLE_TIMEOUT', 540);
 
 // Path to PassHub log directory
 define('LOG_DIR', '/var/log/passhub');
 
-
-// Database Connection Parameters
+// ** Database **
 
 // Database name
 define('DB_NAME', 'passhub');
@@ -297,14 +298,11 @@ define('MONGODB_CONNECTION_LINE', 'mongodb://localhost');
 //define('MONGODB_CONNECTION_LINE', "mongodb://username:password@phub-srv1:port,phub-srv2:port,phub-arbiter:port/phub?replicaSet=rsphub&ssl=true");
 
 
-//FILE store. all sizes in Bytes 
+// ** FILE storage** all sizes in Bytes 
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);
 
-// FILE_DIR should be created in advance
+// local file storage: FILE_DIR should be created in advance
 define('FILE_DIR', '/var/lib/passhub');
-
-// or,Google drive
-//define('GOOGLE_CREDS', 'google_drive_credentials.json');
 
 // or, S3-compatible file storage:
 /*
@@ -317,18 +315,24 @@ define(
           'key'    => 'some_key',
           'secret' => 'some_secret',
       ],
-  ] 
-); 
+  ]
+);
 define('S3_BUCKET', 'phub');
 */
 
-// access policy, space separated
-define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
+// or,Google drive
+//define('GOOGLE_CREDS', 'google_drive_credentials.json');
+
+// ** Mail **
 
 // Email address to handle end-user support requests.
 define('SUPPORT_MAIL_ADDRESS', 'support@yourcompany.com');
 
-// lazy send mail, requires  "sudo apt install php-mail"
+// local SMTP on Unix server, sendmail_from defaults to noreply@<host domain name>
+// to override the setting:
+define('SENDMAIL_FROM', "noreply@yourcompany.com");
+
+//  or, mail client of the external server, requires  "sudo apt install php-mail"
 /*
 define(
     'SMTP_SERVER', [
@@ -340,6 +344,48 @@ define(
     ]
 );
 */
+
+// ** Access control and sharing method
+
+// If LDAP is defined, it has highest priority
+
+
+define(
+    'LDAP', [
+      // Active directory server schema, name and port
+      'url' => 'ldaps://ad.xxxx.lan:636',
+
+      'base_dn' => "ou=office,dc=xxxx, dc=lan",
+
+      // When creating new user account, Passhub identifies a user by UserPrincipal name, which consists of user name (logon name), separator (the @ symbol), and domain name (UPN suffix). In case the user provides only username, without @-symbol and domain, the `domain` parameter is added to obtain UPN
+
+      'domain' => "xxxx.lan",
+
+      // Group, which allows to access PassHub:
+      'group' => "CN=Passhub Users,OU=Groups,OU=Office,DC=xxxx,DC=lan",
+
+      // cerdentials used by Passhub itself when cheking user membership to the above group
+      'bind_dn' => "cn=xxxxx,ou=xxxxx,dc=wwpass,dc=lan",
+      'bind_pwd' => "xxxxx"
+    ]
+);
+
+// if LDAP is not defined: allowed mail domains, space separated
+define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
+
+// or use your mail only to start
+// define('MAIL_DOMAIN', "you@yourcompany.com");
+//
+// define('MAIL_DOMAIN', "any");
+
+// if no LDAP or MAIL_DOMAIN is defined, anonymous registration and sharing are used  
+// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
+define('SHARING_CODE_TTL', 48*60*60);
+
+// **
+
+// white-label login page 
+// define('LOGIN_PAGE', "views/login.html");
 
 
 ```
@@ -441,10 +487,57 @@ define(
             'key'    => 'kkkkkkkkk',
             'secret' => 'ssssssssss',
         ],
-    ] 
-); 
+    ]
+);
 define('S3_BUCKET', 'phub');
 ```
+
+## More on user registration and sharing of safes
+
+### Anonymous
+
+By default, when user logs into PassHub for the first time, a new accountis created. There are no any preconditions and no user information is gathered. Hence, when a safe owner shares a safe, there is no way to identify the recipient. The resulting process is three step: 
+
+ 1. The owner gets a sharing code and sends it to the recipient by mail, or using any messendger
+
+ 2. The recipient fills in "Accept sharing" dialog with the sharing code and a safe name of their own choice
+
+ 3. The safe owner confirms sharing
+
+The only optional parameter for this configuration in `config.php` file is `SHARING_CODE_TTL` which defaults to 48 hours
+
+### Mail or mail domain
+
+If the parameter `MAIL_DOMAIN` is set in `config.php` file, new users are required to provide and verify their email address. Now, when sharing safes, the recipient is identified by the mail address thus reducing sharing procedure to the single step. The very parameter `MAIL_DOMAIN` defines initial limitations on acceptable mail addresses. In its basic form the parameter contains mail domain of the company, thus restricting possible PassHub users. For example, if the corporate mail address looks like `somebody@company,com`, set
+
+  MAIL_DOMAIN = "company.com"
+
+Alrenatively, MAIL_DOMAIN may be set to a single predefined mail address
+
+  MAIL_DOMAIN = "adm@company.com"
+
+then only this person will be allowed to create a PassHub account. Typicaly this email address belongs to PassHub administrator, who can later on invite other users.  
+
+Finally, the setting
+
+MAIL_DOMAIN = "any"
+
+implies no limitations on users email adress. New users still are requested to provide and verify their email.
+
+### LDAP
+
+PassHub may be connected to coroporate Active Directory. This time when users logs in for the first time, their Active Directory credentials, username (upn actually) and passwords are requested and verified against AD service.
+
+Next, the user email, stored in Active Directory is obtained and the user membership in a predefined group is checked. The group membership means the user as allowed to access PassHub.
+Later, the group membership is checked every time the user logs in to PassHub.
+
+To configure PassHub connection to Active directory, fill the LDAP structure in the `config.php` file. When `LDAP` parameter is set, it takes precedense over `MAIL_DOMAIN` or Anonymous settings
+
+
+For detailed LDAP parameters see the file `config-sample.php` in the distro and in the text above.
+
+NOTE: `php-ldap` module is required for LDAP connection.
+
 
 ## Feedback and Support
 

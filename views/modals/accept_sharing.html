@@ -1,0 +1,27 @@
+<div class="modal" id="fromInviteSafe" tabindex="-1" role="dialog" aria-labelledby="fromInviteSafeLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="fromInviteSafeLabel">Add Password Safe by Invitation</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span></button>
+      </div>
+       <div class="alert alert-danger" role="alert" id="add_from_invite_name_alert"></div>
+
+      <div class="modal-body">
+      <label class="control-label" for="inviteCode" style="margin-top:10px;">Sharing code</label>
+       <input type="text" class="form-control" name="inviteCode" id="inviteCode" required>
+       <label class="control-label" for="newUsername" style="margin-top:10px;">Your name as you'd like it to be seen by users of this safe</label>
+       <input type="text" class="form-control" name="newUserName" id="newUserName" required>
+       <label class="control-label" for="Safename_invite" style="margin-top:10px;">Name of the safe as you’d like it to appear in your list of safes</label>
+       <input type="text" class="form-control" name="newSafeName" maxlength="{{ MAX_SAFENAME_LENGTH }}" id="SafeName_invite" required>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="add_by_invite_btn">Add Password Safe</button>
+      </div>
+
+    </div>
+  </div>
+</div>

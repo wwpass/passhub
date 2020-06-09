@@ -29,9 +29,6 @@ define('MAX_NOTES_SIZE', 2000);
 // User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
 define('IDLE_TIMEOUT', 540);
 
-// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
-define('SHARING_CODE_TTL', 48*60*60);
-
 // Path to PassHub log directory
 define('LOG_DIR', '/var/log/passhub');
 
@@ -100,13 +97,24 @@ define(
 
 define(
     'LDAP', [
-      'url' => 'ldaps://i-dc-03-22.wwpass.lan:636',
-      // 'url' => "ldap://i-dc-03-22.wwpass.lan:389",
-      'base_dn' => "ou=office,dc=wwpass,dc=lan", 
-      'domain' => "wwpass.lan",
-      'group' => "CN=Zoom Users,OU=Security,OU=Groups,OU=Office,DC=wwpass,DC=lan" 
+      // Active directory server schema, name and port
+      'url' => 'ldaps://ad.xxxx.lan:636',
+
+      'base_dn' => "ou=office,dc=xxxx, dc=lan",
+
+      // When creating new user account, Passhub identifies a user by UserPrincipal name, which consists of user name (logon name), separator (the @ symbol), and domain name (UPN suffix). In case the user provides only username, without @-symbol and domain, the `domain` parameter is added to obtain UPN
+
+      'domain' => "xxxx.lan",
+
+      // Group, which allows to access PassHub:
+      'group' => "CN=Passhub Users,OU=Groups,OU=Office,DC=xxxx,DC=lan",
+
+      // cerdentials used by Passhub itself when cheking user membership to the above group
+      'bind_dn' => "cn=xxxxx,ou=xxxxx,dc=wwpass,dc=lan",
+      'bind_pwd' => "xxxxx"
     ]
 );
+
 
 // if LDAP is not defined: allowed mail domains, space separated
 define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
@@ -116,13 +124,12 @@ define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
 // 
 // define('MAIL_DOMAIN', "any");
 
+// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
+define('SHARING_CODE_TTL', 48*60*60);
+
+
 
 // ** 
 
 // white-label login page 
 // define('LOGIN_PAGE', "views/login.html");
-
-// ** not used 
-
-// anonymous sharing
-// define('SHARING_CODE_TTL', 48*60*60);

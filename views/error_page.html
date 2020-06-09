@@ -13,15 +13,16 @@
     </h1>
     </div>
     <div class = "card-body">
-    {{ text | raw }}
-
-{% if try_again is defined %}
-<button type="button" class = "btn btn-primary" onclick="window.location.href='logout.php';">
-    Try again
-</button>
-{% else %}
-    <button type="button" class = "btn btn-primary" style="float:right; margin: 5px" onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
-{% endif %}
-</div>
+        {{ text | raw }}
+        <div>
+            {% if try_again is defined %}
+            <button type="button" class = "btn btn-primary" onclick="window.location.href='logout.php';">
+                Try again
+            </button>
+            {% else %}
+                <button type="button" class = "btn btn-primary" style="float:right; margin: 5px" onclick="window.location.href='logout.php'; return 0;">Return to login page</button>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}

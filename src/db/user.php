@@ -473,7 +473,7 @@ function getUserData($mng, $UserID)
     } else {
         $data['active_folder'] = 0;
     }
-    if (defined('MAIL_DOMAIN')) {
+    if (defined('MAIL_DOMAIN') || defined('LDAP')) {
         $data['shareModal'] = "#shareByMailModal";
     } else {
         $data['shareModal'] = "#safeShareModal";
@@ -496,7 +496,7 @@ function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
 
     if (defined('LDAP')) {
         $email = $_SESSION['email'];
-        $samaccountname = $_SESSION['samaccountname'];
+        $userprincipalname = $_SESSION['userprincipalname'];
     } else if (defined('MAIL_DOMAIN')) {
         $cursor = $mng->reg_codes->find(['PUID' => $puid, 'verified' => true]);
         $puids = $cursor->toArray();
@@ -517,8 +517,8 @@ function create_user($mng, $puid, $post /* $publicKey, $encryptedPrivateKey*/) {
     if (isset($email)) {
         $record['email'] = $email;
     }
-    if (isset($samaccountname)) {
-        $record['samaccountname'] = $samaccountname;
+    if (isset($userprincipalname)) {
+        $record['userprincipalname'] = $userprincipalname;
     }
 
     if (defined('PREMIUM')) {
@@ -670,4 +670,55 @@ function save_paypal_transaction($mng, $UserID, $transaction, $expires) {
         ['_id' => $id], 
         ['$set' => ['plan' => 'Premium', 'expires' => $expires]]
     );
+}
+
+function checkLdapAccess($mng,  $UserID) {
+
+    $id =  (strlen($UserID) != 24)? $UserID : new MongoDB\BSON\ObjectID($UserID);
+    $cursor = $mng->users->find(['_id' => $id]);
+
+    $res_array = $cursor->ToArray();
+
+    if (count($res_array) != 1) {
+        passhub_err("error user 685 count " . count($res_array));
+        exit("error user 685");
+    }    
+    $row = $res_array[0];
+    if (isset($row->userprincipalname)) {
+        $ds=ldap_connect(LDAP['url']);
+        $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
+        if (!$r) {
+            $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
+            $e = ldap_errno($ds); 
+            ldap_close($ds);
+            return false;
+        }
+        $user_filter = "(userprincipalname={$row->userprincipalname})";
+        $group_filter = "(memberof=".LDAP['group'].")";
+      
+        $ldap_filter = "(&{$user_filter}{$group_filter})";
+        $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
+        $info = ldap_get_entries($ds, $sr);
+        $user_enabled = $info['count'];
+        if ($user_enabled) {
+            return true;
+        }
+        return false;
+    }
+    return "not bound";
+}
+
+function ldapBindExistingUser($mng, $UserID, $email, $userprincipalname) {
+    $id =  (strlen($_SESSION['UserID']) != 24)? $_SESSION['UserID'] : new MongoDB\BSON\ObjectID($_SESSION['UserID']);
+    $cursor = $mng->users->find(['_id' => $id]);
+
+    foreach ($cursor as $row) {
+        if (property_exists($row, 'email')) {
+            $email = $row->email;
+        }
+        $result = $mng->users->updateOne(
+            ['_id' => $id], 
+            ['$set' => ['email' => $email, 'userprincipalname' => $userprincipalname]]
+        );
+    }
 }

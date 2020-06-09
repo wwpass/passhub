@@ -127,6 +127,43 @@ try {
         } else if ($result['status'] == "Ok") {
             $UserID = $result['UserID'];
             $_SESSION["UserID"] = $UserID;
+
+            if (defined('LDAP')) {
+                $a = checkLdapAccess($mng, $UserID); 
+                if ($a === "not bound") {
+                    echo theTwig()->render(
+                        'ldap.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'verifier' => User::get_csrf(),
+                            'hide_logout' => true,
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                        ]
+                    );
+                    exit();
+                }
+                if (!$a) {
+                    $_SESSION = array();
+                    session_destroy();
+                    echo theTwig()->render(
+                        'error_page.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'hide_logout' => true,
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
+                            'header' => 'Access denied',
+                            'text' => 'Consult system administrator'
+                        ]
+                    );
+                    exit();
+
+                }   
+            }
+
+
+            $_SESSION["UserID"] = $UserID;
             passhub_log("user " . $UserID . " login " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
         } else {
             exit($result['status']);//multiple PUID records;
@@ -235,7 +272,7 @@ $twig_args = [
     'MAX_NOTES_SIZE' => defined('MAX_NOTES_SIZE') ? MAX_NOTES_SIZE : 2048,
     'MAX_URL_LENGTH' => defined('MAX_URL_LENGTH') ? MAX_URL_LENGTH : 2500,
 
-    'MAIL_DOMAIN' => defined('MAIL_DOMAIN'),
+    'ANONYMOUS' => (!defined('MAIL_DOMAIN') && !defined('LDAP')),
     'SHARING_CODE_TTL' => defined('SHARING_CODE_TTL') ? SHARING_CODE_TTL/60/60 : 48,  
 
     // idle_and_removal
