@@ -702,9 +702,9 @@ function checkLdapAccess($mng,  $UserID) {
       
         $ldap_filter = "(&{$user_filter}{$group_filter})";
         $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
-        if ($sr == false) {
+        // if ($sr == false) {
             passhub_err("ldap_search: ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
-        }
+        // }
 
         $info = ldap_get_entries($ds, $sr);
         $user_enabled = $info['count'];
