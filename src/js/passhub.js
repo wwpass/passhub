@@ -113,14 +113,12 @@ export default {
     for (let i = 0; i < eSafes.length; i++) {
       const safe = eSafes[i];
       if (safe.key) {
-        if ((safe.items.length > 0) || (safe.folders.length > 0)) {
-          promises.push(passhubCrypto.decryptAesKey(safe.key)
-            .then((bstringKey) => {
-              safe.bstringKey = bstringKey;
-              return this.decryptSafeData(bstringKey, safe)
-            })
-          );
-        }
+        promises.push(passhubCrypto.decryptAesKey(safe.key)
+          .then((bstringKey) => {
+            safe.bstringKey = bstringKey;
+            return this.decryptSafeData(bstringKey, safe)
+          })
+        );
       }
     }
     return Promise.all(promises);

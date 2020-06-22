@@ -512,7 +512,7 @@ const itemMenu = {
       name: 'Cut',
       callback: function () {
         $('.toast_header_text').text('Move item to another safe');
-        $('.toast').toast('show');
+        $('.toast_copy').toast('show');
         const now = new Date();
         sessionStorage.setItem('clip', JSON.stringify({
           operation: 'move',
@@ -526,7 +526,7 @@ const itemMenu = {
       name: 'Copy',
       callback: function () {
         $('.toast_header_text').text('Copy item to another safe');
-        $('.toast').toast('show');
+        $('.toast_copy').toast('show');
         const now = new Date();
         sessionStorage.setItem('clip', JSON.stringify({
           operation: 'copy',

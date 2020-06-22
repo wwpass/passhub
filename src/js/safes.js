@@ -248,7 +248,7 @@ const safeMenu = {
       name: 'Paste',
       callback: () => {
         $('.context-menu-list').trigger('contextmenu:hide');
-        $('.toast').toast('hide');
+        $('.toast_copy').toast('hide');
         let clip = sessionStorage.getItem('clip');
         if (clip == null) {
           return true;
@@ -339,7 +339,7 @@ const folderMenu = {
       name: 'Paste',
       callback: () => {
         $('.context-menu-list').trigger('contextmenu:hide');
-        $('.toast').toast('hide');
+        $('.toast_copy').toast('hide');
         let clip = sessionStorage.getItem('clip');
         if (clip == null) {
           return true;

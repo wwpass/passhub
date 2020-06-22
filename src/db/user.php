@@ -686,6 +686,10 @@ function checkLdapAccess($mng,  $UserID) {
     $row = $res_array[0];
     if (isset($row->userprincipalname)) {
         $ds=ldap_connect(LDAP['url']);
+        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+        ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
+        ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
+
         $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
         if (!$r) {
             $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
@@ -698,6 +702,10 @@ function checkLdapAccess($mng,  $UserID) {
       
         $ldap_filter = "(&{$user_filter}{$group_filter})";
         $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
+        if ($sr == false) {
+            passhub_err("ldap_search: ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
+        }
+
         $info = ldap_get_entries($ds, $sr);
         $user_enabled = $info['count'];
         if ($user_enabled) {
