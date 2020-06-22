@@ -147,7 +147,7 @@ function message_page($title, $content) {
     exit();
 } 
 
-function sendLocalServer($to, $subject, $body) {
+function sendLocalServer($to, $subject, $body, $contentType) {
 
     $header = 'MIME-Version: 1.0' . "\r\n";
     if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
@@ -156,7 +156,9 @@ function sendLocalServer($to, $subject, $body) {
     } else if (isset($_POST['host'])) {
         $header  .= 'From: noreply@' . htmlspecialchars($_POST['host']) . "\r\n";
     }
-    $header .= 'Content-type: text/html; charset=UTF-8' . "\r\n";
+    
+    $header .= 'Content-type: ' . $contentType . "\r\n";
+
     $header .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
     if (!mb_detect_encoding($subject, 'ASCII', true)) {
         $subject = '=?UTF-8?B?'.base64_encode($subject).'?=';
@@ -172,7 +174,7 @@ function sendLocalServer($to, $subject, $body) {
     return $result ? ['status' => 'Ok'] : ['status' => 'fail'];
 }
 
-function sendSMTP($to, $subject, $body) {
+function sendSMTP($to, $subject, $body, $contentType) {
     $from = '<' . SMTP_SERVER["username"] . '>';
     $to = '<' . $to . '>';
   
@@ -181,9 +183,9 @@ function sendSMTP($to, $subject, $body) {
         'To' => $to,
         'Subject' => $subject,
         'MIME-Version' => 1,
-        'Content-type' => 'text/html;charset=UTF-8'
+        'Content-type' => $contentType
     );
-  
+   
     $smtp = Mail::factory('smtp', SMTP_SERVER);
   
     $mail = $smtp->send($to, $headers, $body);
@@ -196,11 +198,12 @@ function sendSMTP($to, $subject, $body) {
     return ['status' => 'Ok'];
 }
 
-function sendMail($to, $subject, $body) {
+function sendMail($to, $subject, $body, $contentType = 'text/html; charset=UTF-8') {
+
     if (defined('SMTP_SERVER')) {
-        return sendSMTP($to, $subject, $body);
+        return sendSMTP($to, $subject, $body, $contentType);
     }
-    return sendLocalServer($to, $subject, $body);
+    return sendLocalServer($to, $subject, $body, $contentType);
 }
 
 /*
