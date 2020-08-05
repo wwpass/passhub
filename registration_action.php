@@ -13,21 +13,23 @@
  */
 
 require_once 'config/config.php';
+
+require_once 'vendor/autoload.php';
+
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\Puid;
+use PassHub\Iam;
+
 require_once 'Mail.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/iam_ops.php';
 
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
 /*
-if(!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
+if(!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
     http_response_code(400);
     echo "Bad Request (26)";
     exit();
@@ -35,14 +37,13 @@ if(!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
 */
 
 if (!defined('MAIL_DOMAIN')) {
-    passhub_err("mail domain not defined");
-    error_page("Internal error");
+    Utils::err("mail domain not defined");
+    Utils::errorPage("Internal error");
 }
-
 
 if (isset($_SESSION['UserID']) && isset($_GET['later'])) {
     $_SESSION['later'] = true;
-    passhub_err("user " . $_SESSION['UserID'] . " mail registration: later");
+    Utils::err("user " . $_SESSION['UserID'] . " mail registration: later");
     header('Location: index.php');
     exit();
 } 
@@ -56,10 +57,11 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
 } else if (count($parts) != 2) {
     $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
-} else if (!is_authorized($mng, $email)) {
+} else if (!Iam::isMailAuthorized($mng, $email)) {
     $error_msg = "<p>The e-mail address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
 } else {
-    $result = getRegistrationCode($mng, $_SESSION['PUID'], $email);
+    $puid = new Puid($mng, $_SESSION['PUID']);
+    $result = $puid->getVerificationCode($email);
     if ($result['status'] == "Ok") {
         $subject = "PassHub Account Activation";
 
@@ -68,30 +70,29 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         if (isset($_POST['host'])) {
             $hostname = str_replace("passhub", "PassHub", $_POST['host']);
         }
+        $cta = "<p>Please click the link below to activate your account:</p>";
+        $body = "<p>Dear " . $hostname . " Customer,</p>" . $cta
+        . "<a href=" . $url . "login.php?reg_code=" . $result['code'] . ">"
+        . $url . "login.php?reg_code=" . $result['code'] . "</a>"
 
-        $body = "<p>Dear " . $hostname . " Customer,</p>"
-         .  "<p>Please click the link below to activate your account:</p>"
-         . "<a href=" . $url . "login.php?reg_code=" . $result['code'] . ">"
-         . $url . "login.php?reg_code=" . $result['code'] . "</a>"
+        . "<p>Best regards, <br>PassHub Team.</p>"; 
 
-         . "<p>Best regards, <br>PassHub Team.</p>"; 
+        $result = Utils::sendMail($email, $subject, $body);
 
-         $result = sendMail($email, $subject, $body);
- 
-        passhub_err('verification mail sent to ' . $email);
+        Utils::err('verification mail sent to ' . $email);
 
         if (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE || !isset($_SESSION['UserID'])) {
             $_SESSION = [];
         }
         $sent = true;
         if ($result['status'] !== 'Ok') {
-            passhub_err("error sending email");
-            error_page("error sending email. Please try again later");
+            Utils::err("error sending email");
+            Utils::errorPage("error sending email. Please try again later");
             $sent = false;
         }
 
     } else {
-        passhub_err("error getting registration code: ", $result['status']);
+        Utils::err("error getting registration code: ", $result['status']);
         $error_msg = $result['status'];
     }
 }
@@ -102,7 +103,7 @@ if (!isset($error_msg)) {
     exit();
 }
 
-echo theTwig()->render(
+echo Utils::render(
     'request_mail.html', 
     [
         // layout

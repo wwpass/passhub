@@ -8,7 +8,9 @@
   margin-left: 20px;
   cursor: pointer;
 }
-</style>
+</style>          
+
+
 
 <div class="row" id="file_form_page" style="display:none">
   <div class="card phub-dialog col-sm-12 " style="max-width: 40em">
@@ -93,7 +95,7 @@
                 <div class="input-group-prepend">
                   <span class="input-group-text" id="show_password" 
                   style="cursor:pointer;">
-                      <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-show'></use></svg>
+                      <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='#i-show'></use></svg>
                   </span>
                 </div>
                 <input type="password" class="form-control" 
@@ -123,10 +125,38 @@
             </div>
       -->
       <div class="form-group note_hidden">
+        <a href="#" style="float:right;" id="item_form_otp_link">Add TOTP secret</a>
+        <div id="item_form_otp_group">
+          <div >
+            <label class="control-label" for="password">OTP Secret</label>
+          </div>
+
+          <div style="display:block">
+            <div class="input-group">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="show_otp_secret" 
+                style="cursor:pointer;">
+                    <svg width='24' height='24' style='stroke:black;opacity:0.5'>
+                      <use xlink:href='#i-show'></use>
+                    </svg>
+                </span>
+              </div>
+              <input type="password" class="form-control" 
+                style="font-family: '{{password_font}}'"
+                    id="item_form_otp_secret"  maxlength="64" autocomplete="off" autocapitalize="none"
+                    placeholder="xxxx xxxx xxxx xxxx " 
+                    autocorrect="off" spellcheck="false">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group note_hidden">
           <label class="control-label" for="url">URL</label>
           <div>
               <input type="text" class="form-control" id="item_form_url" maxlength="{{ MAX_URL_LENGTH }}" autocapitalize="none" autocorrect="off" spellcheck="false">
           </div>
+
       </div>
 
       <div class="form-group note" style='flex:1; display:flex; flex-direction: column;'>
@@ -151,6 +181,7 @@
   </div>
 </div>  
 {{ include('modals/gen_password.html') }}
+
 
 <div class="row is-table-row" id="index_page_row">
 
@@ -182,13 +213,13 @@
     <div style='display:flex; flex-direction: column; height:100%'>
       <div class="d-none d-md-none btn-group table_pane" id="table_pane_nav" style="flex-shrink:0" role="group">
           <div class='folder_back' style='float:left;  width:20%; ; padding-left:10px; cursor: pointer'>
-              <svg width='30' height='30' style='stroke:white; float:left; vertical-align:middle;'><use xlink:href='public/img/SVG2/sprite.svg#ar-back'></use></svg>
+              <svg width='30' height='30' style='stroke:white; float:left; vertical-align:middle;'><use xlink:href='#ar-back'></use></svg>
           </div>
           <div style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%' id = "safe_and_folder_name">
           </div>
           <a href='#'  style='float:right; width:20%; padding-right:10px' id='item_list_folder_menu' >
               <svg width='30' height='30' style='stroke:white; float:right; vertical-align:middle;'>
-                <use xlink:href='public/img/SVG2/sprite.svg#el-dots'></use>
+                <use xlink:href='#el-dots'></use>
               </svg>
           </a>
       </div>
@@ -221,20 +252,21 @@
       <div class= "confirmed_safe_buttons" style='padding:15px'>
           <button class="btn btn-primary add_item_button" type="button" style="margin-left:15px">
               Add
-              <svg width='24' height='24' class='add_button_icon' ><use xlink:href='public/img/SVG2/sprite.svg#ar-expand'></use></svg>
+              <svg width='24' height='24' class='add_button_icon' ><use xlink:href='#ar-expand'></use></svg>
           </button>
       </div>
     </div>
   </div>
-  <div  class="d-none col-12 d-md-none item_pane" style="padding:0" >
+  <div  class="d-none col-12 d-md-none item_pane" style="padding:0; oveflow:hidden" >
+
       <div class="col-12 d-md-none btn-group item_pane_nav" role="group">
           <div class='item_back' style='float:left;  width:20%; ; padding-left:10px;  cursor: pointer'>
-              <svg width='30' height='30' style='stroke:#333; float:left; vertical-align:middle;'><use xlink:href='public/img/SVG2/sprite.svg#ar-back'></use></svg>
+              <svg width='30' height='30' style='stroke:#333; float:left; vertical-align:middle;'><use xlink:href='#ar-back'></use></svg>
           </div>
           <div id="item_pane_title" style='display:inline-block; text-align:center; text-overflow: ellipsis; overflow:hidden; white-space:nowrap; width:58%'>
           </div>
           <a href='#'  style='float:right; width:20%; padding-right:10px' class='record_title'  id="item_pane_menu">
-              <svg width='30' height='30' style='stroke:#333; float:right; vertical-align:middle;'><use xlink:href='public/img/SVG2/sprite.svg#el-dots'></use></svg>
+              <svg width='30' height='30' style='stroke:#333; float:right; vertical-align:middle;'><use xlink:href='#el-dots'></use></svg>
           </a>
       </div>
 
@@ -263,36 +295,41 @@
           <div class = "note_hidden">
               <span class="item_field_label">Username</span><br>
               <div class="input-group" style="margin:2px 0 10px; width:100%">
+                <!--
                   <div class="input-group-prepend">
                       <span class="input-group-text" id="item_pane_copy_username" style="cursor:pointer;">
                         Copy
                       </span>
                   </div>
-                  <input type="text" readonly class="form-control item_input" name="username" id="item_pane_username" 
-                  style="font-family: '{{ password_font }}'" >
+                  -->
+                  <input type="text" readonly class="form-control item_input" title="click to copy"
+                  name="username" id="item_pane_username" 
+                  style="font-family: '{{ password_font }}';cursor:pointer" >
               </div>
 
 
               <div class="item_pane_username_dummy" style="height:16px; display:none">
               </div>
 
-
               <span class="item_field_label">Password</span><br>
               <div class="input-group" style="margin:2px 0 10px;">
+                <!--
                   <div class="input-group-prepend">
                     <span class="input-group-text" id="item_pane_copy_password" style="cursor:pointer;">
                       Copy
                     </span>
                   </div>
+                  -->
 
 
-                  <input type="password" readonly  class="form-control item_input" id="item_pane_password"
-                  style="font-family:  '{{ password_font }}'">
+                  <input type="password" readonly  class="form-control item_input" title="click to copy"
+                  id="item_pane_password"
+                  style="font-family:  '{{ password_font }}'; cursor:pointer;">
 
                   <div class="input-group-append">
                     <span class="input-group-text toggle_pw_button" 
                     style="cursor:pointer;">
-                        <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-show'></use></svg>
+                        <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='#i-show'></use></svg>
                     </span>
                   </div>
               </div>
@@ -300,8 +337,16 @@
               <div class="item_pane_password_dummy" style="height:16px; display:none">
               </div>
 
+              <div class= "item_view_otp" style="margin:0 0 12px 0; cursor:pointer;">
+                <span class="item_field_label" style="margin-right: 12px">OTP</span>
+                <span  class="item_view_value" title="click to copy" 
+                style='font-size: 24px; font-family:Monospace;'>----</span>
+                <canvas class="item_view_otp_timer" width="30" height="30" style="margin-left:20px;margin-bottom:-10px;"></canvas>
+              </div>
+
               <span class="item_field_label">URL</span><br>
               <div id="item_pane_url">item_pane_url</div>
+
           </div>
           <span class="item_field_label">Notes</span><br>
           <div style="white-space: pre-wrap; overflow: auto; margin:2px 0 10px; padding:12px; font-size:16px;" id="item_pane_notes">item_pane_notes</div>
@@ -345,7 +390,9 @@
     </div>
 </div>
 
+
 <script src="public/js/jquery.csv.min.js"></script>
+
 
 <script>
 
@@ -416,7 +463,70 @@ if(isSafariPrivateMode()) {
 {% endif %}
 
 
-<script src="public/js/dist/index.js?v=200518"></script>
+<script src="public/js/dist/index.js?v=200805"></script>
+
+
+
+<script>
+  const canvas_array =  document.querySelectorAll('.item_view_otp_timer');
+  const ctx_array = [].map.call(canvas_array,  c => c.getContext('2d'));
+  ctx_array.forEach(ctx => ctx.fillStyle = "#959595");
+
+  //const canvas = document.querySelector('#item_view_otp_timer');
+  // const ctx = canvas.getContext('2d');
+
+  //ctx.lineWidth = 2;
+
+  const canvasSize = 30;
+
+  const xc = canvasSize/2;
+  const yc = canvasSize/2;
+  const radius = canvasSize/2-5;
+  
+  let prev_angle = 0;
+
+function otp_progress() {
+  
+  const d = new Date();
+  const s = (d.getTime() / 1000) %30;
+  const angle= s/30 * 2 * Math.PI;
+
+  // ctx.fillStyle = "#959595";
+
+/*
+  if (s >= 22 ) {
+      ctx.fillStyle = "#e03f3f";
+  } else {
+      ctx.fillStyle = "#007bff";
+  }
+*/
+  const color = (s < 25 ) ? "#007bff" : "red";
+
+  document.querySelectorAll('.item_view_value').forEach(element => element.style.color =  color);  
+
+  if( angle < prev_angle) {
+    ctx_array.forEach( ctx => ctx.clearRect(0, 0, canvasSize, canvasSize));
+  }
+  prev_angle = angle;
+  /*
+  ctx.beginPath();
+  ctx.arc(xc, yc, radius, 0, 2 * Math.PI);
+  ctx.stroke();
+  */
+  ctx_array.forEach( (ctx) => {
+    ctx.beginPath();
+    ctx.moveTo(xc, yc);
+    ctx.arc(xc, yc, radius, -Math.PI/2, angle - Math.PI/2);
+    ctx.lineTo(xc, yc);
+    ctx.fill();
+  });  
+  setTimeout(otp_progress, 1000);
+}
+otp_progress();
+
+
+</script>
+
 
 
 {% endblock %}

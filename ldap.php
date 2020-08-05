@@ -1,14 +1,16 @@
 <?php
 
-require_once 'vendor/autoload.php';
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-$mng = newDbConnection();
-setDbSessionHandler($mng);
+
+$mng = DB::Connection();
+
 session_start();
 
 function ldap() {
@@ -16,8 +18,8 @@ function ldap() {
         return "username and password fields should not be empty";
     }
 /*
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf ". $_POST['verifier'] . " != " . User::get_csrf());
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf ". $_POST['verifier'] . " != " . Csrf::get());
         return "Bad Request (46)";
     }
 */
@@ -48,10 +50,11 @@ function ldap() {
         }
         break;
     }
-    
+   
     if (!$r) {
       
         $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
+        Utils::err($result);  
         $e = ldap_errno($ds); 
         ldap_close($ds);
         if ($e == -1) {
@@ -92,24 +95,22 @@ if (!is_array($result)) {
 
 if ($result['status'] == 'Ok') {
     if (isset($_SESSION['UserID'])) {
-        ldapBindExistingUser($mng, $_SESSION['UserID'], $result['email'], $result['userprincipalname']);
+        $user = new User($mng, $_SESSION['UserID']);
+        $user->ldapBindExistingUser($result['email'], $result['userprincipalname']);
         header("Location: index.php");
         exit();
     }
     $_SESSION['userprincipalname'] = $result['userprincipalname'];
     $_SESSION['email'] = $result['email'];
-    showCreateUserPage();
+    Utils::showCreateUserPage();
     exit();
 }
 
-$verifier = User::get_csrf();
-passhub_err("Verifier set to " . $verifier);
-
-echo theTwig()->render(
+echo Utils::render(
     'ldap.html', 
     [
         'narrow' => true, 
-        'verifier' => $verifier,
+        'verifier' => Csrf::get(),
         'alert' => $result['status'],
         'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
     ]

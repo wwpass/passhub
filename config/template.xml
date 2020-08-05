@@ -6,9 +6,12 @@
             <Group>
                 <Name>Example Safe</Name>
                 <Entry>
+                    <Times>
+                        <LastModificationTime>2020-08-04T02:11:38+00:00</LastModificationTime>
+                    </Times>
                     <String>
                         <Key>Notes</Key>
-                        <Value>This is an example login/password record. Use &quot;Generate&quot; button to generate cryptographically strong passwords
+                        <Value>This is an example login/password record. Use &quot;Generate&quot; link to get cryptographically strong passwords
 
 Delete all the given examples and safe structure at any time</Value>
                     </String>
@@ -29,12 +32,47 @@ Delete all the given examples and safe structure at any time</Value>
                         <Value>exampleName</Value>
                     </String>
                 </Entry>
+                <Entry>
+                    <Times>
+                        <LastModificationTime>2020-08-04T02:16:37+00:00</LastModificationTime>
+                    </Times>
+                    <String>
+                        <Key>Notes</Key>
+                        <Value>You can store time-based OTP secret along with other credentials; PassHub generates actual OTP code for multi-factor authentication (MFA).
+Be sure your computer clocks are properly synchronized.</Value>
+                    </String>
+                    <String>
+                        <Key>Password</Key>
+                        <Value ProtectInMemory="True">somepassword</Value>
+                    </String>
+                    <String>
+                        <Key>Title</Key>
+                        <Value>Google Authenticator</Value>
+                    </String>
+                    <String>
+                        <Key>URL</Key>
+                        <Value>www.example.com</Value>
+                    </String>
+                    <String>
+                        <Key>UserName</Key>
+                        <Value>somename</Value>
+                    </String>
+                    <String>
+                        <Key>TOTP</Key>
+                        <Value>234567ab</Value>
+                    </String>
+                </Entry>
                 <Group>
                     <Name>Example folder</Name>
                     <Entry>
+                        <Times>
+                            <LastModificationTime>2020-08-04T02:36:25+00:00</LastModificationTime>
+                        </Times>
                         <String>
                             <Key>Notes</Key>
-                            <Value>Create folders to structure your information</Value>
+                            <Value>Create folders to structure your information.
+
+NOTE: data can only be shared on a per-safe basis, as opposed to individual folders, login records, notes and files.</Value>
                         </String>
                         <String>
                             <Key>Password</Key>
@@ -54,9 +92,12 @@ Delete all the given examples and safe structure at any time</Value>
                         </String>
                     </Entry>
                     <Entry>
+                        <Times>
+                            <LastModificationTime>2020-08-04T02:25:36+00:00</LastModificationTime>
+                        </Times>
                         <String>
                             <Key>Notes</Key>
-                            <Value>Note in a folder</Value>
+                            <Value>A &#039;note&#039; is a special type of PassHub entry to store short text information, with maximum length about 2000 characters.</Value>
                         </String>
                         <String>
                             <Key>Title</Key>
@@ -65,6 +106,10 @@ Delete all the given examples and safe structure at any time</Value>
                         <String>
                             <Key>Note</Key>
                             <Value>1</Value>
+                        </String>
+                        <String>
+                            <Key>TOTP</Key>
+                            <Value>234567ab</Value>
                         </String>
                     </Entry>
                 </Group>
@@ -75,13 +120,19 @@ Delete all the given examples and safe structure at any time</Value>
             <Group>
                 <Name>Work</Name>
                 <Entry>
+                    <Times>
+                        <LastModificationTime>2020-08-04T02:14:45+00:00</LastModificationTime>
+                    </Times>
                     <String>
                         <Key>Notes</Key>
-                        <Value>Create and share safes with colleagues and partners. Store corporate accounts, files.</Value>
+                        <Value>PassHub stores user information in safes. You can share any safe you own.
+
+Create and share safes with colleagues and partners. Store corporate accounts, notes and files.
+To share a safe, select &#039;Share&#039; item in the safe menu.</Value>
                     </String>
                     <String>
                         <Key>Title</Key>
-                        <Value>Work safe</Value>
+                        <Value>Work safe entry</Value>
                     </String>
                 </Entry>
             </Group>

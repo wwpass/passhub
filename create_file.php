@@ -13,16 +13,16 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/file.php';
 
-require_once 'src/db/SessionHandler.php';
+require_once 'vendor/autoload.php';
 
-$mng = newDbConnection();
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\Files\File;
+use PassHub\DB;
+use PassHub\User;
 
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -31,18 +31,11 @@ function create_file_item_proxy($mng) {
         return "login";
     }
 
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        passhub_err('Caught exception: ' . $e->getMessage());
-        $_SESSION['expired'] = true;
-        return "expired";
-    }
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
         return "Internal error";
     }
     if (!isset($_POST['vault']) || (ctype_xdigit($_POST['vault']) == false)) {
-        passhub_err("error create 36");
+        Utils::err("error create 36");
         return "Internal error";
     }
 
@@ -50,7 +43,8 @@ function create_file_item_proxy($mng) {
     $UserID = $_SESSION['UserID'];
 
     if (isset($_POST['check'])) {
-        if (can_write($mng, $UserID, $SafeID) == false) {
+        $user = new User($mng, $UserID);
+        if ($user->canWrite($SafeID) == false) {
             return "Sorry you do not have editor rights for this safe";
         }
         $result = [];
@@ -76,11 +70,14 @@ function create_file_item_proxy($mng) {
     $file = $_POST['file'];
 
     if (!isset($_POST['meta']) || !isset($_POST['file'])) {
-        passhub_err("error file create 83");
+        Utils::err("error file create 83");
         return(["status" => "Internal error"]);
     }
-
-    return create_file_item_cse($mng, $UserID, $SafeID, $folder, $meta, $file);
+    try {
+        return File::create($mng, $UserID, $SafeID, $folder, $meta, $file);
+    } catch (Exception $e) {
+        return $e->getMessage(); 
+    }
 }
 
 $result = create_file_item_proxy($mng);

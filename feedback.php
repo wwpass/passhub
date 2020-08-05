@@ -13,28 +13,26 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
-echo theTwig()->render(
+echo Utils::render(
     'feedback.html', 
     [
         // layout
         'narrow' => true, 
-        'title' => $title,
-        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+        'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
         'feedback_page' => true,
         'hide_logout' => !isset($_SESSION['PUID']),
 
         //content
-        'verifier' => User::get_csrf() 
+        'verifier' => Csrf::get() 
     ]
 );  

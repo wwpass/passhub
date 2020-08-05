@@ -13,22 +13,19 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/SessionHandler.php';
+require_once 'vendor/autoload.php';
 
-$mng = newDbConnection();
+use PassHub\Utils;
+use PassHub\DB;
 
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
-
 
 $twig_args = [
     'narrow' => true, 
     'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false
 ];
-
 
 if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
 
@@ -37,9 +34,6 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
         . " <a href = 'https://support.apple.com/en-us/HT203036'>Apple's instructions</a>"
         . " to&nbsp;return to&nbsp;normal mode</p>"
         . "<p>Private mode is not compatible with Passhub, some important browser functions are disabled</p>";
-    /*$error_template->add('header', $header)
-        ->add('text', $text)
-        ->render(); */
 } else {
     $header = "Error";
     $text=$_SESSION['error_message'];
@@ -64,7 +58,7 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
                     $js387 = 'mobile';
                 }
             }
-            passhub_err("Error 387:" . $_SESSION['error_message']);
+            Utils::err("Error 387:" . $_SESSION['error_message']);
             $text = "<p>Possible reasons</p>"
                 . "<ul>"
                 . "<li>your browser is in private (incognito) mode</li>"
@@ -75,13 +69,13 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
         } else if ($_GET['js'] == 'timeout') {
             $header = "Crypto operation takes too long";
             $text = $_SESSION['error_message'] = 'Try to relogin later or check your network quality. (Your data is safe)';
-            passhub_err("Crypto timeout");
+            Utils::err("Crypto timeout");
         } else {
             $header = "Internal server error";
             $text=$_SESSION['error_message'] = 'Consult system administrator';
         }
     }
-    passhub_err("error_page message: " . $_SESSION['error_message']);
+    Utils::err("error_page message: " . $_SESSION['error_message']);
     $twig_args['header'] = $header;
 
     if (isset($_SESSION['error_message']) && (trim($_SESSION['error_message']) != "")) {
@@ -91,11 +85,11 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
             $twig_args['try_again'] = $js387;
         }
     } else {
-        passhub_err("error_page 35");
+        Utils::err("error_page 35");
         $twig_args['text'] = "";
     }
 }
-echo theTwig()->render(
+echo Utils::render(
     'error_page.html', $twig_args
 ); 
 

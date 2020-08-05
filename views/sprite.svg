@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="ar-back" viewBox="0 0 24 24">
+  <polyline points="15 4 7 12 15 20" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="ar-collapse" viewBox="0 0 24 24">
+  <polyline points="17 16 12 11 7 16" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="ar-expand" viewBox="0 0 24 24">
+  <polyline points="7 11 12 16 17 11" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="ar-forward" viewBox="0 0 24 24">
+  <polyline points="9 4 17 12 9 20" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="el-dots" viewBox="0 0 24 24">
+  <path d="M12,17a1,1,0,1,0,1,1A1,1,0,0,0,12,17Zm0-4a1,1,0,1,0-1-1A1,1,0,0,0,12,13Zm0-6a1,1,0,1,0-1-1A1,1,0,0,0,12,7Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="el-x" viewBox="0 0 24 24">
+  <line x1="4" y1="4" x2="20" y2="20" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="20" y1="4" x2="4" y2="20" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-contact" viewBox="0 0 24 24">
+  <rect x="2" y="5" width="20" height="14" rx="2" ry="2" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <polyline points="3 7 12 13 21 7" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-copy" viewBox="0 0 24 24">
+  <rect x="9" y="7" width="10" height="14" rx="2" ry="2" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M5,16V5A2,2,0,0,1,7,3h7" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-delete" viewBox="0 0 24 24">
+  <path class="cls-1" d="M18,5V19a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V5" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line class="cls-1" x1="4.5" y1="5" x2="19.5" y2="5" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line class="cls-1" x1="9.5" y1="4" x2="14.5" y2="4" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line class="cls-1" x1="10" y1="9" x2="10" y2="16" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line class="cls-1" x1="14" y1="9" x2="14" y2="16" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-edit" viewBox="0 0 24 24">
+  <polygon class="cls-1" points="4 20 4 17 17 4 20 7 7 20 4 20" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line class="cls-1" x1="14" y1="7" x2="17" y2="10" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-file" viewBox="0 0 24 24">
+  <path d="M19,10H13a1,1,0,0,1-1-1V3" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M7,3A2,2,0,0,0,5,5V19a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V9L13,3Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-folder" viewBox="0 0 24 24">
+  <path d="M10,4H5A2,2,0,0,0,3,6V16a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2V8a2,2,0,0,0-2-2H12Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-folder_shared" viewBox="0 0 24 24">
+  <path d="M10,4H5A2,2,0,0,0,3,6V16a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2V8a2,2,0,0,0-2-2H12Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle cx="9.5" cy="10" r="0.75" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M12,15a3.9,3.9,0,0,0-2.5-1.25A3.9,3.9,0,0,0,7,15Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle cx="15" cy="10.8" r="0.5" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M17,15a3.13,3.13,0,0,0-2-1,2.91,2.91,0,0,0-.43.05,2.42,2.42,0,0,1,.29.95Z" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-help" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M9,10a3,3,0,0,1,6,0c0,2.63-3,2.63-3,5" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="12" y1="18" x2="12" y2="18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-hide" viewBox="0 0 24 24">
+  <path d="M13.24,6.09A10.19,10.19,0,0,0,12,6,11.48,11.48,0,0,0,2,12a12,12,0,0,0,2.53,3.12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <path d="M10.76,17.91A10.19,10.19,0,0,0,12,18a11.48,11.48,0,0,0,10-6,12,12,0,0,0-2.53-3.12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="5" y1="19" x2="19" y2="5" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-key" viewBox="0 0 24 24">
+  <circle cx="6" cy="12" r="4" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="10" y1="12" x2="22" y2="12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="20" y1="16" x2="20" y2="12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="17" y1="16" x2="17" y2="12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-logout" viewBox="0 0 24 24">
+  <path d="M21,17v1a3,3,0,0,1-3,3H6a3,3,0,0,1-3-3V6A3,3,0,0,1,6,3H18a3,3,0,0,1,3,3V7" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="10" y1="12" x2="20" y2="12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <polyline points="16 8 20 12 16 16" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-note" viewBox="0 0 24 24">
+  <rect x="4" y="4" width="16" height="16" rx="2" ry="2" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="8" y1="8" x2="16" y2="8" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="8" y1="12" x2="16" y2="12" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="8" y1="16" x2="13" y2="16" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-search" viewBox="0 0 24 24">
+  <circle cx="10" cy="10" r="7" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <line x1="15" y1="15" x2="21" y2="21" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-settings" viewBox="0 0 24 24">
+  <path d="M12,9a3,3,0,1,0,3,3A3,3,0,0,0,12,9Zm2.74-4a7.55,7.55,0,0,1,2,1.12l2.64-.94a10.07,10.07,0,0,1,2.24,3.85l-2.15,1.83h0a7.14,7.14,0,0,1,0,2.26l2.14,1.81a9.91,9.91,0,0,1-2.22,3.87l-2.66-.95h0a7.76,7.76,0,0,1-2,1.12l-.51,2.76a10,10,0,0,1-4.46,0L9.26,19h0a7.55,7.55,0,0,1-1.95-1.12l-2.64.94A10.07,10.07,0,0,1,2.43,15l2.15-1.83h0a7.14,7.14,0,0,1,0-2.26L2.44,9.06A9.91,9.91,0,0,1,4.66,5.19l2.66.95h0A7.76,7.76,0,0,1,9.26,5l.51-2.76a10,10,0,0,1,4.46,0L14.74,5Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+<symbol id="i-show" viewBox="0 0 24 24">
+  <ellipse cx="12" cy="12" rx="10" ry="6" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+  <circle cx="12" cy="12" r="3" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+
+<symbol id="i-wrench" viewBox="0 0 24 24">
+  <path class="cls-1" d="M15.28,12.45a2,2,0,0,1-.5-2A6,6,0,0,0,6.42,3.59l4,4A1,1,0,0,1,10.4,9L9,10.4a1,1,0,0,1-1.41,0l-4-4a6,6,0,0,0,6.87,8.36,2,2,0,0,1,2,.5l5.43,5.43a1,1,0,0,0,1.41,0l1.42-1.42a1,1,0,0,0,0-1.41Z" fill="none"  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+</symbol>
+
+<symbol id="checked" viewBox="0 0 48 48 ">
+  <path  d="M9.333 1h9.333q1.6 0 3.387 0.613l-4.747 4.72h-9.307q-1.093 0-1.88 0.787t-0.787 1.88v13.333q0 1.093 0.787 1.88t1.88 0.787h13.333q1.093 0 1.88-0.787t0.787-1.88v-1.84l5.333-5.333v5.84q0 4.4-2.467 6.867t-6.867 2.467h-10.667q-4.4 0-6.867-2.467t-2.467-6.867v-10.667q0-4.4 2.467-6.867t6.867-2.467zM17.147 13.2l10.533-10.533q0.187-0.187 0.467-0.187t0.467 0.187l2.693 2.693q0.187 0.187 0.187 0.467t-0.187 0.467l-14.16 14.187q-0.187 0.187-0.467 0.187t-0.467-0.187l-6.613-6.613q-0.187-0.187-0.187-0.467t0.187-0.467l2.693-2.693q0.187-0.187 0.467-0.187t0.467 0.187l2.96 2.96q0.213 0.187 0.48 0.187t0.48-0.187z"></path>
+</symbol>
+
+<symbol id="unchecked" viewBox="0 0 48 48">
+  <path  d="M9.333 1h10.667q4.32 0 6.827 2.493t2.507 6.84v10.667q0 4.4-2.493 6.867t-6.84 2.467h-10.667q-4.4 0-6.867-2.467t-2.467-6.867v-10.667q0-4.4 2.467-6.867t6.867-2.467zM21.333 5.8h-13.333q-1.093 0-1.88 0.787t-0.787 1.88v13.333q0 1.093 0.787 1.88t1.88 0.787h13.333q1.093 0 1.88-0.787t0.787-1.88v-13.333q0-1.093-0.787-1.88t-1.88-0.787z"></path>
+</symbol>
+
+<symbol id="cross" viewBox="0 0 48 48">
+  <path  d="M24.107 1l4.747 4.773q0.213 0.213 0.213 0.493t-0.213 0.467l-7.12 7.147 7.12 7.147q0.213 0.187 0.213 0.467t-0.213 0.493l-4.747 4.747q-0.213 0.213-0.493 0.213t-0.467-0.213l-7.147-7.12-7.147 7.12q-0.187 0.213-0.467 0.213t-0.493-0.213l-4.747-4.747q-0.213-0.213-0.213-0.493t0.213-0.467l7.12-7.147-7.12-7.147q-0.213-0.187-0.213-0.467t0.213-0.493l4.747-4.747q0.213-0.213 0.493-0.213t0.467 0.213l7.147 7.12 7.147-7.147q0.187-0.187 0.467-0.187t0.493 0.187z"></path>
+</symbol>
+
+</svg>

@@ -310,6 +310,16 @@ export default {
     passhubCrypto.getPrivateKey(ePrivateKey, ticket)
       .then(() => this.decryptSafes(this.safes))
       .then(() => {
+        this.safes.sort((a, b) => 
+          a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        );
+        if(!this.currentSafe) {
+          this.currentSafe = this.safes[0];
+        }
+        if (this.invitationAcceptPending || (this.currentSafe.key == null)) {
+          setTimeout(getSharingStatus, 30 * 1000, this);
+        }
+
         if (typeof index_page_show_index != 'undefined') {
           if (index_page_show_index) {
             let found = false;
@@ -369,11 +379,20 @@ export default {
       success: (result) => {
         if (result.status === 'Ok') {
           this.safes = result.data.safes;
-          // passhub.safes.sort(cmpSafeNames);
-          this.currentSafe = this.getSafeById(result.data.currentSafe);
           this.publicKeyPem = result.data.publicKeyPem;
           this.decryptSafes(this.safes)
             .then(() => {
+              this.safes.sort((a, b) => 
+                a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+              );
+              this.currentSafe = this.getSafeById(result.data.currentSafe);
+              if (!this.currentSafe)  {
+                this.currentSafe = this.safes[0];
+              }  
+              if (this.invitationAcceptPending || (this.currentSafe.key == null)) {
+                setTimeout(getSharingStatus, 30 * 1000, this);
+              }
+    
               safes.setActiveFolder(this.activeFolder);
               this.indexPageResize();
               this.makeCurrentVaultVisible();
@@ -406,9 +425,6 @@ export default {
           this.safes = result.data.safes;
           this.invitationAcceptPending = result.data.invitation_accept_pending;
           this.currentSafe = this.getSafeById(result.data.currentSafe);
-          if (this.invitationAcceptPending || (this.currentSafe.key == null)) {
-            setTimeout(getSharingStatus, 30 * 1000, this);
-          }
           this.publicKeyPem = result.data.publicKeyPem;
           this.shareModal = result.data.shareModal;
           this.decodeKeys(result.data.ticket, result.data.ePrivateKey);

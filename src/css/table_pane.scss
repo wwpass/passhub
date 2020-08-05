@@ -27,7 +27,7 @@
 }
 
 .records_table > tbody > tr > td {
-  border-top: 1px solid #b5d0f0;
+  border-top: 1px solid $table_pane_td_border_color;
   line-height: 1.5;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -35,7 +35,7 @@
 }
 
 .records_table > thead > tr > th {
-  border-bottom: 2px solid #b5d0f0;
+  border-bottom: 2px solid $table_pane_td_border_color;
 }
 
 thead {

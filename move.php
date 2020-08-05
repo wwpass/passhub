@@ -13,19 +13,14 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/item.php';
+use PassHub\Utils;
+use PassHub\Item;
+use PassHub\DB;
+use PassHub\User;
 
-
-require_once 'src/db/SessionHandler.php';
-
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -34,33 +29,26 @@ function move_record_proxy($mng) {
     if (!isset($_SESSION['UserID'])) {
         return "login";
     }
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        passhub_err('Caught exception: ' . $e->getMessage());
-        $_SESSION['expired'] = true;
-        return "login";
-    }
     if (!isset($_POST['id']) || ($_POST['id'] == "")) {
-        passhub_err("error mov 33");
+        Utils::err("error mov 33");
         return "internal error 33";
     }
 
     if (!isset($_POST['dst_safe'])) {
-        passhub_err("error mov 39");
+        Utils::err("error mov 39");
         return "internal error mov 39";
     }
     if (!isset($_POST['src_safe'])) {
-        passhub_err("error mov 39");
+        Utils::err("error mov 39");
         return "internal error mov 39";
     }
     if (!isset($_POST['operation'])) {
-        passhub_err("error mov 42");
+        Utils::err("error mov 42");
         return "internal error mov 42";
     }
     $operation = $_POST['operation'];
     if (($operation != "move") && ($operation != "copy") && ($operation != "get data")) {
-        passhub_err("error mov 55");
+        Utils::err("error mov 55");
         return "internal error mov 55";
     }
 
@@ -71,24 +59,21 @@ function move_record_proxy($mng) {
     $TargetSafeID = trim($_POST['dst_safe']);
 
     if ((ctype_xdigit((string)$UserID) == false) || (ctype_xdigit((string)$SafeID) == false) || (ctype_xdigit((string)$entryID) == false) || (ctype_xdigit((string)$TargetSafeID) == false)) {
-        passhub_err("error mov 66");
+        Utils::err("error mov 66");
         return "internal error mov 66";
     }
 
     if ($operation == "get data") {
-        $user = new User($mng, $UserID);
-        $result = get_item_cse($mng, $UserID, $entryID);
-
-        return array("status" => "Ok", "item" => $result['item'],
-            "src_key" => $user->safe_array[$SafeID]->encrypted_key_CSE,
-            "dst_key" => $user->safe_array[$TargetSafeID]->encrypted_key_CSE);
+        $item = new Item($mng, $entryID);
+        return $item->getMoveOperationData($UserID, $SafeID, $TargetSafeID);
     }
     $new_item = trim($_POST['item']);
     $dst_folder = 0;
     if (isset($_POST['dst_folder'])) {
         $dst_folder = $_POST['dst_folder'];
     }
-    return move_item_cse($mng, $UserID, $SafeID, $TargetSafeID, $dst_folder, $entryID, $new_item, $operation);
+    $item = new Item($mng, $entryID);
+    return $item->move($UserID, $SafeID, $TargetSafeID, $dst_folder, $new_item, $operation);
 }
 
 $result =  move_record_proxy($mng);

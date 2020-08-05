@@ -13,29 +13,26 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
-$mng = newDbConnection();
-setDbSessionHandler($mng);
+use PassHub\Utils;
+use PassHub\DB;
+
+$mng = DB::Connection();
 
 session_start();
 
 if (isset($_GET['check_mail'])) {
+    include_once 'src/localized-template.php';
     LocalizedTemplate::factory('check-mail.html')
         ->add('email', $_SESSION['form_email'])
         ->render();
         exit();
 }
-/* if (isset($_GET['enterprize_form_filled'])) {
-    $template = Template::factory('src/templates/form_filled.html'); 
-} else */
 
-$twig = theTwig();
+$public_service = defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false;
 
 if (isset($_GET['registration_action'])) {
-    $public_service = defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false;
     if ($public_service && isset($_SESSION['UserID'])) {
         include_once 'src/localized-template.php';
 
@@ -44,7 +41,7 @@ if (isset($_GET['registration_action'])) {
     } else {
         $close_action = '\'logout.php\'';
     }
-    echo $twig->render(
+    echo Utils::render(
         'registration_action.html', 
         [
             // layout
@@ -62,12 +59,32 @@ if (isset($_GET['registration_action'])) {
     unset($_SESSION['form_email']);
     exit();  
 }
+
+if (isset($_GET['change_mail'])) {
+    echo Utils::render(
+        'change_mail.html', 
+        [
+            // layout
+            'narrow' => true, 
+            'PUBLIC_SERVICE' => $public_service, 
+            'hide_logout' => true,
+    
+            //content
+            'email' => $_SESSION['form_email'],
+            'success' => true,
+            'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
+        ]
+    );
+    unset($_SESSION['form_email']);
+    exit();  
+}
+
 if (isset($_GET['setup_account'])) {
-    echo $twig->render(
+    echo Utils::render(
         'setup_account_action.html',
         [
             'narrow' => true, 
-            'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+            'PUBLIC_SERVICE' => $public_service, 
             'hide_logout' => true,
             'feedback_page' => true,
             'email' => $_SESSION['form_email'],
@@ -76,12 +93,12 @@ if (isset($_GET['setup_account'])) {
     );
     exit();
 }
-echo $twig->render(
+echo Utils::render(
     'feedback_action.html', 
     [
         // layout
         'narrow' => true, 
-        'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+        'PUBLIC_SERVICE' => $public_service,
         'feedback_page' => true,
         'hide_logout' => !isset($_SESSION['PUID']),
 

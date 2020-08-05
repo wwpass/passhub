@@ -13,15 +13,14 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -35,18 +34,22 @@ if (!isset($_SESSION['UserID'])) {
     exit();
 }
 
-try {
-    update_ticket();
-} catch (Exception $e) {
-    $_SESSION['expired'] = true;
-    passhub_err('Caught exception: ' . $e->getMessage());
-    header("Location: expired.php");
-    exit();
-}
-
 $UserID = $_SESSION['UserID'];
 
-$result = account($mng, $UserID);
+$user = new User($mng, $UserID);
+
+if (isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf account 54");
+        return "Internal Error (54)";
+    }
+
+    $result = delete_account($mng, $UserID);
+    session_destroy();
+} else {
+    $result = $user->account();
+}
+
 if (gettype($result) == "string") {
     $result = array("status" => $result);
 }

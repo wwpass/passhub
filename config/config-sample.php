@@ -29,8 +29,11 @@ define('MAX_NOTES_SIZE', 2000);
 // User inactivity reminder, set to 9 min. After another minute (total 10 minutes) a user will be logged out automatically
 define('IDLE_TIMEOUT', 540);
 
+// logs are written to the dedicated files in LOG_DIR or to SYSLOG service or both
 // Path to PassHub log directory
 define('LOG_DIR', '/var/log/passhub');
+
+define('SYSLOG', true);
 
 // ** Database **
 

@@ -13,7 +13,11 @@ $('#account_modal').on('show.bs.modal', () => {
       if (result.status === 'Ok') {
         let data = '';
         if ('email' in result) {
-          data += `<p>email: <b>${result.email}</b></p>`;
+          data += `<div style="margin:1em 0">email: <b>${result.email}</b>
+          <a href="change_mail.php" style="float: right;">
+            Change mail
+          </a>
+          </div>`;
         }
         if ('plan' in result) {
           data += `<p>Account type: <b>${result.plan}</b></p>`;
@@ -58,6 +62,11 @@ $('#account_modal').on('show.bs.modal', () => {
     },
   });
   $('#account_alert').text('').hide();
+});
+
+
+$('#delete_my_account').click(() => {
+  window.location = 'close_account.php';
 });
 
 const accountMenu = {

@@ -13,42 +13,40 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/item.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
 
+require_once 'vendor/autoload.php';
+
+use PassHub\Utils;
+use PassHub\DB;
+use PassHub\Puid;
 
 //TODO csrf
 
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
 function createUser_proxy($mng) {
 
     if (!isset($_SESSION['PUID'])) {
-        passhub_err("create 36");
+        Utils::err("create 36");
         return "Internal error (create) 36";
     }
 
     if (isset($_SESSION['UserID'])) {
-        passhub_err("create 41");
+        Utils::err("create 41");
         return "Internal error (create) 41";
     }
     if (!isset($_POST['publicKey'])) {
-        passhub_err("create 47");
+        Utils::err("create 47");
         return "internal error (create) 47";
     }
     if (!isset($_POST['encryptedPrivateKey'])) {
-        passhub_err("create 51");
+        Utils::err("create 51");
         return "internal error (create) 51";
     }
-    return create_user($mng, $_SESSION['PUID'], $_POST);
+    $puid = new Puid($mng, $_SESSION['PUID']);
+    return $puid->createUser($_POST);
 }
 
 $result = createUser_proxy($mng);
@@ -57,7 +55,7 @@ if (!is_array($result)) {
     $result = array("status" => $result);
 }
 
-passhub_log("Create User CSE: " . $result['status'] . " "  . $_SERVER['REMOTE_ADDR'] . " " .$_SERVER['HTTP_USER_AGENT']);
+Utils::log("Create User CSE: " . $result['status'] . " "  . $_SERVER['REMOTE_ADDR'] . " " .$_SERVER['HTTP_USER_AGENT']);
 
 
 // Prevent caching.

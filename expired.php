@@ -13,19 +13,17 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\DB;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 session_destroy();
 
-echo theTwig()->render(
+echo Utils::render(
     'expired.html',
     [
       'narrow' => true,

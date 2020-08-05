@@ -73,6 +73,9 @@ function doRestoreXML(text) {
       (typeof result.URL === 'string') ? result.URL : '',
       (typeof result.Notes === 'string') ? result.Notes : '',
     ];
+    if (typeof result.TOTP === 'string') {
+      cleartext.push(result.TOTP);
+    }
 
     check_limits_on_import(cleartext); // raises exception
 

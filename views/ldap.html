@@ -15,15 +15,18 @@
         <form action="ldap.php" method="POST">
           <div class="form-group">
             <label class = "control-label" for="username">Username:</label>
-            <input class="form-control" type="text" name ="username" autofocus> 
+            <input class="form-control" type="text" name ="username" autofocus required> 
           </div>          
           <div class="form-group">
             <label class = "control-label" for="username">Password:</label>
-            <input class="form-control" type="password" name ="password"> 
+            <input class="form-control" type="password" name ="password" required> 
           </div>
           <input type="hidden" name ="verifier" value={{verifier}}> 
           <button class="btn btn-primary submit" type="submit"  style="float:right; margin-left: 1em">
             Submit
+          </button>
+          <button class="btn btn-secondary" type="button" onclick='location.href="logout.php"' style="float:right; margin-left: 1em">
+            Cancel
           </button>
         </form>
     </div>

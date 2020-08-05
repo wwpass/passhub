@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if phase == 1 %}
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+  <div class="card-header" style="margin-bottom: 1em;">
+    <h1>Before shutting down your account
+      <button type="button" class="close" aria-label="Close"
+      onclick='window.location.href="index.php";'>
+      <span aria-hidden="true">&times;</span>
+      </button>    
+    </h1>
+  </div>
+  <div class="card-body"> 
+    <p>
+      <b>Be sure</b> to transfer ownership of your shared safes to your peers.
+    </p>
+    <p>
+      <b>Please note</b> it is the last chance to backup (export) all your data.
+    </p>
+  </div>
+
+  <div class = "card-footer">
+    <form class="form" method="POST">
+      <input type="hidden" name="verifier1" value="{{ verifier }}">
+      <button class="btn btn-primary" type="submit" style="float:right; margin-left: 1em">
+        Next
+      </button>
+      <button class="btn btn-secondary" type="button" style="float:right; margin-left: 1em" 
+      onclick="window.location.href = 'index.php';">Cancel</button>
+    </form>
+  </div>
+</div>
+
+{% elseif phase == 2 %} 
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+  <div class="card-header" style="margin-bottom: 1em;">
+    <h1>Close my Account
+      <button type="button" class="close" aria-label="Close"
+      onclick='window.location.href="index.php";'>
+      <span aria-hidden="true">&times;</span>
+      </button>    
+    </h1>
+  </div>
+  <div class="card-body"> 
+    <p>
+      You are about to lose all your data stored in PassHub and you will be unable to restore it.
+    </p>
+  </div>
+
+  <div class = "card-footer">
+    <form class="form" method="POST">
+      <input type="hidden" name="verifier2" value="{{ verifier }}">
+      <input type="hidden" name="operation" value="delete">
+      <button class="btn btn-primary" type="submit" style="float:right; margin-left: 1em" 
+      >Close account</button>
+      <button class="btn btn-secondary" type="button" style="float:right; margin-left: 1em" 
+      onclick="window.location.href = 'index.php';">Cancel</button>
+    </form>
+  </div>
+</div>
+{% elseif phase == 3 %}  
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+  <div class="card-header" style="margin-bottom: 1em;">
+    <h1>Your account is now deleted
+      <button type="button" class="close" aria-label="Close"
+      onclick='window.location.href="index.php";'>
+      <span aria-hidden="true">&times;</span>
+      </button>    
+    </h1>
+  </div>
+  <div class="card-body"> 
+    <button class="btn btn-primary" onclick='window.location = "logout.php"' style="float:right; margin-left: 1em" 
+    >Close</button>
+  </div>
+
+</div>
+{% endif %} 
+{% endblock %}
+{% block scripts %}
+<script>
+/*  
+  function onCloseAccountSubmit() {
+  $.ajax({
+    url: 'account.php',
+    method: 'POST',
+    data: {
+      operation: 'delete',
+      verifier: document.querySelector('input[name="verifier"]'),
+    },
+    success: (result) => {
+      if (result.status === 'Ok') {
+        alert(2);
+      } else {
+        alert(3)
+      }
+    },
+    error: (hdr, status, err) => {
+      passhub.modalAjaxError($('#account_alert'), hdr, status, err);
+    },
+  });
+*/
+</script>
+{% endblock %}

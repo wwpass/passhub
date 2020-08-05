@@ -84,7 +84,12 @@
             style='background: #eee; border-radius: 10px 10px 0 0'>
             <h4 class="heading heading--center heading--h4 heading--dark heading--code"
             style='font-size: 24px; line-height: 30px; padding: 10px 20px; 
-            margin:0; width: 100%; text-align: center'>E-mail address confirmed, please log in to complete account activation</h4>
+            margin:0; width: 100%; text-align: center'>
+            {% if change %}
+            Email address confirmed, please log in to complete email address change</h4>
+            {% else %}
+            Email address confirmed, please log in to complete account activation</h4>
+            {% endif %}
 <!--
             <h5 class="heading heading--center heading--h5 heading--code heading--getStarted button--getStarted"
             style='font-size: 18px; line-height: 24px; padding: 13px 20px;

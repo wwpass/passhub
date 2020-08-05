@@ -1,7 +1,7 @@
 <?php
 
 /**
- * add_by_invite.php
+ * get_sharing_status.php
  *
  * PHP version 7
  *
@@ -12,42 +12,33 @@
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
+require_once 'vendor/autoload.php';
 
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\SharingCode;
 
-require_once 'src/db/SessionHandler.php';
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
-
+$mng = DB::Connection();
 
 session_start();
 
 function get_sharing_status_proxy($mng) {
 
-    if(!isset($_SESSION['UserID'])) {
+    if (!isset($_SESSION['UserID'])) {
         return "login";
     }
 
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        passhub_err('Caught exception: ' . $e->getMessage());
-        $_SESSION['expired'] = true;
-        return "login";
-    }
     /*
-    if(!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+    if(!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (46)";
     }
     */
     $UserID = $_SESSION['UserID'];
 
-    return getSharingStatus($mng, $UserID);
+    return SharingCode::getSharingStatus($mng, $UserID);
 }
 
 $result = get_sharing_status_proxy($mng);

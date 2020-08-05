@@ -1,6 +1,25 @@
 import $ from 'jquery';
 // import passhub from './passhub';
 
+const el = document.querySelector('#pop');
+const h = el.getBoundingClientRect().height;
+const hpx = `${-h -2}px`;
+el.style.top = hpx;
+
+function copyBanner(text) {
+  const el = document.querySelector('#pop');
+  el.innerText = text;
+  el.style.top = '0';
+
+  setTimeout(function () {
+    document.querySelector('#pop').style.top= hpx;
+  }, 1500);
+}
+
+function copyViewBanner(text) {
+  copyBanner(text)
+  // $('#Slider').toggleClass('slidedown slideup');
+}
 
 function createTextArea(text) {
   const textArea = document.createElement('textArea');
@@ -22,7 +41,7 @@ function selectText(textArea) {
   }
 }
 
-function copyToClipboard(textArea) {        
+function copyToClipboard(textArea) {
   document.execCommand('copy');
   document.body.removeChild(textArea);
 }
@@ -48,12 +67,12 @@ function toggle_pw() {
     $('#item_pane_password').attr('type', 'text');
     $('#creds1ID').attr('type', 'text');
     pwShown = 1;
-    $('.toggle_pw_button').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-hide'></use></svg>");
+    $('.toggle_pw_button').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
   } else {
     $('#item_pane_password').attr('type', 'password');
     $('#creds1ID').attr('type', 'password');
     pwShown = 0;
-    $('.toggle_pw_button').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-show'></use></svg>");
+    $('.toggle_pw_button').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
   }
 }
 
@@ -96,40 +115,67 @@ $(document).ready(() => {
 */
 });
 
-$('#item_pane_copy_username').click(() => {
+function copyUsernameToClipboard() {
   const textArea = createTextArea($('#item_pane_username').val());
   selectText(textArea);
   copyToClipboard(textArea);
+  /*
   if (true) {
     ph_alert('Username copied to clipboard');
   } else {
     ph_alert('Copy username: fail');
   }
-});
+  */
+  copyBanner('Username copied to clipboard');
+}
 
+$('#item_pane_copy_username').click(copyUsernameToClipboard);
+$('#item_pane_username').click(copyUsernameToClipboard);
 
-$('#item_pane_copy_password').click(() => {
-/*
-  if (pwShown == 0) {
-    $('#item_pane_password').attr('type', 'text');
-  }
-*/
+function copyPasswordToClipboard() {
+  /*
+    if (pwShown == 0) {
+      $('#item_pane_password').attr('type', 'text');
+    }
+  */
   const textArea = createTextArea($('#item_pane_password').val());
   selectText(textArea);
   copyToClipboard(textArea);
-/*
+  /*
   if (pwShown == 0) {
     $('#item_pane_password').attr('type', 'password');
   }
-*/
+  */
+ /*
   if (true) {
     ph_alert('Password copied to clipboard');
   } else {
     ph_alert('Copy password: fail');
   }
-//  $('#show_password').focus();
-});
+  */
+  copyBanner('Password copied to clipboard');
+  //  $('#show_password').focus();
+}
 
+
+$('#item_pane_copy_password').click(copyPasswordToClipboard);
+$('#item_pane_password').click(copyPasswordToClipboard);
+
+function copyOtpToClipboard() {
+  const textArea = createTextArea(document.querySelector('.item_pane .item_view_value').innerText);
+  selectText(textArea);
+  copyToClipboard(textArea);
+  /*
+  if (true) {
+    ph_alert('OTP copied to clipboard');
+  } else {
+    ph_alert('Copy username: fail');
+  }
+  */
+  copyBanner('OTP code copied to clipboard');
+}
+
+$('.item_pane .item_view_otp').click(copyOtpToClipboard);
 
 /*
 $('#item_pane_copy_username').click(() => {
@@ -180,23 +226,44 @@ $('#showCreds').on('show.bs.modal', () => {
 });
 
 
-$('#id_copy_username').click(() => {
+function copyViewUsernameToClipboard() {
   $('#showCreds').modal('hide');
   const textArea = createTextArea($('#creds0ID').val());
   selectText(textArea);
   copyToClipboard(textArea);
   $('#showCreds').modal('show');
-  $('#showCreds_info').text('username copied to clipboard');
-});
+  // $('#showCreds_info').text('username copied to clipboard');
+  copyViewBanner('Username copied to clipboard');
+}
 
-$('#id_copy_password').click(() => {
+$('#creds0ID').click(copyViewUsernameToClipboard);
+$('#id_copy_username').click(copyViewUsernameToClipboard);
+
+function copyViewPasswordToClipboard() {
   $('#showCreds').modal('hide');
   const textArea = createTextArea($('#creds1ID').val());
   selectText(textArea);
   copyToClipboard(textArea);
   $('#showCreds').modal('show');
-  $('#showCreds_info').text('password copied to clipboard');
-});
+  // $('#showCreds_info').text('password copied to clipboard');
+  copyViewBanner('Password copied to clipboard');
+}
+
+$('#creds1ID').click(copyViewPasswordToClipboard);
+$('#id_copy_password').click(copyViewPasswordToClipboard);
+
+function copyViewOtpToClipboard() {
+  $('#showCreds').modal('hide');
+  const textArea = createTextArea(document.querySelector('#showCreds .item_view_value').innerText);
+  selectText(textArea);
+  copyToClipboard(textArea);
+  $('#showCreds').modal('show');
+  // $('#showCreds_info').text('OTP copied to clipboard');
+  copyViewBanner('OTP code copied to clipboard');
+}
+
+$('#showCreds .item_view_value').click(copyViewOtpToClipboard);
+
 
 /*
 $('#id_copy_username').click(() => {

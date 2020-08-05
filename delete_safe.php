@@ -13,17 +13,15 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/item.php';
 
-require_once 'src/db/SessionHandler.php';
+require_once 'vendor/autoload.php';
 
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -32,16 +30,9 @@ function delete_safe_proxy($mng) {
     if (!isset($_SESSION['UserID'])) {
         return "login";
     }
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        $_SESSION['expired'] = true;
-        passhub_err('Caught exception: ' . $e->getMessage());
-        return "login";
-    }
 
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (46)";
     }
 
@@ -53,8 +44,8 @@ function delete_safe_proxy($mng) {
     }
 
     $SafeID = trim($_POST['SafeID']);
-
-    return delete_safe($mng, trim($_SESSION['UserID']), $SafeID, $_POST['operation']);
+    $user = new User($mng, $_SESSION['UserID']);
+    return $user->deleteSafe($SafeID, $_POST['operation']);
 }
 
 $result = delete_safe_proxy($mng);

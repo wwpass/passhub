@@ -9,7 +9,7 @@ import * as utils from './utils';
 import passhub from './passhub';
 
 const dots = "<svg width='24' height='24' style='stroke:white; vertical-align:middle;float:right; '>"
-+ "<use xlink:href='public/img/SVG2/sprite.svg#el-dots'></use></svg>";
++ "<use href='#el-dots'></use></svg>";
 
 function folderOnClick() {
   const id = $(this).attr('data-folder-id');
@@ -22,7 +22,7 @@ const showFolders = (folders, indent, folderPath) => {
   const parent = folderPath[0];
   for (let f = 0; f < folders.length; f++) {
     if (folders[f].parent == parent) {
-      const folderText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'><use xlink:href='public/img/SVG2/sprite.svg#i-folder'></use></svg>" + utils.escapeHtml(folders[f].cleartext[0]);
+      const folderText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'><use href='#i-folder'></use></svg>" + utils.escapeHtml(folders[f].cleartext[0]);
       let row;
       if (passhub.activeFolder == folders[f]._id) { // active
         row = `<div class=' d-none d-md-block list-item-vault-active folder_with_menu'  data-folder-id='${folders[f]._id}' style = 'padding-left:${5 + indent}px'>`;
@@ -63,16 +63,16 @@ const showSafes = () => {
   $('#safe_list_ul').empty();
   for (let i = 0; i < passhub.safes.length; i++) {
     const safe = passhub.safes[i];
-    const safeIcon = safe.users > 1 ? 'sprite.svg?v=1#i-folder_shared' : 'sprite.svg#i-folder';
+    const safeIcon = safe.users > 1 ? '#i-folder_shared' : '#i-folder';
     let safeText = "<svg width='24' height='24' style='stroke:white; opacity:0.5; vertical-align:middle; margin-right:10px'>"
-      + `<use xlink:href='public/img/SVG2/${safeIcon}'></use></svg>${utils.escapeHtml(safe.name)}`;
+      + `<use href='${safeIcon}'></use></svg>${utils.escapeHtml(safe.name)}`;
     if (safe.confirm_req > 0) {
       safeText += " <span class='badge badge-pill badge-light' style='float:none' >!</span>";
     } else {
       safeText += " <span class='badge badge-pill badge-light' style='float:none;display:none'>!</span>";
     }
     const arrowForward = "<svg width='24' height='24' style='stroke:white; vertical-align:middle; float:right;'>"
-    + "<use xlink:href='public/img/SVG2/sprite.svg#ar-forward'></use></svg>";
+    + "<use href='#ar-forward'></use></svg>";
 
     let row;
     if (safe.id === passhub.currentSafe.id) {
