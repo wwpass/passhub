@@ -78,11 +78,11 @@ if (!navigator.userAgent.match(/electron/)) {
 }
 
 WWPass.authInit({
-//  qrcode: document.querySelector('#qrcode'),
   qrcode: '#qrcode',
   passkey: document.querySelector('#button--login'),
   ticketURL: `${urlBase}getticket.php`,
   callbackURL: `${urlBase}login.php`,
+  forcePasskeyButton: false
 });
 
 
@@ -117,10 +117,12 @@ if (mobileDevice) {
           return;
         }
         // login 2019
+        /*
         const loginBtn = document.querySelector('#button--login');
         loginBtn.classList.remove('embedded--hide');
         $('#button--login > button').hide();
         return;
+        */
       }
       setTimeout(checkPlugin, 100);
     }

@@ -13,23 +13,24 @@
  */
 
 require_once 'config/config.php';
+
+require_once 'vendor/autoload.php';
+
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+
 require_once 'Mail.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
 
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
     define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');
 }
 
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
-if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
+if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
     http_response_code(400);
     echo "Bad Request (26)";
     exit();
@@ -48,13 +49,12 @@ if (array_key_exists('UserID', $_SESSION)) {
     $message = $message . "<br>user not logged in";
 }
 
-$result = sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
+$result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
 
 if ($result['status'] !== 'Ok') {
-    passhub_err("error sending message '$message'");
-    error_page("error sending email. Please try again later");
+    Utils::err("error sending message '$message'");
+    Utils::errorPage("error sending email. Please try again later");
 }
 
 $_SESSION['form_success'] = ($result['status'] == 'Ok') ? 1 : 0; 
 header('Location: form_filled.php?contact_us');
-

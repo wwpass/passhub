@@ -13,19 +13,14 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
+require_once 'vendor/autoload.php';
 
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-//TODO csrf
-
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
-
+$mng = DB::Connection();
 
 session_start();
 
@@ -36,16 +31,8 @@ if (!isset($_SESSION['UserID'])) {
 
 function changSafeName_proxy($mng) {
 
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        $_SESSION['expired'] = true;
-        passhub_err('Caught exception: ' . $e->getMessage());
-        return "login";
-    }
-
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (46)";
     }
 
@@ -65,8 +52,8 @@ function changSafeName_proxy($mng) {
         return "Vault name cannot be empty";
     }
     $newName = mb_strimwidth($newName, 0, MAX_SAFENAME_LENGTH);
-
-    return changeSafeName($mng, $_SESSION['UserID'], $SafeID, $newName);
+    $user = new User($mng, $_SESSION['UserID']);
+    return $user->changeSafeName($SafeID, $newName);
 }
 
 $status = changSafeName_proxy($mng);

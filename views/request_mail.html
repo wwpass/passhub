@@ -10,7 +10,12 @@
                 {% if de %}
                     Konto aktivieren
                   {% else %}
-                    Account Activation
+                    {% if change %}
+                        Change Email Address
+                    {% else %}
+                        Account Activation
+                    {% endif %}
+
                   {% endif %}
             {% endif %}
         </h1>
@@ -30,22 +35,33 @@
         </p>
 
         {% endif %}
-
+        {% if change %}
+        <form  action="change_mail.php" method="post" onsubmit="submitMail()"  id="registration_form">
+        {% else %}
         <form  action="registration_action.php" method="post" onsubmit="submitMail()"  id="registration_form">
+        {% endif %}
+
             <div class="form-group">
 
                 <label class="control-label" for="email">
                     {% if de %}
                         Bitte geben Sie Ihre E-Mail-Adresse ein, um Ihr Konto zu aktivieren          
                     {% else %}
-                        Please enter your e-mail address
+                        {% if change %}
+                            Please enter new e-mail address
+                        {% else %}
+                            Please enter your e-mail address
+                        {% endif %}
                     {% endif %}
                 </label>
                 <input type="email" class="form-control" name="email" id="email" maxlength="100" autofocus required>
             </div>
             <div class="form-group">
-                <input type="hidden" id="registration_base_url" name="base_url" value="">
                 <input type="hidden" name="host" value="">
+                {% if change %} 
+                    <input type="hidden" name="change" value="change">
+                {% endif %}
+                <input type="hidden" id="registration_base_url" name="base_url" value="">
                 <button class="btn btn-primary" type="submit"  style="float:right; margin-left: 1em">
                     {% if de %}
                         Weiter 
@@ -54,12 +70,17 @@
                     {% endif %}
                 </button>
 
-
                 {% if existing_account is defined %}
                     <button class="btn btn-secondary" type="button" style="float:right"
                     onclick="location.href = 'registration_action.php?later=1';">
                             Remind me later
                     </button>
+                {% elseif change %}
+                    <button class="btn btn-secondary" type="button" style="float:right"
+                    onclick="location.href = 'index.php'">
+                            Cancel
+                    </button>
+
                 {% else %} 
                     <button class="btn btn-secondary" type="button" style="float:right"
                     onclick="location.href = 'logout.php';">

@@ -13,18 +13,15 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/item.php';
-require_once 'src/db/iam_ops.php';
 
-require_once 'src/db/SessionHandler.php';
+require_once 'vendor/autoload.php';
 
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -33,38 +30,25 @@ function edit_user_proxy($mng) {
     if (!isset($_SESSION['UserID'])) {
         return "login";
     }
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        $_SESSION['expired'] = true;
-        passhub_err('Caught exception: ' . $e->getMessage());
-        return "login";
-    }
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (44)";
     }
-    if (!isSiteAdmin($mng, $_SESSION['UserID'])) {
-        passhub_err("usr ed user 63");
-        return "usr ed user 63";
-    }
     if (!array_key_exists('id', $_POST)) {
-        passhub_err("usr ed 49");
+        Utils::err("usr ed 49");
         return "internal error ed 49";
     }
-
-    if (!ctype_xdigit($_POST['id'])) {
-        passhub_err("usr ed 51 " . $_POST['id']);
-        return "internal error ed 51";
-    }
-
     if ($_POST['id'] == $_SESSION['UserID']) {
-        passhub_err("usr ed 59");
+        Utils::err("usr ed 59");
         return "internal error ed 59";
     }
-    $id = $_POST['id'];
-
-    return edit_user($mng, $id);
+    $adm = new User($mng, $_SESSION['UserID']);
+    if (!$adm->isSiteAdmin()) {
+        Utils::err("usr ed user 63");
+        return "usr ed user 63";
+    }
+    $user = new User($mng, $_POST['id']);
+    return $user->toggleSiteAdmin();
 }
 
 $result = edit_user_proxy($mng);

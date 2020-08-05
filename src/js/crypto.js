@@ -20,6 +20,9 @@ function encodeItemGCM(cleartextItem, aesKey, options) {
     tag: btoa(cipher.mode.tag.data),
     version: 3,
   };
+  if (cleartextItem.length === 6) {
+    obj.version = 4;
+  }
   if (typeof options !== 'undefined') {
     // Object.assign "polifill"
     for (let prop1 in options) {
@@ -80,7 +83,7 @@ function decodeItem(item, aesKey) {
     const result = decipher.finish(); // check 'result' for true/false
     return decipher.output.toString('utf8').split('\0');
   }
-  if (item.version === 3) {
+  if ( (item.version === 3) || (item.version === 4)) {
     return decodeItemGCM(item, aesKey);
   }
   alert(`Error 450: cannot decode data version ${item.version}`); //  ??

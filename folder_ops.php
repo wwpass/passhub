@@ -13,18 +13,14 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/item.php';
+use PassHub\Utils;
+use PassHub\Folder;
+use PassHub\Csrf;
+use PassHub\DB;
 
-require_once 'src/db/SessionHandler.php';
-
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -32,25 +28,18 @@ function folder_ops_proxy($mng) {
     if (!isset($_SESSION['UserID'])) {
         return "login";
     }
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        passhub_err('Caught exception: ' . $e->getMessage());
-        $_SESSION['expired'] = true;
-        return "login";
-    }
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (46)";
     }
-    return folder_ops($mng, $_SESSION['UserID'],  $_POST);
+    return Folder::operation($mng, $_SESSION['UserID'],  $_POST);
 }
 
 $result = folder_ops_proxy($mng);
 if (gettype($result) == "string") {
     $result = array("status" => $result);
 }
-
 
 header('Content-type: application/json');
 header('Cache-Control: no-cache, must-revalidate');

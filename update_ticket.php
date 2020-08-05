@@ -13,16 +13,12 @@
  */
 
 require_once 'config/config.php';
-//require_once 'src/lib/wwpass.php';
 require_once 'vendor/autoload.php';
-require_once 'src/functions.php';
 
-require_once 'src/db/user.php';
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\DB;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -55,11 +51,11 @@ try {
     $dt = number_format((microtime(true) - $t0), 3);
     $sp = explode("@", $_SESSION['wwpass_ticket'])[1];
 
-    timing_log("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+    Utils::timingLog("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 
     $_SESSION['wwpass_ticket_creation_time'] = time();
 } catch (Exception $e) {
-    passhub_err("updateTicket error " . $e->getMessage());
+    Utils::err("updateTicket error " . $e->getMessage());
 }
 
 // Prevent caching.

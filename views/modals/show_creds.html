@@ -1,3 +1,22 @@
+    <style>
+      #Slider {
+          position:fixed;
+          overflow-y: hidden;
+          transition: max-height 0.3s ease-in-out;
+      }
+      #Actual {
+          background: silver;
+          color: White;
+          padding: 20px;
+      }
+      .slideup {
+          max-height: 0;  
+      }
+      .slidedown {            
+          max-height: 160px ;                    
+      }    
+  </style>
+
 <div class="modal" id="showCreds" tabindex="-1" role="dialog" aria-labelledby="showCredsLabel">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -9,39 +28,59 @@
       </div>
 
       <div class="modal-body">
+
+        <!-- <div id="Slider" class="slideup">
+          <div id="Actual">
+            Hello World Text
+          </div>
+    <span id="showCreds_info" style="margin-right:20px; "><small></small></span>
+        </div> -->
+
           <div class="modified" style='font-style: italic; text-align: right;'>
           </div>                                                                                                                                                                                            
         <div style="margin:10px;">
             <div class = "note_hidden">
                 <label class="item_field_label">Username:</label>
                 <div class="input-group" style="margin:2px 0 10px; width:100%">
+                  <!--
                     <div class="input-group-prepend">
                         <span class="input-group-text" id="id_copy_username" style="cursor:pointer;">
                           Copy
                         </span>
                     </div>
+                    -->
                     <input type="text" readonly class="form-control item_input" id="creds0ID"
-                    style="font-family: '{{ password_font }}'" >
+                    title="click to copy"
+                    style="font-family: '{{ password_font }}'; cursor:pointer" >
                 </div>
 
                 <label class="item_field_label">Password:</label>
                 <div class="input-group" style="margin:2px 0 10px;">
+                    <!--
                     <div class="input-group-prepend">
                       <span class="input-group-text" id="id_copy_password" style="cursor:pointer;">
                         Copy
                       </span>
                     </div>
-  
-
-                    <input type="password" readonly  class="form-control item_input" id="creds1ID"
-                    style="font-family:  '{{ password_font }}'">
+                  -->
+                      <input type="password" readonly  class="form-control item_input" id="creds1ID"
+                      title="click to copy"
+                      style="font-family:  '{{ password_font }}'; cursor:pointer">
 
                     <div class="input-group-append">
                       <span class="input-group-text toggle_pw_button" 
                       style="cursor:pointer;">
-                          <svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-show'></use></svg>
+                          <svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>
                       </span>
                     </div>
+                </div>
+
+                <div class="item_view item_view_otp" style="margin-top:30px">
+                  <label class="item_field_label" style="margin-right:20px">OTP:</label>
+                  <span class="item_view_value"
+                  title="click to copy" 
+                  style='font-size: 24px; font-family:Monospace;cursor:pointer' >----</span>
+                  <canvas class="item_view_otp_timer" width="30" height="30" style="margin-left:20px;margin-bottom:-10px;"></canvas>
                 </div>
 
                 <div class="item_view" style="margin-top:30px">
@@ -51,7 +90,6 @@
                   </div>
                 </div>
             </div>
-
             <div style="margin-top:20px;">
                 <label class='item_view item_field_label'>Notes:</label>
                 <!--<div class="well" style="padding:12px; font-size:16px;  white-space: pre;  overflow: auto; word-wrap:normal" id="item_view_notes" >item_pane_notes
@@ -63,7 +101,9 @@
         </div>
       </div>
       <div class="modal-footer">
+        <!--
         <span id="showCreds_info" style="margin-right:20px;"><small></small></span>
+        -->
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary item_view item_view_edit_btn">Edit</button>
       </div>

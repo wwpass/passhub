@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="card col-12 col-lg-10 col-xl-8 phub-dialog">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1>
+                Check Your Mailbox
+        </h1>
+    </div>
+    <div class="card-body">
+        <div style="max-width:40em; margin: 0 auto">
+            <p style="margin:30px 0 20px;">
+                    We've sent a verification message to 
+                    <i><b>{{ email }}</b></i>
+            </p>    
+            <p style="margin:30px 0 20px;">
+                    Click on the link in the message to complete email change.<br>
+                    If you do not receive this email, check your Spam e-mail folder 
+                    or <a href="feedback.php">contact us.</a>
+            </p>
+        </div>
+        <button class="btn btn-primary" type="button" style="float:right; margin-right:1em" 
+          onclick="window.location.href='index.php'">
+                Close
+        </button>
+    </div>
+            
+
+{% if success == false %}
+    <h3>Sorry, there was a problem sending a verification mail</h3>
+    <h4> Please try again later</h4>
+{% endif %}
+
+</div>
+{% endblock %}

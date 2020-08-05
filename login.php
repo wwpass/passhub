@@ -14,6 +14,7 @@
 
 require_once 'config/config.php';
 
+
 if (!file_exists(WWPASS_KEY_FILE)) {
     die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist</p>');
 }
@@ -27,20 +28,17 @@ if (!file_exists('vendor/autoload.php')) {
 
 require_once 'vendor/autoload.php';
 
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+use PassHub\Utils;
+use PassHub\DB;
+use PassHub\Puid;
 
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
 if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     $_SERVER['HTTP_USER_AGENT'] = "undefined";
-    passhub_err("HTTP_USER_AGENT undefined (corrected)");
+    Utils::err("HTTP_USER_AGENT undefined (corrected)");
 }
 
 $incompatible_browser = false;
@@ -52,7 +50,7 @@ if (preg_match('/.*Macintosh.*Version\/9.*Safari/', $_SERVER['HTTP_USER_AGENT'],
     $isMacintosh = "Macintosh";
     $incompatible_browser = "Safari";
     $h1_text = "Sorry, your version of Safari browser is too old and no longer supported";
-    $advise = "Please upgrade MAC OS X (or Safari) or install Chrome or Firefox borwsers";
+    $advise = "Please upgrade MAC OS X (or Safari) or install Chrome or Firefox browsers";
 }
 
 // iOS 9 and lower
@@ -86,9 +84,9 @@ if (stripos($_SERVER['HTTP_USER_AGENT'], "Trident")) {
 
 if ($incompatible_browser) {
     session_destroy();
-    passhub_err("incompatible browser " . $_SERVER['HTTP_USER_AGENT']);
+    Utils::err("incompatible browser " . $_SERVER['HTTP_USER_AGENT']);
 
-    echo theTwig()->render(
+    echo Utils::render(
         'notsupported.html',
         [
             'hide_logout' => true,
@@ -105,11 +103,11 @@ if ($incompatible_browser) {
 
 /*
 if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
-    passhub_err("session clean2");
+    Utils::err("session clean2");
     $_SESSION = [];
     $_SESSION['reg_code'] = $_GET['reg_code'];
-    passhub_err("login rc " . print_r($_SESSION, true));
-    echo theTwig()->render(
+    Utils::err("login rc " . print_r($_SESSION, true));
+    echo Utils::render(
         'login_reg.html',
         [
             'narrow' => true,
@@ -123,13 +121,13 @@ if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
 
 if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
     $_SESSION = [];
-    $status = process_reg_code1($mng, $_GET['reg_code']);
+    $status = Puid::processRegCode1($mng, $_GET['reg_code']);
 
     if ($status !== "Ok") {
-        passhub_err("reg_code: " . $status);
-        error_page($status);
+        Utils::err("reg_code: " . $status);
+        Utils::errorPage($status);
     }
-    echo theTwig()->render(
+    echo Utils::render(
         'login_reg.html',
         [
             'narrow' => true,
@@ -138,7 +136,26 @@ if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
         ]
     );
     exit();
-}    
+} 
+if (defined('MAIL_DOMAIN') && isset($_GET['changemail'])) {
+    $_SESSION = [];
+    $status = Puid::processRegCode1($mng, $_GET['changemail'], "change");
+
+    if ($status !== "Ok") {
+        Utils::err("reg_code: " . $status);
+        Utils::errorPage($status);
+    }
+    echo Utils::render(
+        'login_reg.html',
+        [
+            'narrow' => true,
+            'hide_logout' => true,
+            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE'),
+            'change' => true
+        ]
+    );
+    exit();
+} 
 
 if (isset($_SESSION['PUID'])) {
     header("Location: index.php");
@@ -151,7 +168,7 @@ if (!isset($_GET['wwp_status'])) {
 
 if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 200)) {
     $_SESSION = [];
-    passhub_err("wwp_status: " . print_r($_REQUEST, true));
+    Utils::err("wwp_status: " . print_r($_REQUEST, true));
 } else if (array_key_exists('wwp_ticket', $_REQUEST)) {
     if ((strpos($_REQUEST['wwp_ticket'], ':c:') == false) 
         && (strpos($_REQUEST['wwp_ticket'], ':pc:') == false) 
@@ -199,13 +216,13 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
                 $_SESSION['PasskeyLite'] = true;
             }
             $ip = $_SERVER['REMOTE_ADDR'];
-            passhub_log("sign-in $puid $ip");
+            Utils::log("sign-in $puid $ip");
             header("Location: index.php");
             exit();
 
         }  catch (Exception $e) {
             # $err_msg = $e->getMessage() . ". Please try again";
-            passhub_err("wwp exception: " . $e->getMessage());
+            Utils::err("wwp exception: " . $e->getMessage());
         }
     }
 }
@@ -222,6 +239,6 @@ if (defined('PUBLIC_SERVICE')) {
     exit();
 } 
 
-echo theTwig()->render(
+echo Utils::render(
     'login.html'
 );

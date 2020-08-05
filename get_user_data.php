@@ -14,16 +14,15 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/item.php';
-require_once 'src/db/safe.php';
-require_once 'src/db/SessionHandler.php';
 
+require_once 'vendor/autoload.php';
 
-$mng = newDbConnection();
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\User;
 
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -33,26 +32,19 @@ function getUserDataProxy($mng)
         return ["status" => "login"];
     }
 
-    if (isset($_POST['verifier']) && !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("get user data bad verifier " . $_POST['verifier'] . " vs " . $_SESSION['csrf']);
+    if (isset($_POST['verifier']) && !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("get user data bad verifier " . $_POST['verifier'] . " vs " . $_SESSION['csrf']);
         return "Internal error";
-    } else if (isset($_POST['csrf']) && !User::is_valid_csrf($_POST['csrf'])) {
-        passhub_err("get user data bad verifier " . $_POST['csrf'] . " vs " . $_SESSION['csrf']);
+    } else if (isset($_POST['csrf']) && !Csrf::isValid($_POST['csrf'])) {
+        Utils::err("get user data bad verifier " . $_POST['csrf'] . " vs " . $_SESSION['csrf']);
         return "Internal error";
     } else if (!isset($_POST['verifier']) && !isset($_POST['csrf']) ) {
-        passhub_err("get user data no verifier ");
+        Utils::err("get user data no verifier ");
         return "Internal error";
     }
 
-    try {
-        update_ticket();
-    } catch (Exception $e) {
-        $_SESSION['expired'] = true;
-        passhub_err('Caught exception: ' . $e->getMessage());
-        return "login";
-    }
-    $UserID = $_SESSION['UserID'];
-    return getUserData($mng, $UserID);
+    $user = new User($mng, $_SESSION['UserID']);
+    return $user->getData();
 }
 
 $result = getUserDataProxy($mng);

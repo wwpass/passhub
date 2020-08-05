@@ -36,6 +36,16 @@ function submitItemForm() {
     $('#item_form_url').val(),
     $('#item_form_notes').val().trim(),
   ];
+  const otpSecretIn = $('#item_form_otp_secret').val().trim();
+  const otpSecret = otpSecretIn.replace(/-/g, '').replace(/ /g, '');
+  if (otpSecret.length > 0) {
+    if (!/^[A-Za-z2-7=]+$/.test(otpSecret)) {
+      showAlert('Invalid characters in OTP secret, only A-Z a-z and 2-7 are allowed, spaces optional');
+      return;
+    }
+    pData.push(otpSecretIn);
+  }
+
   const options = init.note ? { note: 1 } : {};
 
   const eData = passhubCrypto.encryptItem(pData, init.safe.bstringKey, options);
@@ -81,9 +91,17 @@ function submitItemForm() {
   });
 }
 
+$('#item_form_otp_link').click(function () {
+  $('#item_form_otp_link').hide();
+  $('#item_form_otp_group').show();
+});
+
+
 function showItemForm(initObject) {
   init = { ...initObject };
 
+  $('#item_form_otp_link').show();
+  $('#item_form_otp_group').hide();
   if (init.create) {
     $('#item_form_header').text(init.note ? 'Create Note' : 'Create Item');
 
@@ -93,6 +111,7 @@ function showItemForm(initObject) {
     $('#item_form_confirm_password').val('');
     $('#item_form_url').val('');
     $('#item_form_notes').val('');
+    $('#item_form_otp_secret').val('');
     $('#item_form_title').focus();
   } else {
     for (let i = 0; i < init.safe.items.length; i++) {
@@ -106,6 +125,11 @@ function showItemForm(initObject) {
         $('#item_form_confirm_password').val(item.cleartext[2]);
         $('#item_form_url').val(item.cleartext[3]);
         $('#item_form_notes').val(item.cleartext[4]);
+        if (item.cleartext.length === 6) {
+          $('#item_form_otp_link').hide();
+          $('#item_form_otp_group').show();
+          $('#item_form_otp_secret').val(item.cleartext[5]);
+        }
       }
     }
   }
@@ -160,12 +184,26 @@ function togglePw() {
     $('#item_form_password').attr('type', 'text');
     $('#item_form_confirm_password').attr('type', 'text');
     itemFormPwShown = true;
-    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-hide'></use></svg>");
+    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
   } else {
     $('#item_form_password').attr('type', 'password');
     $('#item_form_confirm_password').attr('type', 'password');
     itemFormPwShown = false;
-    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use xlink:href='public/img/SVG2/sprite.svg#i-show'></use></svg>");
+    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
+  }
+}
+
+let itemFormOtpShown = false;
+
+function toggleOtp() {
+  if (itemFormOtpShown === false) {
+    $('#item_form_otp_secret').attr('type', 'text');
+    itemFormOtpShown = true;
+    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
+  } else {
+    $('#item_form_otp_secret').attr('type', 'password');
+    itemFormOtpShown = false;
+    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
   }
 }
 
@@ -182,7 +220,14 @@ function initItemForm() {
   $('#item_form_confirm_password').focus(() => {
     $('#item_form_alert').hide();
   });
+  $('#item_form_otp_secret').focus(() => {
+    $('#item_form_alert').hide();
+  });
+
   $('#show_password').click(togglePw);
+  $('#show_otp_secret').click(toggleOtp);
+  itemFormOtpShown = true;
+  toggleOtp();
 
   $('.item_form_submit').click(() => submitItemForm());
 

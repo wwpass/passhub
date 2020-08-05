@@ -13,13 +13,12 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/SessionHandler.php';
+require_once 'vendor/autoload.php';
 
-$mng = newDbConnection();
+use PassHub\Utils;
+use PassHub\DB;
 
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -40,6 +39,6 @@ if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
 
 }
 
-echo theTwig()->render(
+echo Utils::render(
     'help.html'
 );

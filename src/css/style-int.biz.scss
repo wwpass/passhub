@@ -28,6 +28,8 @@ $btn_vault_active_color: #2277e6;
 
 $table_pane_background: #dae6f2;
 $table_pane_nav_background: rgb(53, 63, 104);
+$table_pane_td_border_color: #b5d0f0;
+
 
 $item_color: #333333;
 $item_background: #D9EFFF;
@@ -53,8 +55,7 @@ $btn_secondary_active_border: #0070ff;
 $btn_secondary_active_color: #000;
 
 $item_pane_nav_background: #dae6f2;
-
-
+$item_pane_nav_color: #333;
 
 .container:before {
   background: #005abb;

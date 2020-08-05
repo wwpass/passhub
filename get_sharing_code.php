@@ -16,16 +16,14 @@ require_once 'config/config.php';
 if (!defined('SHARING_CODE_TTL')) {
     define('SHARING_CODE_TTL', 48*60*60);
 }
+require_once 'vendor/autoload.php';
 
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
-require_once 'src/db/safe.php';
+use PassHub\Utils;
+use PassHub\Csrf;
+use PassHub\DB;
+use PassHub\SharingCode;
 
-require_once 'src/db/SessionHandler.php';
-
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
@@ -34,16 +32,9 @@ function get_sharing_code_proxy($mng) {
     if (!isset($_SESSION['PUID']) || !isset($_SESSION['UserID']) ) {
         return "login";
     }
-    try {
-        update_ticket();
-    } catch  (Exception $e) {
-        passhub_err('Caught exception: ' . $e->getMessage());
-        $_SESSION['expired'] = true;
-        return "login";
-    }
 
-    if (!isset($_POST['verifier']) || !User::is_valid_csrf($_POST['verifier'])) {
-        passhub_err("bad csrf");
+    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+        Utils::err("bad csrf");
         return "Bad Request (46)";
     }
 
@@ -57,8 +48,7 @@ function get_sharing_code_proxy($mng) {
     if (isset($_POST["name"]) && trim(($_POST["name"]) != "") ) {
         $UserName = trim($_POST["name"]);
     }
-
-    return getSharingCode($mng, $UserID, $SafeID, $UserName);
+    return SharingCode::getSharingCode($mng, $UserID, $SafeID, $UserName);
 }
 
 

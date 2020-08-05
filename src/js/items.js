@@ -1,6 +1,8 @@
 import $ from 'jquery';
 import 'jquery-contextmenu';
 import { saveAs } from 'file-saver';
+import * as base32 from 'hi-base32';
+
 import * as utils from './utils';
 import safes from './safes';
 import passhub from './passhub';
@@ -11,6 +13,7 @@ import passhubCrypto from './crypto';
 import { showFileForm } from './new_file';
 import { showItemForm } from './item_form';
 
+import getTOTP from './totp';
 
 const prepareUrl = (url) => {
   if (url.startsWith('www')) {
@@ -99,12 +102,12 @@ const itemRow = (item, searchMode) => {
   }
   const name = utils.escapeHtml(item.cleartext[0]);
   const url = prepareUrl(utils.escapeHtml(item.cleartext[3]));
-  let icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='public/img/SVG2/sprite.svg#i-key'></use></svg>";
+  let icon = "<svg width='24' height='24' class='item_icon'><use href='#i-key'></use></svg>";
   let row = "<td colspan = '2' class='col-xl-6 col-lg-7 col-md-12' style='border-right: none; padding-left:15px'>";
   if ('file' in item) {
-    icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='public/img/SVG2/sprite.svg#i-file'></use></svg>";
+    icon = "<svg width='24' height='24' class='item_icon'><use href='#i-file'></use></svg>";
   } else if ('note' in item) {
-    icon = "<svg width='24' height='24' class='item_icon'><use xlink:href='public/img/SVG2/sprite.svg#i-note'></use></svg>";
+    icon = "<svg width='24' height='24' class='item_icon'><use href='#i-note'></use></svg>";
   } else {
     row = "<td class='col-xl-5 col-lg-6 col-md-12' style='border-right: 1px solid #b5d0f0; padding-left:15px'>";
   }
@@ -194,9 +197,9 @@ const show = (folder) => {
     const row = '<tr>'
       + `<td class='col-xs-12 d-md-none list-item-title folder-click' data-folder-id='${passhub.currentSafe.folders[i]._id}' style='padding-left:15px'>`
       + "<div style='padding-top:5px;padding-bottom:5px; cursor:pointer'>"
-      + "<svg width='24' height='24' class='item_icon'><use xlink:href='public/img/SVG2/sprite.svg#i-folder'></use></svg>"
+      + "<svg width='24' height='24' class='item_icon'><use href='#i-folder'></use></svg>"
       + utils.escapeHtml(passhub.currentSafe.folders[i].cleartext[0])
-      + "<svg width='24' height='24' style='stroke:#2277e6; opacity:0.5; float:right; vertical-align:middle; margin-right:10px'><use xlink:href='public/img/SVG2/sprite.svg#ar-forward'></use></svg>"
+      + "<svg width='24' height='24' style='stroke:#2277e6; opacity:0.5; float:right; vertical-align:middle; margin-right:10px'><use href='#ar-forward'></use></svg>"
       + '</div></td></tr>';
     $('#item_list_tbody').append(row);
   }
@@ -226,7 +229,7 @@ const show = (folder) => {
 };
 
 $('body').on('click', '.lp_show', function () {
-  if(passhub.searchMode) {
+  if (passhub.searchMode) {
     syncSearchSafe($(this).attr('data-record_nb'));
   }
   showItemModal($(this).attr('data-record_nb'), true);
@@ -250,6 +253,49 @@ $('.item_view_edit_btn').click(() => {
   });
   //  window.location.href = `edit.php?vault=${passhub.currentSafe.id}&id=${editItemId}`;
 });
+
+let intervalTimerID; 
+
+function update6(item) {
+
+  function doUpdate6() {
+
+    if ('totpKey' in item) {
+      getTOTP(item.totpKey).then((six) => {
+        if ($('.item_view_value').first().text() !== six) {
+          $('.item_view_value').text(six);
+        }
+      });
+    }
+  }
+  if (typeof intervalTimerID !== 'undefined') {
+    clearInterval(intervalTimerID);
+  }
+  intervalTimerID = window.setInterval(doUpdate6, 1000);
+}
+
+function showOTP(item) {
+  const secret = item.cleartext[5];
+  if (secret.length > 0) {
+    // const encoder = new TextEncoder('utf-8');
+    // const secretBytes1 = encoder.encode(item.secret);
+
+    const s = secret.replace(/\s/g, '').toUpperCase();
+    const secretBytes = new Uint8Array(base32.decode.asBytes(s));
+
+    window.crypto.subtle.importKey(
+      'raw',
+      secretBytes,
+      { name: 'HMAC', hash: { name: 'SHA-1' } },
+      false,
+      ['sign'],
+    ).then((key) => {
+      item.totpKey = key;
+      update6(item)
+    });
+  }
+}
+
 
 function showItemModal(id, credsOnly = false) {
   for (let i = 0; i < passhub.currentSafe.items.length; i++) {
@@ -277,6 +323,14 @@ function showItemModal(id, credsOnly = false) {
           $('.item_view').hide();
         }
       }
+      if (item.cleartext.length === 6) {
+        showOTP(item);
+        $('.item_view_otp').show();
+        $('.item_view_value').text('------');
+      } else {
+        $('.item_view_otp').hide();
+      }
+
       $('#showCreds').modal('show');
       passhub.itemViewNoteResize();
       $('#item_view_note').resize(passhub.itemViewNoteResize);
@@ -356,6 +410,14 @@ function showItem(id) {
         }
         const url = prepareUrl(utils.escapeHtml(data[3]));
         $('#item_pane_url').html(url);
+        if (item.cleartext.length === 6) {
+          showOTP(item);
+          $('.item_view_otp').show();
+          $('.item_view_value').text('------');
+        } else {
+          $('.item_view_otp').hide();
+        }
+  
       }
       $('#item_pane_notes').text(data[4]);
     }

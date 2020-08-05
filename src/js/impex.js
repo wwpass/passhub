@@ -146,6 +146,12 @@ function doBackupXML2() {
       xml += id2 + '<Value>' + 1 + '</Value>\r\n';
       xml += id1 + '</String>\r\n';
     }
+    if (item.cleartext.length == 6) {
+      xml += id1 + '<String>\r\n';
+      xml += id2 + '<Key>TOTP</Key>\r\n';
+      xml += id2 + '<Value>' + utils.escapeHtml(item.cleartext[5]) + '</Value>\r\n';
+      xml += id1 + '</String>\r\n';
+    }
     xml += indent + '</Entry>\r\n';
   }
 
@@ -280,7 +286,7 @@ function uploadImportedData(safeArray) {
     success: (result) => {
       if (result.status === 'Ok') {
         $('#restoreModal').modal('hide');
-        window.location.href = `index.php?vault=${result.SafeID}`;
+        passhub.refreshUserData();
         return;
       }
       $('#import_button').hide();

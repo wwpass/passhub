@@ -13,20 +13,18 @@
  */
 
 require_once 'config/config.php';
-require_once 'src/functions.php';
-require_once 'src/db/user.php';
+require_once 'vendor/autoload.php';
 
-require_once 'src/db/SessionHandler.php';
+use PassHub\Utils;
+use PassHub\DB;
 
-$mng = newDbConnection();
-
-setDbSessionHandler($mng);
+$mng = DB::Connection();
 
 session_start();
 
 session_destroy();
 
-passhub_err("not supported browser " . $_SERVER['HTTP_USER_AGENT']);
+Utils::err("not supported browser " . $_SERVER['HTTP_USER_AGENT']);
 
 if (isset($_GET['js']) && ($_GET['js'] == 2)) {
     $h1_text = "The site is misconfigured";
@@ -36,7 +34,7 @@ if (isset($_GET['js']) && ($_GET['js'] == 2)) {
     $advise = "Please use latest versions of Chrome or Firefox browsers";
 }
 
-echo theTwig()->render(
+echo Utils::render(
     'notsupported.html',
     [
         'hide_logout' => true,

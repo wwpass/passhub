@@ -14,8 +14,8 @@
 
 require_once 'config/config.php';
 require_once 'vendor/autoload.php';
-require_once 'src/functions.php';
 
+use PassHub\Utils;
 
 try {
     $t0 = microtime(true);
@@ -41,18 +41,18 @@ try {
         $sp = explode("@", $ticket)[1];
     }
     $dt = number_format((microtime(true) - $t0), 3);
-    timing_log("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+    Utils::timingLog("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 } catch (WWPass\Exception $e) {
     $err_msg = 'Caught WWPass exception: ' . $e->getMessage();
-    passhub_err(get_class($e));
-    passhub_err($err_msg);
+    Utils::err(get_class($e));
+    Utils::err($err_msg);
     $_SESSION['expired'] = true;
 } catch (Exception $e) {
     $err_msg = 'Caught exception: ' . $e->getMessage();
-    passhub_err(get_class($e));
-    passhub_err($err_msg);
+    Utils::err(get_class($e));
+    Utils::err($err_msg);
     // return 500
-    error_page("Internal server error idx 159");
+    Utils::errorPage("Internal server error idx 159");
 }
 
 // Prevent caching.
