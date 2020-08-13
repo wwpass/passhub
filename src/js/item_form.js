@@ -97,11 +97,47 @@ $('#item_form_otp_link').click(function () {
 });
 
 
+let itemFormPwShown = false;
+let itemFormOtpShown = false;
+
+function togglePw() {
+  if (itemFormPwShown === false) {
+    $('#item_form_password').attr('type', 'text');
+    $('#item_form_confirm_password').attr('type', 'text');
+    itemFormPwShown = true;
+    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
+  } else {
+    $('#item_form_password').attr('type', 'password');
+    $('#item_form_confirm_password').attr('type', 'password');
+    itemFormPwShown = false;
+    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
+  }
+}
+
+function toggleOtp() {
+  if (itemFormOtpShown === false) {
+    $('#item_form_otp_secret').attr('type', 'text');
+    itemFormOtpShown = true;
+    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
+  } else {
+    $('#item_form_otp_secret').attr('type', 'password');
+    itemFormOtpShown = false;
+    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
+  }
+}
+
 function showItemForm(initObject) {
   init = { ...initObject };
 
+  itemFormPwShown = true;
+  togglePw();
+
+  itemFormOtpShown = true;
+  toggleOtp();
+
   $('#item_form_otp_link').show();
   $('#item_form_otp_group').hide();
+  $('#item_form_otp_secret').val('');
   if (init.create) {
     $('#item_form_header').text(init.note ? 'Create Note' : 'Create Item');
 
@@ -111,7 +147,6 @@ function showItemForm(initObject) {
     $('#item_form_confirm_password').val('');
     $('#item_form_url').val('');
     $('#item_form_notes').val('');
-    $('#item_form_otp_secret').val('');
     $('#item_form_title').focus();
   } else {
     for (let i = 0; i < init.safe.items.length; i++) {
@@ -178,35 +213,6 @@ function showItemForm(initObject) {
   });
 }
 
-let itemFormPwShown = false;
-function togglePw() {
-  if (itemFormPwShown === false) {
-    $('#item_form_password').attr('type', 'text');
-    $('#item_form_confirm_password').attr('type', 'text');
-    itemFormPwShown = true;
-    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
-  } else {
-    $('#item_form_password').attr('type', 'password');
-    $('#item_form_confirm_password').attr('type', 'password');
-    itemFormPwShown = false;
-    $('#show_password').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
-  }
-}
-
-let itemFormOtpShown = false;
-
-function toggleOtp() {
-  if (itemFormOtpShown === false) {
-    $('#item_form_otp_secret').attr('type', 'text');
-    itemFormOtpShown = true;
-    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-hide'></use></svg>");
-  } else {
-    $('#item_form_otp_secret').attr('type', 'password');
-    itemFormOtpShown = false;
-    $('#item_form_otp_secret').html("<svg width='24' height='24' style='stroke:black;opacity:0.5'><use href='#i-show'></use></svg>");
-  }
-}
-
 function initItemForm() {
   $('#generate_password_button').click(() => {
     $('#generatePassword').modal('show');
@@ -226,8 +232,6 @@ function initItemForm() {
 
   $('#show_password').click(togglePw);
   $('#show_otp_secret').click(toggleOtp);
-  itemFormOtpShown = true;
-  toggleOtp();
 
   $('.item_form_submit').click(() => submitItemForm());
 
