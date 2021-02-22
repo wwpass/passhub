@@ -4,13 +4,76 @@
 
 <style>
   .toolbar_icon {
-  float: right;
-  margin-left: 20px;
-  cursor: pointer;
-}
+    float: right;
+    margin-left: 20px;
+    cursor: pointer;
+  }
 </style>          
 
 
+{# {{ include('bind_second.html') }} #}
+
+<div class="row" id="survey_page" style="display:none">
+  <div class="card phub-dialog col-sm-12 " style="max-width: 40em">
+    <div class="card-header" style="margin-bottom: 1em;">
+        <h1><span>PassHub.net survey</span>
+            <button type="button" class="close survey_form_close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>    
+        </h1>
+    </div>
+
+    <div class = "card-body">
+        <div class='survey_done' style = 'text-align:center; font-size:larger'>
+          Thank You!
+        </div>
+        <form class="form-horizontal"  id="survey_form" style="margin: 0 0.5em; padding: 1em 0">
+            <p>
+              Your responses to this survey will help us better understand your experience with the PassHub.net. Thank You!
+            </p>
+
+            <div class="form-group" style='flex:1; display:flex; flex-direction: column;'>
+              <label class="control-label" for="notes">What do you like best about PassHub?</label>
+                  <textarea  class="form-control" id="survey_best" style="min-height: 7em; flex:1" 
+                    maxlength="{{ MAX_NOTES_SIZE }}"></textarea>
+            </div>
+            <div class="form-group" style='flex:1; display:flex; flex-direction: column;'>
+              <label class="control-label">What can we do to improve PassHub?</label>
+                  <textarea  class="form-control" id="survey_improve" style="min-height: 7em; flex:1" 
+                  maxlength="{{ MAX_NOTES_SIZE }}"></textarea>
+            </div>  
+    
+            <div class="form-group" style='flex:1; display:flex; flex-direction: column;'>
+              <label class="control-label">What are the other password managers PassHub needs to be interoperable with (import/export)?</label>
+              <input type="text" class="form-control" id="survey_other_pm" >
+            </div>  
+
+            <p>What are the features you want to see in PassHub?</p>
+            <div style="margin-left: 2em;">
+              <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="survey_add_desktop">
+                <label class="form-check-label" for="survey_add_desktop">Desktop Application</label>
+              </div>
+              <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="survey_add_mobile">
+                <label class="form-check-label" for="survey_add_mobile">Mobile Application</label>
+              </div>
+              <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="survey_add_ff">
+                <label class="form-check-label" for="survey_add_ff">Automatic username/password substitution</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+                <button type="button" class="btn btn-primary survey_form_submit" style="float:right; margin: 5px" id="survey_save_button">Submit</button>
+                <button type="button" class="btn btn-secondary survey_form_close" style="float:right; margin: 5px" id="survey_cancel_button">Cancel</button>
+            </div>
+        </form>
+        <button type="button" class="btn btn-primary survey_done survey_form_close" style="float:right; margin: 5px" >Close</button>
+
+    </div>
+  </div>
+</div>
 
 <div class="row" id="file_form_page" style="display:none">
   <div class="card phub-dialog col-sm-12 " style="max-width: 40em">
@@ -72,7 +135,7 @@
       <div class="form-group">
           <label class="control-label" for="title">Title*</label>
           <div >
-              <input type="text" class="form-control" id="item_form_title" required>
+              <input type="text" class="form-control" id="item_form_title"  autocomplete = "off" required>
           </div>
       </div>
 
@@ -81,7 +144,7 @@
           <div>
               <input type="text" class="form-control" 
               style="font-family: '{{password_font}}'"
-              id="item_form_username" autocapitalize="none" autocorrect="off" spellcheck="false">
+              id="item_form_username" autocapitalize="none" autocorrect="off" autocomplete = "off" spellcheck="false">
           </div>
       </div>
 
@@ -125,10 +188,10 @@
             </div>
       -->
       <div class="form-group note_hidden">
-        <a href="#" style="float:right;" id="item_form_otp_link">Add TOTP secret</a>
+        <a href="#" style="float:right;" id="item_form_otp_link">Add Google Authenticator secret</a>
         <div id="item_form_otp_group">
           <div >
-            <label class="control-label" for="password">OTP Secret</label>
+            <label class="control-label" for="password">Google Authenticator Secret</label>
           </div>
 
           <div style="display:block">
@@ -154,7 +217,7 @@
       <div class="form-group note_hidden">
           <label class="control-label" for="url">URL</label>
           <div>
-              <input type="text" class="form-control" id="item_form_url" maxlength="{{ MAX_URL_LENGTH }}" autocapitalize="none" autocorrect="off" spellcheck="false">
+              <input type="text" class="form-control" id="item_form_url" maxlength="{{ MAX_URL_LENGTH }}" autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false">
           </div>
 
       </div>
@@ -183,12 +246,15 @@
 {{ include('modals/gen_password.html') }}
 
 
-<div class="row is-table-row" id="index_page_row">
+<div class="row is-table-row main-page" id="index_page_row">
 
   <div class="d-md-block col-xl-3 col-lg-4 col-md-5 col-sm-12 vaults_pane" id="vault_list" style='padding-right:0; padding-left:0'>
     <div style='display:flex; flex-direction: column; height:100%'>
-
+<!--
       <div class='vaults_scroll_control' id='safe_list_ul'></div>
+-->
+      <div class='vaults_scroll_control d-none d-md-block' id='safe_list_ul'></div>
+      <div class='vaults_scroll_control d-md-none' id='safe_list_ul_mobile'></div>
       <div id="vlist_controls" style='padding:15px;'>
           <button type="button" class = "btn btn-vault" style="width:100%" data-toggle="modal" data-target="#newSafe">New Password Safe</button>
           <div><span style="margin:20px auto 0 auto; display:table">
@@ -257,7 +323,7 @@
       </div>
     </div>
   </div>
-  <div  class="d-none col-12 d-md-none item_pane" style="padding:0; oveflow:hidden" >
+  <div  class="d-none col-12 d-md-none item_pane" style="padding:0; overflow:hidden" >
 
       <div class="col-12 d-md-none btn-group item_pane_nav" role="group">
           <div class='item_back' style='float:left;  width:20%; ; padding-left:10px;  cursor: pointer'>
@@ -269,7 +335,8 @@
               <svg width='30' height='30' style='stroke:#333; float:right; vertical-align:middle;'><use xlink:href='#el-dots'></use></svg>
           </a>
       </div>
-
+      <div class='item_pane_path' style='text-align: center; background-color: #dae6f2; color: #333; font-size: 14px'></div>
+      
       <div class="col-12 d-md-none" style="background:white; padding-top:20px;">
 
       <div class="alert alert-info alert-dismissible" role="alert"  style="display:none">
@@ -280,7 +347,6 @@
       </div>
 
       <div class="modified" style='font-style: italic; text-align: right;'>
-
       </div>
 
       <div class="file_item">
@@ -289,6 +355,9 @@
           <span class="item_field_label">Size</span><br>
           <div  style="margin:2px 0 10px;padding:12px; font-size:16px;" ><span id="item_pane_file_size">item_pane_file_size</span></div>
           <button type="button" class="btn btn-primary" id="item_pane_download_button">Download</button>
+          <button type="button" class="btn btn-secondary" id="item_pane_view_button" style='margin-left:15px'>
+            In-memory View
+          </button>
       </div>
 
       <div class="regular_item">
@@ -345,7 +414,7 @@
               </div>
 
               <span class="item_field_label">URL</span><br>
-              <div id="item_pane_url">item_pane_url</div>
+              <div class = "item_url"id="item_pane_url" style='cursor:pointer'>item_pane_url</div>
 
           </div>
           <span class="item_field_label">Notes</span><br>
@@ -365,6 +434,9 @@
 {{ include('modals/rename_vault.html') }}
 {{ include('modals/rename_file.html') }}
 {{ include('modals/safe_users.html') }}
+{{ include('image_view_page.html') }}
+
+{{ include('modals/bs_alert.html') }}
 
 {% if ANONYMOUS  %}
   {{ include ('modals/accept_sharing.html') }}
@@ -390,9 +462,31 @@
     </div>
 </div>
 
+<div class="toast toast_improve hide" role="status" aria-live="polite" aria-atomic="true"
+  data-autohide="false" data-animation="true">
+    <div class="toast-header" style="background:lemonchiffon">
+      <strong class="mr-auto toast_header_text">Help us improve PassHub.net</strong>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body" style="padding: 10px;">
+      <span id = 'take_survey' style="text-decoration: underline; font-weight: 200;margin:0 15px; cursor:pointer;">Take&nbsp;short&nbsp;survey</span>
+      <span data-dismiss="toast" style="text-decoration: underline; font-weight: 200;margin:0 15px; cursor:pointer;">Remind&nbsp;me&nbsp;later</span>
+    </div>
+</div>
+
 
 <script src="public/js/jquery.csv.min.js"></script>
 
+{% if surveyShow  %}
+<script src = "public/js/dist/survey.js"></script>
+<script>
+$('.survey_done').hide();
+
+$('.toast_improve').toast('show');
+</script>
+{% endif %}
 
 <script>
 
@@ -462,10 +556,7 @@ if(isSafariPrivateMode()) {
 <script> var index_page_show_index = "{{ show }}";</script>;
 {% endif %}
 
-
-<script src="public/js/dist/index.js?v=200805"></script>
-
-
+<script src="public/js/dist/index.js?v=210216"></script>
 
 <script>
   const canvas_array =  document.querySelectorAll('.item_view_otp_timer');

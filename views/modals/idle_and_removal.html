@@ -23,9 +23,6 @@ For your security, your connection will be closed if there is no activity within
     const timersArgs = {
         ttl: {{ WWPASS_TICKET_TTL }}, 
         idleTimeout: {{ IDLE_TIMEOUT }},
-        csrf: "{{ verifier }}",
         ticketAge: {{ ticketAge }} 
     };
 </script>        
-
-<script src="public/js/dist/timers.js"></script>

@@ -168,6 +168,8 @@ table, th, td {
 </div>
 <a id="mailhref"></a>
 
+{{include ('modals/idle_and_removal.html')}}
+
 <script>
 var page_args = {
     users: JSON.parse('{{ users | raw }}'),
@@ -180,5 +182,4 @@ var page_args = {
 </div>
 </div>
 
-{{include ('modals/idle_and_removal.html')}}
 {% endblock %}

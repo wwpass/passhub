@@ -47,7 +47,7 @@ function items_proxy($mng) {
     if (isset($_POST['check'])) {
         $user = new User($mng, $UserID);
         if ($user->canWrite($SafeID) == false) {
-            return "Sorry you do not have editor rights for this safe";
+            return "Sorry, you do not have editor rights for this safe";
         }
         if (!isset($_POST['entryID']) 
             && isset($_SESSION['plan'])  

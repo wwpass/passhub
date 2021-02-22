@@ -72,16 +72,26 @@ class Puid
         $v4 = random_int(0, 9999);
         $result = false;
         $v = sprintf("%04d-%04d-%04d-%04d", $v1, $v2, $v3, $v4);
+        $code6 = sprintf("%06d", random_int(0, 999999));
+        $code_array = [
+            'PUID' => $this->PUID, 
+            'code' => $v, 
+            'code6' => $code6, 
+            'verified' => false, 
+            'created' => Date('c'), 
+            'email' => $email];
+
         if ($purpose == "change") {
-            $result = $this->mng->change_mail_codes->insertOne(['PUID' => $this->PUID, 'code' => $v, 'verified' => false, 'created' => Date('c'), 'email' => $email]);
+            $result = $this->mng->change_mail_codes->insertOne($code_array);
+
         } else {
-            $result = $this->mng->reg_codes->insertOne(['PUID' => $this->PUID, 'code' => $v, 'verified' => false, 'created' => Date('c'), 'email' => $email]);
+            $result = $this->mng->reg_codes->insertOne($code_array);
         }
         if ($result->getInsertedCount() != 1 ) {
             Utils::err("Error user 294");
             return ["status" => "Internal Error 294"];
         }
-        return array("status" => "Ok", "code" => $v);
+        return array("status" => "Ok", "code" => $v, 'code6' => $code6);
     }
     
     public function createUser($post /* $publicKey, $encryptedPrivateKey*/) {
@@ -138,6 +148,49 @@ class Puid
         return array("UserID" => (string)$UserID, "status" => "Ok");
     }
 
+    public function processCode6($code6, $purpose = "registration") {
+        Utils::err("process_code6 " . $purpose . " " . $code6 . ' PUID ' . $this->PUID);
+        if ($purpose == "change") {
+            $collection = $this->mng->change_mail_codes;
+        } else {
+            $collection = $this->mng->reg_codes;
+        }
+        $cursor = $collection->find(['PUID' => $this->PUID, 'code6' => $code6]);
+    
+        $codes = $cursor->toArray();
+        $num_codes = count($codes);
+        if ($num_codes == 0) {
+            Utils::err("Verification code " .$code6 . " not found");
+            return "Unknown or expired verification code: " . $code6;
+        }
+        if ($num_codes == 1) {
+            if ($codes[0]->verified == false) {
+                $collection->updateOne(['PUID' => $this->PUID, 'code6' => $code6],
+                    ['$set' => ['verified' => true]]);
+
+                // PUID verified, delete all other codes
+                $collection->deleteMany(['PUID' => $this->PUID, 'verified' =>false]);
+
+                $result = $this->getUserByPuid();
+
+                if ($result['status'] != "not found") {
+                    $UserID = $result['UserID'];
+                    $user = new User($this->mng, $UserID);
+                    $user->setEmailAddress($codes[0]->email);
+                    if ($purpose == "registration") {
+                        Utils::err("user " . $UserID  . " registered mail " . $codes[0]->email);
+                    } else {
+                        Utils::err("user " . $UserID  . " changed mail to " . $codes[0]->email);
+                    }
+                }
+                return ['status' => "Ok", 'email' => $codes[0]->email];
+            }
+            return "Verification code already used";
+        }
+        Utils::err("Internal error usr 312 count " . $num_puids);
+        return "Internal error usr 312"; //multiple code records;
+    }
+
     static function processRegCode1($mng, $code, $purpose = "registration") {
 
         Utils::err("process_reg_code1 " . $purpose . " " . $code);
@@ -176,7 +229,7 @@ class Puid
                 }
                 return "Verification code already used";
             }
-            return "You must log in with the same PassKey that you used when submitting your e-mail address.";
+            return "You must log in with the same WWPass Key that you used when submitting your email address.";
         }
         Utils::err("Internal error usr 312 count " . $num_puids);
         return "Internal error usr 312"; //multiple code records;

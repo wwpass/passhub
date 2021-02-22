@@ -256,9 +256,32 @@ function doRestoreCSV(text) {
     });
     return safes;
   }
-  if (titles.length !== 6) {
+
+  if ((titles.length === 9) // firefox
+    && (titles[0] === 'url')
+    && (titles[1] === 'username')
+    && (titles[2] === 'password')
+    && (titles[3] === 'httpRealm')
+    && (titles[4] === 'formActionOrigin')
+    && (titles[5] === 'guid')
+    && (titles[6] === 'timeCreated')
+    && (titles[7] === 'timeLastUsed')
+    && (titles[8] === 'timePasswordChanged')
+    ) {
+    // firefox
+    data.forEach((e) => {
+      const url = new URL(e[0]);
+      const hostname = url.hostname;
+      const e1 = ['firefox', hostname, e[1], e[2], e[0], ''];
+      addRecord(safes, e1);
+    });
+    return safes;
+  }
+  
+    if (titles.length !== 6) {
     throw new Error('Unknown file format');
   }
+  // KeePassX
   data.forEach((e) => {
     addRecord(safes, e);
   });

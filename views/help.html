@@ -1,6 +1,31 @@
 {% extends "layout.html" %}
 
 {% block content %}
+<style>
+@media (min-width: 768px) {
+  .help_div {
+    padding-left: 90px;
+    padding-right: 90px;
+  }
+}
+
+.help_div {
+    padding-top: 30px;
+    padding-bottom: 30px;
+    background-color: #f8f8f8;
+  }
+
+  .help_img_wide {
+    max-width: 540px;
+    margin:10px;
+    width:90%;
+  }
+  .help_img_mobile {
+    width:250px; 
+    margin:20px 20px 20px 0; 
+  }
+</style>
+
 <div class="card col-12 col-lg-10 col-8 phub-dialog">
   <div class="card-header">
       <h1>How do I..
@@ -15,53 +40,51 @@
 
     <div class="card-body help">
       <h3><span class="icon icon--collapse_down"></span>Start working with PassHub for Business</h3>
-      <div class="help_div well" style="background:white">
+      <div class="help_div well">
+
         <p>
           In your browser, navigate to the login page of your company <i>Passhub for Business</i> instance. 
         </p>
         
         <h4 style='margin-top:20px'>Scan to sign-in</h4>
         <p>
-          Login to PassHub on a desktop by scanning the QR code with <b>WWPass PassKey</b> app on your smartphone.
+          Login to PassHub on a desktop by scanning the QR code with <b>WWPass Key</b> app
+          on your smartphone.
         </p>
 
         <h4 style='margin-top:20px'>Touch to sign-in</h4>
         <p>
-          When opening PassHub in your smartphone browser, just tap the QR-code to sign-in on this phone. </p>
-        <p> <b>NOTE</b>: You must have <b>WWPass PassKey</b> app.
+          When opening PassHub in your smartphone browser, just tap 
+          the "Login with WWPass" button to sign-in with the local WWPass Key app. 
+          Alternatively, you may switch to the QR-code screen to login with different mobile WWPass Key.
+
+
+        <p> <b>NOTE</b>: To use PassHub you need to install <b>WWPass Key</b> app on your smartphone.
         </p>
 
         <p>
-          If you do not have an account yet, the PassHub will send you an email with a verification link. 
+          If you do not have an account yet, the PassHub will send you an email with a verification code. 
           Only users with whitelisted email addresses are allowed to create an account.
         </p>
-
       </div>
 
-      <h3><span class="icon icon--collapse_down"></span>Get WWPass PassKey application </h3>
-      <div class="help_div well" style="background:white">
+      <h3><span class="icon icon--collapse_down"></span>Get WWPass Key app</h3>
+      <div class="help_div well">
         <ul>
-          <li>Get "WWPass PassKey" application on AppStore or Google Play
+          <li>Get "WWPass Key" application on AppStore or Google Play
           </li>
           <li>
-            Launch the app and follow instructions to personalize your PassKey app.<br><span style="color:red">Please
-              write down and remember your WWPass PIN: it cannot be reset</span>
+            Launch the app and follow instructions to personalize your WWPass Key app.<br>
+            <span style="color:red">
+              Please write down and remember your WWPass PIN: it cannot be reset</span>
           </li>
           <li>
-            We recommend you to execute Passkey backup procedure. It is bound to your email address.
+            We recommend you to follow the  Key backup procedure. It is bound to your email address.
             Please follow the steps to be able to transfer the application to another device 
             if your phone is lost or stolen, or if you upgrade to a new one.
           </li>
 
         </ul>
-        See detailed documentation at <a href="https://qrportal.wwpass.com/documentation.html">https://qrportal.wwpass.com/documentation.html</a>.
-      </div>
-
-      <h3><span class="icon icon--collapse_down"></span>Access PassHub records right on my phone</h3>
-      <div class="help_div well">
-        <p>
-          Yes, it is possible. Instead of scanning the QR code just tap the QR code with your finger (Unique feature!)
-        </p>
       </div>
 
       <h3><span class="icon icon--collapse_down"></span>Create a new password safe </h3>
@@ -72,8 +95,10 @@
         <p>
           Click <b>New Password Safe</b> and enter any safe name you like
         </p>
-        <img src="doc/images/NewSafeButtonBusiness.png" alt="New Safe button" style="margin:10px; width:250px;">
-        <img src="doc/images/NewSafe.png" alt="Create Safe Dialog" style="margin:10px; width:250px;;">
+        <img class="help_img_mobile" src= "public/img/help/mobileSafesCp.jpg" 
+          loading="lazy"/>
+        <img class="help_img_mobile" src= "public/img/help/mobileNewSafeC.jpg" 
+          loading="lazy"/>
       </div>
 
       <h3><span class="icon icon--collapse_down"></span>Create a new login entry, note, file or folder</h3>
@@ -81,13 +106,17 @@
         <p>
           To add a new record, click the <b>Add</b> button.
         </p>
-        <img src="doc/images/AddButton.png" alt="NewEntryButtonDesktop" style="margin:10px; max-width:90%;">
+        <img class='help_img_wide' src= "public/img/help/AddMenuC.png" 
+        loading="lazy"/>
         <p>
-          When you're on a mobile device, tap the password safe name to get to the list of safe items.
+          When you're on a mobile device, tap the safe name to get 
+          to the safe content and click the <b>Add</b> button.
+          Select "Login entry" in the drop-down menu.
         </p>
-        <img src="doc/images/MobileOpenSafe.png" alt="Mobile Open Vault" style="margin:10px; width:250px;">
-        <img src="doc/images/AddButtonMobile.png" alt="Item List View" style="margin:10px; width:250px;">
-
+        <img class="help_img_mobile" src= "public/img/help/mobileSafesC2p.jpg" 
+          loading="lazy"/>
+        <img src= "public/img/help/mobileAddMenuC.jpg" 
+          loading="lazy"/>
         <h4 style='margin-top:20px'>New login entry</h4>
         <p>
           Fill the form shown below, where
@@ -95,7 +124,7 @@
         <ul>
           <li>Title - identifies the account entry. It is the only required field in the form.
           </li>
-          <li>Username/password - the credentials of the account. Use provided random password generator to get a strong
+          <li>Username/password - the credentials of the account. Use the provided random password generator to get a strong
             password. Just click <b>Generate</b>.
           </li>
           <li>URL - network name or IP address of the resource. URLs which start with "http://" "https://" or "www."
@@ -104,27 +133,58 @@
           <li>Notes - specific notes, instructions, or other messages are safely encrypted and stored with each entry.
           </li>
         </ul>
-        <img src="doc/images/NewEntryDialog.png" alt="New Entry Dialog" style="margin:10px; width:90%;">
+        <img  class='help_img_wide' src= "public/img/help/AddEntryCp.png" 
+        loading="lazy"/>
+        <h4 style='margin-top:20px'>
+          Google Authenticator (TOTP, Time-based One-Time Password)
+        </h4>
+
+        <p>
+          You can add a second factor authenticator (rfc6238) to the login entry. 
+          The PassHub will generate a six-digit value automatically for you.
+          The one-time code generation is based on the shared secret (base32 string),
+          which usually can be found close to the QR code on the service provider site, e.g. 
+        </p>
+          
+        <img  class='help_img_wide' src= "public/img/help/totpSecret.png" 
+          loading="lazy"/>
+
+        <p>
+          In the Login  Entry form click <b>Add Google Authenticator secret</b> 
+          to open TOTP input field. Enter the shared secret code.
+        </p>
+        <img  class='help_img_wide' src= "public/img/help/totpSecretFieldCp.png" 
+          loading="lazy"/>
+
+        <p>
+          Now the TOTP-code will be shown in the Login view along 
+          with time remaining till the code change:
+        </p>
+
+        <img  class='help_img_wide' src= "public/img/help/loginViewCp.png" 
+        loading="lazy"/>
 
         <h4 style='margin-top:20px'>New note</h4>
-        Note is a special type of record to store arbitrary not structured texts. 
-        The Note dialog consists only of Title and Notes fields. 
-        <img src="doc/images/NewNoteDialog.png" alt="New Note Dialog" style="margin:10px; width:90%;">
-
+        <p>
+          Note is a special type of record to store arbitrary not structured texts. 
+          The Note dialog contains only the Title and the Notes fields.
+        </p>
+        <img  class='help_img_wide' src= "public/img/help/addNoteC.png" 
+          loading="lazy"/>
         <h4 style='margin-top:20px'>New file</h4>
         <p>
         You can store files in PassHub too. 
         These may be sensitive documents you share with clients or partners,
         SSL certificates used widely in IT infrastructure and so on. 
-        File names and content are encrypted the same way as all other data.
+        File names and content are encrypted the same way as all other data in PassHub.
         </p>
         <p>
-        First click <b>Browse</b> button to select a file, next use <b>Upload</b> button. 
+          Click the <b>Browse</b> button to select a file, or, on a desktop, 
+          just drag the file into the filename filed.
+          Now click the <b>Upload</b> button.
         </p>
-
-
-        <img src="doc/images/NewFileDialog.png" alt="New File Dialog" style="margin:10px; width:90%;">
-
+        <img  class='help_img_wide' src="public/img/help/addFileC.png" 
+        loading="lazy"/>
       </div>
 
       <h3><span class="icon icon--collapse_down"></span>Copy/move entries to another safe or folder</h3>
@@ -132,15 +192,40 @@
         <p>
           Open a menu of the desired Entry and select <b>Cut</b> or <b>Copy</b> command
         </p>
-        <img src="doc/images/EntryMenu.png" alt="Entry Menu" style="margin:10px; max-width:90%;">
-        <img src="doc/images/EntryMenuMobile.png" alt="Entry Menu Mobile" style="margin:10px; width:250px;">
+        <img  class='help_img_wide'src= "public/img/help/cutMenuC.png" 
+        loading="lazy"/>
+
+       <img class="help_img_mobile" src= "public/img/help/mobileCutMenuC.jpg" 
+        loading="lazy"/>
         <p>
-          Now open a menu of a destination safe or folder, note the <b>Paste</b> command become active. Select <b>Paste</b>
-          and the entry will be copied or moved to a new location. </p>
-        <p>Please note, <b>Paste</b> command is only active for 30 seconds after you clicked <b>Copy</b> or <b>Cut</b>.
+          Now open a menu of the destination safe or folder, note the <b>Paste</b> command becomes active.
+          Select <b>Paste</b> and the entry will be copied or moved to a new location.
         </p>
-        <img src="doc/images/FolderMenuBusiness.png" alt="Folder Menu" style="margin:10px; max-width:90%;">
-        <img src="doc/images/FolderMenuMobile.png" alt="Folder Menu" style="margin:10px; width:250px;">
+        <p>
+          Please note, <b>Paste</b> command is only active for 30 seconds after you click
+           <b>Copy</b> or <b>Cut</b>.
+        </p>
+        <img class='help_img_wide' src= "public/img/help/pasteMenuC.png" 
+        loading="lazy"/>
+        <img class="help_img_mobile" src= "public/img/help/mobilePasteMenuC.jpg" 
+          loading="lazy"/>
+      </div>
+
+      <h3><span class="icon icon--collapse_down"></span>View in-memory files</h3>
+      <div class="help_div well">
+        <p class="text text--sm">
+          Passhub allows you to view sensitive files, while not downloading them to the local disk.
+          PDF files can be  displayed on desktop platforms except for Safari browser
+          on Macintosh computers.     
+          Image files of types PNG, JPEG, BMP, and GIF can be viewed on any platform and browser. 
+          Select <b>In-memory View</b> menu item on the desktop or the corresponding button
+          on a smartphone. 
+        </p>
+        <img  class='help_img_wide'src= "public/img/help/desktopViewC.jpg" 
+        loading="lazy"/>
+
+        <img class="help_img_mobile" src= "public/img/help/mobileViewJpegC.jpg" 
+          loading="lazy"/>
       </div>
 
       <h3><span class="icon icon--collapse_down"></span>Share my password safe with others</h3>
@@ -148,71 +233,97 @@
         <p>
         You can share your records by granting other users access to the selected password safe.
         </p>
-        <p>
-            NOTE: the recipient user should already be registered in the PassHub. 
-          </p>
-          <p>
-          In the safe menu, choose 'Share' item and provide the recipient's email address.
-          You can edit a safe name, as it will be seen by the recipient. 
-          The safe name in your account will stay intact.  
-        </p>
-        <p>
-          You can also select a <i>role</i> (read-only, editor, or administrator) for the recipient user. 
-        </p>
-        <ul>
-          <li><b>Read-only</b> - the user can see all the safe entries, but cannot add, modify or delete entries.</li>
-          <li><b>Editor</b> - in addition to viewing the information, 
-            the user can add, modify or delete safe entries.</li>
-          <li><b>Safe Administrator</b> - in addition to <b>editor</b> rights, the user can share the safe,
-             change other user rights or revoke user access.</li>
-      </ul>
-  
-        <div>
-        <img src="doc/images/BusinessShare.png" alt="Share safe business" style="margin:10px; max-width:90%;">
-        </div>
-        </div>  
 
+        <p>
+          When you share a safe, the recipient account is identified by the email address. 
+          Hence it is only possible to share safes with users who already have PassHub.net account 
+          and provided their email. 
+        </p>
+        <p>
+          You may grant one of the three levels of access rights to a recipient:
+          <ul>
+            <li>read-only: the user may only read the safe data</li>
+            <li>editor: the recipient can create, modify or delete safe records</li>
+            <li>owner: full access to the safe, the user may share the safe, revoke access, 
+              change user roles and even delete the safe</li>
+          </ul>
+        </p>
+
+        <h4 style='margin-top:20px'>To share a Safe</h4>
+
+        <p>
+          Click on the safe name and select the "Share" item in the drop-down menu
+        </p>                  
+        <img class='help_img_wide' src= "public/img/help/shareSafeMenu.png" 
+          loading="lazy"/>
+
+        <p>
+          Insert recipient mail and choose access rights. You may also set the safe name as the recipient sees it. 
+          Note that the safe name may be different for each user: if Alice shares the safe with Bob, 
+          it would be natural to have the safe named 'Bob' or alike. At the same time, Bob may want 
+          to call the safe "Alice."  
+        </p>   
+        <img class='help_img_wide' src= "public/img/help/shareDialogCp.png"
+          loading="lazy"/>
+
+        <p>
+          Note the icon changes for the shared safe.
+          Basically, that is it. Next time the recipient updates the PassHub data, the shared safe will be shown.
+        </p> 
+      </div>                 
 
       <h3><span class="icon icon--collapse_down"></span>Backup and restore my records</h3>
       <div class="help_div well">
-
-        Export your records in XML or CSV file and import them later.
+        <p>
+          Export your records in XML or CSV file and import them later.
+        </p>
 
         <h4>Export/Backup</h4>
-        <p>
-          Select <b>Export</b> link under your password safe list. In the provided dialog choose one of two file
-          formats - CSV or XML. For backup/restore purposes they are equally good. However, if you want to have exported
-          data in human-readable form or to put them into an Excel table, use CSV.
+
+        <p class="text text--sm">
+          Click the <b>Export</b> link under your password safe list. 
+          In the provided dialog, choose one of the two file formats - CSV or XML. 
+          For backup/restore purposes, they are equally good. 
+          However, if you want to have exported data in human-readable form or put them into 
+          an Excel table, use CSV.
         </p>
-        <img src="doc/images/ExportBusiness.png" alt="Export Link" style="margin:10px; width:250px;">
-        <img src="doc/images/ExportDialog.png" alt="Export Dialog" style="margin:10px; width:350px;">
+        <div>
+          <img class="help_img_mobile" src= "public/img/help/mobileSafesC2export.jpg" 
+            loading="lazy"/>
+          <img class="help_img_mobile" src= "public/img/help/mobileExportDialogC.jpg" 
+            loading="lazy"/>
+        </div>
+        <h4 style='margin-top:20px'>Compatibility with KeePass</h4>
 
-        <h4>Compatibility with KeePass</h4>
-
-        There are at least three flavors of KeePass password manager:
+        There are many KeePass flavors, particularly:
 
         <ul>
-          <li> KeePass 2 for Windows
-          <li> Keepass2Android - obviously for Android devices
-          <li> KeepassXC - cross-platform application for MAC, Linux, and Windows
+          <li> KeePass 2 for Windows</li>
+          <li> Keepass2Android - obviously for Android devices</li>
+          <li> KeepassXC - cross-platform application for MAC, Linux, and Windows</li>
         </ul>
         <p>
-          Windows and Android versions support an XML format as a primary choice. CSV implementation contains errors and
-          is not recommended.
-          Cross-platform KeePassXC supports CSV only, but this implementation is correct.
+          Windows and Android versions support an XML format as a primary choice.
+          CSV implementation contains errors and is not recommended.
+          Cross-platform KeePassXC supports CSV only, and this implementation is correct.
         </p>
-        SUMMARY: use CSV for KeePassXC and XML for KeePass2/Windows and KeePass2andoird
+        <p>
+          SUMMARY: use CSV for KeePassXC and XML for KeePass2/Windows and KeePass2andoird
+        </p>
 
         <h4>Import/Restore</h4>
-        You can only import PAssHub or KeePass-compatible files. They have CSV and XML format.
         <ol>
           <li>Select <b>Import</b> link under the password safe list</li>
           <li>Select mode: Import (puts file data into a newly created single safe) or Restore (merges file data with
             existing safes)</li>
           <li>Select the file you wish to upload</li>
         </ol>
-        <img src="doc/images/ImportBusiness.png" alt="Import Link" style="margin:10px; width:250px;">
-        <img src="doc/images/ImportDialog.png" alt="Import Dialog" style="margin:10px; width:350px;">
+        <div>
+          <img class="help_img_mobile" src= "public/img/help/mobileSafesC2import.jpg" 
+            loading="lazy"/>
+          <img class="help_img_mobile" src= "public/img/help/mobileImportDialogC.jpg" 
+            loading="lazy"/>
+        </div>
         NOTE: <b>Restore</b> mode preserves all the data you have in PassHub, it can only add new records or additional
         versions of existing records. It never deletes or modifies existing data.
       </div>
@@ -231,9 +342,9 @@
         <p>
             To toggle PassHub Administrator rights, click a green checkbox icon.
           </p>
-            <img src="doc/images/IAM.png" alt="IAM" style="margin:10px; width:90%;">
+            <img src="public/img/help/IAM.png" alt="IAM" style="margin:10px; width:90%;">
 
-        <h4 style='margin-top:20px'>email address white list</h4>
+        <h4 style='margin-top:20px'>Email address white list</h4>
         <p>
           For a user to be able to create an account in PassHub for Business, the user email should be whitelisted.
           This white list includes all addresses in predefined mail domains (e.g., your company domain)
@@ -241,7 +352,7 @@
           Passhub Administrator may add or delete individual addresses in the white list
           thus granting or revoking access to PassHub service.      
         </p>
-        <img src="doc/images/WhiteList.png" alt="Passhub for Business email white list" style="margin:10px; width:90%;">
+        <img src="public/img/help/WhiteList.png" alt="Passhub for Business email white list" style="margin:10px; width:90%;">
       </div>
 
       <div style="padding-top:10px;">

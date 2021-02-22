@@ -1,4 +1,6 @@
 import $ from 'jquery';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhub from './passhub';
 
 $('#deleteSafeBtn').click(() => {
@@ -7,11 +9,11 @@ $('#deleteSafeBtn').click(() => {
     type: 'POST',
     data: {
       operation: $('#not_empty_safe_warning').is(':visible') ? 'delete_not_empty' : 'delete',
-      verifier: passhub.csrf,
-      SafeID: passhub.currentSafe.id,
+      verifier: state.csrf,
+      SafeID: state.currentSafe.id,
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#delete_safe_alert'), hdr, status, err);
+      modalAjaxError($('#delete_safe_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -53,7 +55,7 @@ $('#deleteSafeBtn').click(() => {
 
 $('#deleteSafeModal').on('show.bs.modal', () => {
   $('#delete_safe_alert').text('').hide();
-  $('.safe_to_delete').text(passhub.currentSafe.name);
+  $('.safe_to_delete').text(state.currentSafe.name);
   $('#not_empty_safe_stats').hide();
   $('#not_empty_safe_warning').hide();
   $('#delete_safe_warning').show();
@@ -76,8 +78,8 @@ $('#unsubscribeSafeBtn').click(function () {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'unsubscribe',
     },
     success: (result) => {
@@ -85,7 +87,7 @@ $('#unsubscribeSafeBtn').click(function () {
       passhub.refreshUserData();
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 });

@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import openmailclient from './openmailclient';
 import './account';
+import './timers';
 
 page_args.verifier = document.getElementById('csrf').getAttribute('data-csrf');
 

@@ -19,7 +19,7 @@ body {
 .top_icon {
   stroke:white;
   vertical-align:middle;
-  margin-right:10px
+  margin:0 15px
 }
 
 .is-table-row {
@@ -251,7 +251,7 @@ h1 {
   background-color: $item_pane_nav_background;
   color:$item_pane_nav_color;
   font-size:18px;
-  padding:15px 0 10px 0;
+  padding:15px 0 0 0;
 }
 
 /* multiple occasions, pw hide/show */
@@ -370,4 +370,14 @@ article h3 {
 .toast:not(:last-child) {
   margin-right: 1rem;
   margin-bottom: 1rem;
+}
+
+#search_string {
+  background-color: $search_string_background;
+  padding: 0 .75rem;
+  height: 30px;
+}
+
+#search_string_xs {
+  background-color: $search_string_background;
 }

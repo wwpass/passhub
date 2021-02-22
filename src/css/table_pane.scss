@@ -36,6 +36,8 @@
 
 .records_table > thead > tr > th {
   border-bottom: 2px solid $table_pane_td_border_color;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
 thead {

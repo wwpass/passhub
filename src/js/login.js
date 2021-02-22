@@ -77,19 +77,55 @@ if (!navigator.userAgent.match(/electron/)) {
   }
 }
 
-WWPass.authInit({
-  qrcode: '#qrcode',
-  passkey: document.querySelector('#button--login'),
-  ticketURL: `${urlBase}getticket.php`,
-  callbackURL: `${urlBase}login.php`,
-  forcePasskeyButton: false
-});
+function uiCallback(ev) {
+  if(!ev) {
+    return;
+  }
+  const event = JSON.stringify(ev);
+  const heading_public = document.querySelector('.heading--margin-top-big');
 
+  if (heading_public) { // passhub.net
+    if ('button' in ev) {
+      $('#qrtext').hide();
+      $('.qrblock__code').addClass('qrblock__codeExt');
+      $('.qrblock').addClass('qrblockExt');
+      $('.heading--white-mobile').addClass('heading--white-mobileExt');
+      $('.page-content__background').removeClass('page-content__background--qrcode');
+      document.querySelector('.heading--margin-top-big').style.marginTop = '0';
+    } else if ('qrcode' in ev) {
+      $('#qrtext').show();
+      $('.qrblock__code').removeClass('qrblock__codeExt');
+      $('.qrblock').removeClass('qrblockExt');
+      $('.page-content__background').addClass('page-content__background--qrcode');
+      $('.heading--white-mobile').removeClass('heading--white-mobileExt');
+      document.querySelector('.heading--margin-top-big').style.marginTop = '50px';
+    }
+  } else { // self-hosted
+    if ('button' in ev) {
+
+      $('#qrtext').hide();
+      $(".landingContent__codeHeading").hide();
+      $('.landingContent__code-qr').addClass('qrblockExt');
+      $('.landingContent__code-container').addClass('landingContent__code-containerExt');
+
+      $('.landingContent__text').hide();
+
+    } else if ('qrcode' in ev) {
+      $('#qrtext').show();
+      $(".landingContent__codeHeading").show();
+      $('.landingContent__code-container').removeClass('landingContent__code-containerExt');
+      $('.landingContent__code-qr').removeClass('qrblockExt');
+
+      $('.landingContent__text').show();
+
+    }
+  }
+}
 
 if (mobileDevice) {
   // $('#qrcode').addClass('qrtap');
   // $('.qr_code_instruction').html('Touch the QR code or scan it with <b>WWPass&nbsp;PassKey&nbsp;app</b>');
-  document.querySelector('#qrcode').classList.add('qrtap');
+  // document.querySelector('#qrcode').classList.add('qrtap');
 
   if (document.querySelector('.qr_code_instruction')) { // pre-2019
     document.querySelector('.qr_code_instruction').innerHTML = 'Tap the QR code or scan it with <b>WWPass&nbsp;Key&nbsp;app</b> to open your PAssHub vault';
@@ -138,11 +174,21 @@ document.addEventListener('DOMContentLoaded', () => {
   if (qrtext) {
     if (mobileDevice) {
       // qrtext.innerText = 'Tap the QR code or ';
-      qrtext.innerHTML = 'Download <b>WWPass&nbsp;Key&nbsp;App</b> and tap the QR code';
+      qrtext.innerHTML = 'Download <b>WWPass&nbsp;Key&nbsp;App</b> and scan&nbsp;or&nbsp;tap the QR&nbsp;code';
     } else {
       qrtext.innerText = 'Scan the QR code with WWPass™ Key App';
       // qrtext.classList.add('text--qrcode');
     }
     qrtext.style.display = 'block';
   }
+
+  WWPass.authInit({
+    qrcode: '#qrcode',
+    passkey: document.querySelector('#button--login'),
+    ticketURL: `${urlBase}getticket.php`,
+    callbackURL: `${urlBase}login.php`,
+    uiCallback,
+    forcePasskeyButton: false
+  });
+    
 });

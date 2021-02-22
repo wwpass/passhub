@@ -45,7 +45,7 @@ function create_file_item_proxy($mng) {
     if (isset($_POST['check'])) {
         $user = new User($mng, $UserID);
         if ($user->canWrite($SafeID) == false) {
-            return "Sorry you do not have editor rights for this safe";
+            return "Sorry, you do not have editor rights for this safe";
         }
         $result = [];
         if (defined('MAX_STORAGE_PER_USER')) {

@@ -7,7 +7,6 @@ module.exports = {
     iam: './src/js/iam.js',
     upsert_user: './src/js/upsert_user.js',
     login: './src/js/login.js',
-    timers: './src/js/timers.js',
   },
 
   output: {

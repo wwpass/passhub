@@ -5,6 +5,13 @@ import * as WWPass from 'wwpass-frontend';
 
 import { serverLog } from './utils';
 
+function createSafe(publicKeyTxt, name, items, folders) {
+  const aesKey = forge.random.getBytesSync(32);
+  const publicKey = forge.pki.publicKeyFromPem(publicKeyTxt);
+  const encryptedAesKey = publicKey.encrypt(aesKey, 'RSA-OAEP');
+  const hexEncryptedAesKey = forge.util.bytesToHex(encryptedAesKey);
+  return { name, aes_key: hexEncryptedAesKey };
+};
 
 function encodeItemGCM(cleartextItem, aesKey, options) {
   const cleartextData = cleartextItem.join('\0');
@@ -235,8 +242,30 @@ const decryptFile = (fileObj, aesKey) => {
   return { filename, buf };
 };
 
+function moveFile(item, srcSafe, dstSafe) {
+
+  const keyDecipher = forge.cipher.createDecipher('AES-ECB', srcSafe.bstringKey);
+  keyDecipher.start({ iv: atob(item.file.iv) }); // any iv goes: AES-ECB
+  keyDecipher.update(forge.util.createBuffer(atob(item.file.key)));
+  keyDecipher.finish();
+  const fileAesKey = keyDecipher.output.data;
+
+  const keyCipher = forge.cipher.createCipher('AES-ECB', dstSafe.bstringKey);
+  const keyIV = forge.random.getBytesSync(16);
+  keyCipher.start({ iv: keyIV });
+  keyCipher.update(forge.util.createBuffer(fileAesKey));
+  keyCipher.finish();
+
+  const pItem = decodeItemGCM(item, srcSafe.bstringKey);
+  const eItem = JSON.parse(encodeItemGCM(pItem, dstSafe.bstringKey));
+  
+  eItem.file = Object.assign({}, {...item.file});
+  eItem.file.key = btoa(keyCipher.output.data);
+  return eItem;
+}
 
 export default {
+  createSafe,
   getPrivateKey,
   decryptAesKey,
   decodeItem,
@@ -245,4 +274,5 @@ export default {
   encryptFolderName,
   encryptItem,
   encryptPrivateKey,
+  moveFile
 };

@@ -28,6 +28,7 @@ $mng = DB::Connection();
 
 session_start();
 
+
 /*
 if(!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
     http_response_code(400);
@@ -36,7 +37,11 @@ if(!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
 }
 */
 
-if (!defined('MAIL_DOMAIN')) {
+if( defined('LDAP')  
+    && isset(LDAP['mail_registration']) 
+    && (LDAP['mail_registration'] === true)) {
+        // do nothing
+}  else if (!defined('MAIL_DOMAIN')) {
     Utils::err("mail domain not defined");
     Utils::errorPage("Internal error");
 }
@@ -47,6 +52,39 @@ if (isset($_SESSION['UserID']) && isset($_GET['later'])) {
     header('Location: index.php');
     exit();
 } 
+
+if (isset($_POST['code6']) && isset($_POST['purpose'])) {
+    Utils::err('Session[PUID] ' . $_SESSION['PUID']);
+    $puid = new Puid($mng, $_SESSION['PUID']);
+    $result = $puid->processCode6($_POST['code6'], $_POST['purpose']);
+    Utils::err(print_r($result, true));
+
+    if (!is_array($result)) {
+        $result = array("status" => $result);
+    }
+
+    if(defined('LDAP') && ($result['status'] == 'Ok')) {
+
+        if (isset($_SESSION['UserID'])) {
+            $user = new User($mng, $_SESSION['UserID']);
+            $user->ldapBindExistingUser($result['email'], $result['userprincipalname']);
+            header("Location: index.php");
+            exit();
+        }
+        $_SESSION['email'] = $result['email'];
+        // $parts = explode("@", $result['email']);
+        // $_SESSION['userprincipalname'] = $parts[0];
+        $_SESSION['userprincipalname'] = $result['email'];
+        $result=['status' => 'Ok'];
+    }
+
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
+    header('Content-type: application/json');
+    
+    echo json_encode($result);
+    exit();
+}
 
 $email = $_POST['email'];
 $url = strtolower($_POST['base_url']);
@@ -70,20 +108,19 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         if (isset($_POST['host'])) {
             $hostname = str_replace("passhub", "PassHub", $_POST['host']);
         }
-        $cta = "<p>Please click the link below to activate your account:</p>";
-        $body = "<p>Dear " . $hostname . " Customer,</p>" . $cta
-        . "<a href=" . $url . "login.php?reg_code=" . $result['code'] . ">"
-        . $url . "login.php?reg_code=" . $result['code'] . "</a>"
+        $cta = "<p> Your 6-digit activation code is</p><p><b>". $result['code6'] . "</b></p>";
 
+        $body = $cta 
         . "<p>Best regards, <br>PassHub Team.</p>"; 
 
         $result = Utils::sendMail($email, $subject, $body);
 
         Utils::err('verification mail sent to ' . $email);
-
+/*
         if (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE || !isset($_SESSION['UserID'])) {
             $_SESSION = [];
         }
+*/        
         $sent = true;
         if ($result['status'] !== 'Ok') {
             Utils::err("error sending email");

@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import state from './state';
 import passhub from './passhub';
 
 if (window.navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
@@ -49,10 +50,10 @@ let generateSharingCodeBtnUpdatePage = false;
 
 function shareSafeBtnClickName() {
   const ajaxData = {
-    verifier: passhub.csrf,
-    vault: passhub.currentSafe.id,
+    verifier: state.csrf,
+    vault: state.currentSafe.id,
   };
-  if (!passhub.currentSafe.user_name) {
+  if (!state.currentSafe.user_name) {
     const username = $('#sharingName').val().trim();
     if (!username) {
       $('#gen_share_with_name_alert').html('* Please fill in your name').show();
@@ -65,7 +66,7 @@ function shareSafeBtnClickName() {
     type: 'POST',
     data: ajaxData,
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#gen_share_with_name_alert'), hdr, status, err);
+      modalAjaxError($('#gen_share_with_name_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status !== 'Ok') {
@@ -115,7 +116,7 @@ function shareSafeBtnClickName() {
 $('#generate_sharing_code_btn').click(shareSafeBtnClickName);
 
 $('#safeShareModal').on('show.bs.modal', () => {
-  $('#safeShareLabel').find('span').text(passhub.currentSafe.name);
+  $('#safeShareLabel').find('span').text(state.currentSafe.name);
   $('#sharingName').val('');
   $('#SharingCodeLabel').hide();
   $('#SharingCodeValue').val('').hide();
@@ -129,7 +130,7 @@ $('#safeShareModal').on('show.bs.modal', () => {
 
   generateSharingCodeBtnUpdatePage = false;
 
-  if (passhub.currentSafe.user_name) {
+  if (state.currentSafe.user_name) {
     $('#sharingNameLabel').hide();
     $('#sharingName').hide();
     $('#generate_sharing_code_btn').trigger('click');
@@ -147,6 +148,6 @@ $('#safeShareModal').on('shown.bs.modal', () => {
 
 $('#safeShareModal').on('hidden.bs.modal', () => {
   if (generateSharingCodeBtnUpdatePage) {
-    window.location.href = `index.php?vault=${passhub.currentSafe.id}`;
+    window.location.href = `index.php?vault=${state.currentSafe.id}`;
   }
 });

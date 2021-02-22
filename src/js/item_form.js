@@ -1,4 +1,6 @@
 import $ from 'jquery';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhubCrypto from './crypto';
 import passhub from './passhub';
 
@@ -66,7 +68,7 @@ function submitItemForm() {
     success: (result) => {
       if (result.status === 'Ok') {
         $('#item_form_page').hide();
-        $('#index_page_row').show();
+        $('.main-page').show();
         passhub.indexPageResize();
         passhub.refreshUserData();
         return;
@@ -80,13 +82,13 @@ function submitItemForm() {
         return;
       }
       if (result.status === 'no rights') {
-        showAlert('Sorry you do not have editor rights for this safe');
+        showAlert('Sorry, you do not have editor rights for this safe');
         return;
       }
       showAlert(result.status);
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 }
@@ -139,7 +141,7 @@ function showItemForm(initObject) {
   $('#item_form_otp_group').hide();
   $('#item_form_otp_secret').val('');
   if (init.create) {
-    $('#item_form_header').text(init.note ? 'Create Note' : 'Create Item');
+    $('#item_form_header').text(init.note ? 'Add Note' : 'Add Entry');
 
     $('#item_form_title').val('');
     $('#item_form_username').val('');
@@ -151,9 +153,9 @@ function showItemForm(initObject) {
   } else {
     for (let i = 0; i < init.safe.items.length; i++) {
       if (init.safe.items[i]._id === init.itemID) {
-        const item = passhub.currentSafe.items[i];
+        const item = state.currentSafe.items[i];
         init.note = item.note;
-        $('#item_form_header').text(item.note ? 'Edit Note' : 'Edit Item');
+        $('#item_form_header').text(item.note ? 'Edit Note' : 'Edit Entry');
         $('#item_form_title').val(item.cleartext[0]);
         $('#item_form_username').val(item.cleartext[1]);
         $('#item_form_password').val(item.cleartext[2]);
@@ -176,8 +178,15 @@ function showItemForm(initObject) {
   }
   $('#item_form_alert').hide();
 
-  $('#index_page_row').hide();
+  $('.main-page').hide();
+
   $('#item_form_page').show();
+
+  if (init.create) {
+    document.querySelector('#item_form_title').focus();
+  }
+
+
   passhub.indexPageResize();
 
   const data = {
@@ -194,7 +203,7 @@ function showItemForm(initObject) {
     type: 'POST',
     data,
     error: () => {
-      // passhub.modalAjaxError($('#add_from_invite_name_alert'), hdr, status, err);
+      // modalAjaxError($('#add_from_invite_name_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -237,7 +246,7 @@ function initItemForm() {
 
   $('.item_form_close').click(() => {
     $('#item_form_page').hide();
-    $('#index_page_row').show();
+    $('.main-page').show();
     passhub.indexPageResize();
   });
 }

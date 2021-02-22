@@ -41,7 +41,14 @@ class Iam
         
     public static function isMailAuthorized($mng, $email) {
 
-        $mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
+        if( defined('LDAP')  
+            && isset(LDAP['mail_registration']) 
+            && (LDAP['mail_registration'] == true)) {
+                $mail_domains = [LDAP['domain']];
+        } else {
+            $mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
+        }
+
         if ($mail_domains[0] === "any") {
             return true;
         }
@@ -153,7 +160,7 @@ class Iam
     static function deleteUser($mng, $id) {
         $user = new User($mng, $id);
 
-        $user->getProfile()();
+        $user->getProfile();
         if ($user->profile['email']) {
             $result = $mng->mail_invitations->deleteMany(['email' => $user->profile['email']]);
         }

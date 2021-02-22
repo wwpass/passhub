@@ -46,6 +46,11 @@ class Utils
 
     private static function sendSMTP($to, $subject, $body, $contentType) {
         $from = '<' . SMTP_SERVER["username"] . '>';
+        if(isset(SMTP_SERVER["from"])) {
+            $from = '<' . SMTP_SERVER["from"] . '>';
+        }
+
+
         $to = '<' . $to . '>';
     
         $headers = array(
@@ -55,6 +60,7 @@ class Utils
             'MIME-Version' => 1,
             'Content-type' => $contentType
         );
+        Utils::err(print_r($headers, true));
     
         $smtp = \Mail::factory('smtp', SMTP_SERVER);
     

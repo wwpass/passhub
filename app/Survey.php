@@ -28,7 +28,7 @@ class Survey
     public static function showStatus($mng, $UserID) {
 
         if ((time() - self::userCreationTime($UserID)) < 60*60*24*30) {
-                Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
+                // Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
             return false;
         }
     
@@ -42,7 +42,7 @@ class Survey
             if ((time() - strtotime($result[0]['modified'])) > 60*60*24*7) {
                 return true;
             } else {
-                Utils::err('survey: too early');
+                // Utils::err('survey: too early');
             }
         }
         return false;

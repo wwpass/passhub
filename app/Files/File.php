@@ -50,7 +50,7 @@ abstract class File
 
         if ($user->canWrite($SafeID) == false) {
             Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
-            return "Sorry you do not have editor rights for this safe";
+            return "Sorry, you do not have editor rights for this safe";
         }
 
         $file_js = json_decode($file);
@@ -163,7 +163,7 @@ abstract class File
             $a = $cursor->toArray();
             if (count($a) != 1) {
                 Utils::err("error itm 349, entryID $itemId count is " . count($a));
-                return  "Internal server error itm 324";
+                return  "File not found";
             }
             $row = $a[0];
 
@@ -180,7 +180,7 @@ abstract class File
         } else if ($data['operation'] == 'rename') {
             if ($user->canWrite($SafeID) == false) {
                 Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
-                return "Not enough rights";
+                return "Sorry, you do not have editor rights for this safe";
             }
         
             $cursor = $mng->safe_items->find(['_id' => $id, 'SafeID' => $SafeID]);

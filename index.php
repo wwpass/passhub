@@ -83,7 +83,10 @@ try {
     if (!isset($_SESSION['UserID'])) {
         $result = $puid->getUserByPuid();
         if ($result['status'] == "not found") {
-            if (defined('LDAP')) {
+            if (defined('LDAP') 
+                && ( !isset(LDAP['mail_registration']) 
+                    || (LDAP['mail_registration'] !== true))
+            ) {
                 echo Utils::render(
                     'ldap.html', 
                     [
@@ -315,6 +318,19 @@ if (file_exists('config/server_name.php')) {
 if (isset($_SESSION["show"])) { 
     $twig_args['show'] = $_SESSION['show'];
     unset($_SESSION["show"]);
+}
+
+$searchClearButton = true;
+
+if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'firefox') !==  false) {
+    $searchClearButton = false;
+}
+if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'iphone') !==  false) {
+    $searchClearButton = false;
+}
+
+if ($searchClearButton) { 
+    $twig_args['search_clear_button'] = true;
 }
 
 echo Utils::render('index.html', $twig_args); 

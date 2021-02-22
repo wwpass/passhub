@@ -1,5 +1,7 @@
 import $ from 'jquery';
 import forge from 'node-forge';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhubCrypto from './crypto';
 import passhub from './passhub';
 import openmailclient from './openmailclient';
@@ -13,8 +15,8 @@ function shareByMailFinal(username, eAesKey) {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'email_final',
       name: username,
       key: eAesKey,
@@ -29,14 +31,14 @@ function shareByMailFinal(username, eAesKey) {
       }
       const url = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/';
       const subj = 'Passhub safe shared with you';
-      const body = `${passhub.userMail} shared a Passhub safe with you.\n\n Please visit ${url}`;
+      const body = `${state.userMail} shared a Passhub safe with you.\n\n Please visit ${url}`;
       openmailclient.openMailClient(username, subj, body);
 
       $('#shareByMailModal').modal('hide');
       passhub.refreshUserData();
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#shareByMailAlert'), hdr, status, err);
+      modalAjaxError($('#shareByMailAlert'), hdr, status, err);
     },
   });
 }
@@ -52,22 +54,21 @@ $('#shareByMailBtn').click(() => {
     url: 'safe_acl.php',
     type: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'email',
       origin: window.location.origin,
       name: recipientMail,
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#shareByMailAlert'), hdr, status, err);
+      modalAjaxError($('#shareByMailAlert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status !== 'Ok') {
         $('#shareByMailAlert').html(result.status).show();
         return;
       }
-      // const encryptedSrcAesKey = forge.util.hexToBytes(passhub.currentSafe.key);
-      passhubCrypto.decryptAesKey(passhub.currentSafe.key)
+      passhubCrypto.decryptAesKey(state.currentSafe.key)
         .then((aesKey) => {
           const peerPublicKey = forge.pki.publicKeyFromPem(result.public_key);
           const peerEncryptedAesKey = peerPublicKey.encrypt(aesKey, 'RSA-OAEP');
@@ -80,9 +81,9 @@ $('#shareByMailBtn').click(() => {
 
 $('#shareByMailModal').on('show.bs.modal', () => {
   $('#recipientMail').val('');
-  let recipientSafeName = passhub.currentSafe.name;
-  if (passhub.userMail) {
-    let { userMail } = passhub;
+  let recipientSafeName = state.currentSafe.name;
+  if (state.userMail) {
+    let userMail = state.userMail;
     const atIdx = userMail.indexOf('@');
     if (atIdx > 0) {
       userMail = userMail.substring(0, atIdx);
@@ -92,42 +93,9 @@ $('#shareByMailModal').on('show.bs.modal', () => {
   $('.role_selector.add-user').text('readonly');
   $('#recipientSafeName').val(recipientSafeName);
   $('#shareByMailAlert').text('').hide();
-  $('#shareByMailLabel').find('span').text(passhub.currentSafe.name);
+  $('#shareByMailLabel').find('span').text(state.currentSafe.name);
 });
 
 $('#shareByMailModal').on('shown.bs.modal', () => {
   $('#recipientMail').focus();
 });
-
-
-/*
-
-const shareRoleMenu = {
-  selector: '.share_role_selector',
-  trigger: 'left',
-  delay: 100,
-  autoHide: true,
-  items: {
-    administrator: {
-      name: 'admin',
-      callback: () => {
-        setShareRole('administrator');
-      },
-    },
-    readwrite: {
-      name: 'editor',
-      callback: () => {
-        setShareRole('editor');
-      },
-    },
-    readonly: {
-      name: 'readonly',
-      callback: () => {
-        setShareRole('readonly');
-      },
-    },
-  },
-};
-
-$.contextMenu(shareRoleMenu);
-*/

@@ -1,5 +1,8 @@
 import $ from 'jquery';
-import passhub from './passhub';
+import 'jquery-contextmenu';
+import { modalAjaxError, humanReadableFileSize } from './utils';
+import state from './state';
+//
 
 $('#account_modal').on('show.bs.modal', () => {
   $('#account_alert').text('').hide();
@@ -7,7 +10,7 @@ $('#account_modal').on('show.bs.modal', () => {
     url: 'account.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
+      verifier: state.csrf,
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -15,9 +18,16 @@ $('#account_modal').on('show.bs.modal', () => {
         if ('email' in result) {
           data += `<div style="margin:1em 0">email: <b>${result.email}</b>
           <a href="change_mail.php" style="float: right;">
-            Change mail
+            Change email
           </a>
           </div>`;
+        } else {
+          data += `<div style="margin:1em 0">
+          <a href="change_mail.php?add">
+            Add email address
+          </a>
+          </div>`;
+
         }
         if ('plan' in result) {
           data += `<p>Account type: <b>${result.plan}</b></p>`;
@@ -35,9 +45,9 @@ $('#account_modal').on('show.bs.modal', () => {
           recordsLine += ` out of ${result.maxRecords}`;
         }
 
-        let storageLine = `storage: ${passhub.humanReadableFileSize(result.used)}`;
+        let storageLine = `storage: ${humanReadableFileSize(result.used)}`;
         if ('maxStorage' in result) {
-          storageLine += ` out of ${passhub.humanReadableFileSize(result.maxStorage)}`;
+          storageLine += ` out of ${humanReadableFileSize(result.maxStorage)}`;
         }
         data += `<p>${recordsLine}</p>`;
         data += `<p>${storageLine}</p>`;
@@ -58,7 +68,7 @@ $('#account_modal').on('show.bs.modal', () => {
       $('#account_alert').text(result.status).show();
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#account_alert'), hdr, status, err);
+      modalAjaxError($('#account_alert'), hdr, status, err);
     },
   });
   $('#account_alert').text('').hide();
