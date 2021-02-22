@@ -2,7 +2,7 @@
 
 ## About This Document
 
-PassHub is a web-based password manager for individuals and teams with support for client-side encryption. PassHub relies on WWPass authentication and data encryption technology and can work both with hardware WWPass PassKey and WWPass PassKey Lite smartphone application.
+PassHub is a web-based password manager for individuals and teams with support for client-side encryption. PassHub relies on WWPass authentication and data encryption technology and can work both with hardware WWPass Key and WWPass Key smartphone application.
 
 In this guide, we'll discuss how to get PassHub installed on your Ubuntu 18.04
 server.
@@ -265,7 +265,7 @@ define('WWPASS_TICKET_TTL', 1200);
 // Set to true to request PIN or biometrics each time user signs in, set to false otherwise.
 define('WWPASS_PIN_REQUIRED', true);
 
-// Log out on hardware PassKey removal, default true
+// Log out on hardware WWPass Key removal, default true
 define('WWPASS_LOGOUT_ON_KEY_REMOVAL', true);
 
 // MAX allocated resources, storage size in bytes
@@ -458,7 +458,7 @@ You will need to tweak the security settings of the gmail account. In the accoun
 
 ## Step 8: Test PassHub
 
-Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with hardware WWPass PassKey under the QR code.
+Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with hardware WWPass Key under the QR code.
 
 ## Step 9: Site administrator
 
