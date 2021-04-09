@@ -3,6 +3,7 @@ import 'jquery-contextmenu';
 import { saveAs } from 'file-saver';
 import * as base32 from 'hi-base32';
 
+import state from './state';
 import * as utils from './utils';
 import safes from './safes';
 import passhub from './passhub';
@@ -12,8 +13,42 @@ import progress from './progress';
 import passhubCrypto from './crypto';
 import { showFileForm } from './new_file';
 import { showItemForm } from './item_form';
-
+import * as extensionInterface from './extensionInterface';
 import getTOTP from './totp';
+
+
+function getItemById(id) {
+  for (let s = 0; s < state.safes.length; s += 1) {
+    for (let i = 0; i < state.safes[s].items.length; i += 1) {
+      if (state.safes[s].items[i]._id === id) {
+        return state.safes[s].items[i];
+      }
+    }
+  }
+  return null;
+}
+
+class Item {
+  constructor(id) {
+    this.item = getItemById(id);
+    if (this.item === null) {
+      throw 'No such itemID';
+    }
+  }
+  path() {
+    let result = [];
+    let parent = this.item.folder;
+
+    while(parent != 0) {
+      const folder = passhub.getFolderById(parent); 
+      result.unshift(folder.cleartext[0]);
+      parent = folder.parent;
+    }
+    const safe = passhub.getSafeById(this.item.SafeID);
+    result.unshift(safe.name);  
+    return result.join(' / ');
+  }
+}
 
 const prepareUrl = (url) => {
   if (url.startsWith('www')) {
@@ -44,7 +79,7 @@ function getMimeByExt(filename) {
     'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'zip': 'application/zip',
   };
-  if (navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
+//  if (navigator.userAgent.match(/iPhone|iPod|iPad/i)) {
     const i = filename.lastIndexOf('.');
     if (i !== -1) {
       const ext = filename.substr(i + 1).toLowerCase();
@@ -52,36 +87,42 @@ function getMimeByExt(filename) {
         return mimeType[ext];
       }
     }
-  }
+  // }
   return 'application/octet-binary';
 }
 
-function downloadFileItem(fileItem) {
+function downloadFileItem(fileItem, callBack) {
   progress.lock(0);
   $.ajax({
     url: 'file_ops.php',
     type: 'POST',
     data: {
       operation: 'download',
-      SafeID: passhub.currentSafe.id,
-      verifier: passhub.csrf,
+      SafeID: state.currentSafe.id,
+      verifier: state.csrf,
       itemId: fileItem.attr('data-record_nb')
     },
     error: (hdr, status, err) => {
       progress.unlock();
-      alert(`${status} ${err}`);
+      alert(`72 ${status} ${err}`);
 //      passhub.modalAjaxError($('#rename_vault_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
-        passhubCrypto.decryptAesKey(passhub.currentSafe.key)
+        passhubCrypto.decryptAesKey(state.currentSafe.key)
           .then((aesKey) => {
             const { filename, buf } = passhubCrypto.decryptFile(result, aesKey);
             const mime = getMimeByExt(filename);
             const blob = new Blob([buf], { type: mime });
-            saveAs(blob, filename); // FileExport
+            callBack(blob, filename);
             progress.unlock();
           });
+        return;
+      }
+      if (result.status === 'File not found') {
+        progress.unlock();
+        utils.bsAlert('File not found. Could be erased by another user');
+        passhub.refreshUserData();
         return;
       }
       if (result.status === 'login') {
@@ -95,6 +136,72 @@ function downloadFileItem(fileItem) {
   });
   return 0;
 }
+
+function saveFileItem(fileItem) {
+  downloadFileItem(fileItem, saveAs);
+}
+
+function set_size() {
+  //const h = $('#image_view_page').height() - $('#image_view_page .card-header').height();
+
+  const h = $('#image_view_page').height() 
+   + $('#image_view_page').offset().top - $('#image_view_page .card-body').offset().top;
+
+ $('#image_view_page .card-body').outerHeight(h);
+}
+
+$('#image_view_page .card').on('resize', set_size);
+
+function viewFileItem(fileItem) {
+  downloadFileItem(fileItem,function(blob, filename)  {
+    const dot = filename.lastIndexOf('.');
+    if(dot > 0) {
+      $('#image_view_page_title').text(filename);
+      progress.unlock();
+      $('.main-page').hide();
+      $('#image_view_page').show();
+      const  ext = filename.substring(dot+1).toLowerCase();
+
+      if( ext == 'pdf') {
+        const imageView = document.querySelector('#image_view_page img');
+        imageView.style.display = 'none'; 
+        const iframe = document.getElementById('viewer');
+        iframe.style.display='';
+        const obj_url = URL.createObjectURL(blob);
+        iframe.setAttribute('src', obj_url);
+        URL.revokeObjectURL(obj_url);
+        return;
+      }
+
+      const imageView = document.querySelector('#image_view_page img');
+      imageView.style.display = ''; 
+      const iframe = document.getElementById('viewer');
+      iframe.style.display='none';
+
+      /*      
+      const obj_url = URL.createObjectURL(blob);
+      imageView.setAttribute('src', obj_url);
+      URL.revokeObjectURL(obj_url);
+      */
+      
+      const reader = new FileReader();
+
+      reader.addEventListener("load", function () {
+        imageView.src = reader.result;
+        console.log(imageView.naturalHeight);
+        set_size();
+      }, false);
+      reader.readAsDataURL(blob);
+ 
+    }
+  });
+}
+
+$('.image_view_page_close').on('click', function() {
+  $('#image_view_page').hide();
+  $('.main-page').show();
+});
+
 
 const itemRow = (item, searchMode) => {
   if (item.cleartext.length < 5) {
@@ -120,7 +227,7 @@ const itemRow = (item, searchMode) => {
   if ('file' in item) {
     let sizeString = '';
     if (item.file.hasOwnProperty('size')) {
-      sizeString = passhub.humanReadableFileSize(item.file.size);
+      sizeString = utils.humanReadableFileSize(item.file.size);
     }
     if (searchMode === undefined) {
       row += "<div class='d-none d-md-block file_record_title text-truncate' style='cursor: pointer;' data-record_nb =";
@@ -154,7 +261,8 @@ const itemRow = (item, searchMode) => {
          + "<img src='public/img/outline-https-24px.svg' alt= 'login/password' height='24'>"
 //        + "<span class='glyphicon glyphicon-asterisk' aria-hidden='true' style='cursor: pointer; '></span>"
         + '</td>'
-        + "<td class='tdmain col-xl-3 col-lg-5 d-none d-lg-table-cell' style='cursor: default;'>" + url + '</td>';
+        + "<td class='tdmain col-xl-3 col-lg-5 d-none d-lg-table-cell item_url' data-record_nb="
+        + item._id + " style='cursor: default;'>" + url + '</td>';
     }
     // notes
     // row += "<td class='tdmain hidden-xs hidden-sm col-md-3' style='cursor: default;'>" + escapeHtml(item.cleartext[4]) + '</td>';
@@ -168,51 +276,71 @@ const itemRow = (item, searchMode) => {
   return row;
 };
 
-/*
-function folderOnClick() {
-  const id = $(this).attr('data-folder-id');
-  safes.setActiveFolder(id);
-}
-*/
-
 const show = (folder) => {
-  if (!passhub.currentSafe.key) {
+
+  if(!state.searchMode  && !state.currentSafe.key) {
     $('.not_confirmed_safe').show();
     $('.confirmed_safe').hide();
     $('.confirmed_safe_buttons').hide();
     return;
   }
+
   $('.not_confirmed_safe').hide();
   $('.confirmed_safe').show();
-  $('.confirmed_safe_buttons').show();
   $('#item_list_tbody').empty();
-  for (let i = 0; i < passhub.currentSafe.folders.length; i++) {
-    if ('parent' in passhub.currentSafe.folders[i]) {
-      if (passhub.currentSafe.folders[i].parent != folder) {
+
+  if(state.searchMode) {
+    $('.confirmed_safe_buttons').hide();
+    safes.setItemPaneHeader();
+    const found = passhub.search(passhub.searchString);
+    if(found.length == 0) {
+      $('.empty_safe').html('Search mode: nothing found');
+      $('.empty_safe').show();
+      $('#records_table').hide();
+      return;
+    }
+    for (let i = 0; i < found.length; i++) {
+      $('#item_list_tbody').append('<tr class="d-flex">' + itemRow(found[i], true) + '</tr>');
+    }
+    $('.empty_safe').hide();
+    $('#records_table').show();
+    /*
+    if (found.length > 0) {
+      syncSearchSafe(found[0]._id);
+    }
+    */
+    passhub.showTable();
+    return;  
+  }
+  $('.confirmed_safe_buttons').show();
+
+  for (let i = 0; i < state.currentSafe.folders.length; i++) {
+    if ('parent' in state.currentSafe.folders[i]) {
+      if (state.currentSafe.folders[i].parent != folder) {
         continue;
       }
     } else if (folder != 0) {
       continue;
     }
     const row = '<tr>'
-      + `<td class='col-xs-12 d-md-none list-item-title folder-click' data-folder-id='${passhub.currentSafe.folders[i]._id}' style='padding-left:15px'>`
+      + `<td class='col-xs-12 d-md-none list-item-title folder-click' data-folder-id='${state.currentSafe.folders[i]._id}' style='padding-left:15px'>`
       + "<div style='padding-top:5px;padding-bottom:5px; cursor:pointer'>"
       + "<svg width='24' height='24' class='item_icon'><use href='#i-folder'></use></svg>"
-      + utils.escapeHtml(passhub.currentSafe.folders[i].cleartext[0])
+      + utils.escapeHtml(state.currentSafe.folders[i].cleartext[0])
       + "<svg width='24' height='24' style='stroke:#2277e6; opacity:0.5; float:right; vertical-align:middle; margin-right:10px'><use href='#ar-forward'></use></svg>"
       + '</div></td></tr>';
     $('#item_list_tbody').append(row);
   }
-  for (let i = 0; i < passhub.currentSafe.items.length; i++) {
+  for (let i = 0; i < state.currentSafe.items.length; i++) {
     // use local 'let item', same in
-    if ('folder' in passhub.currentSafe.items[i]) {
-      if (passhub.currentSafe.items[i].folder != folder) {
+    if ('folder' in state.currentSafe.items[i]) {
+      if (state.currentSafe.items[i].folder != folder) {
         continue;
       }
     } else if (folder != 0) {
       continue;
     }
-    $('#item_list_tbody').append(`<tr class="d-flex"> ${itemRow(passhub.currentSafe.items[i])} </tr>`);
+    $('#item_list_tbody').append(`<tr class="d-flex"> ${itemRow(state.currentSafe.items[i])} </tr>`);
   }
   if ($('#item_list_tbody > tr').length == 0) {
     if (folder == 0) {
@@ -229,16 +357,39 @@ const show = (folder) => {
 };
 
 $('body').on('click', '.lp_show', function () {
-  if (passhub.searchMode) {
+  if (state.searchMode) {
     syncSearchSafe($(this).attr('data-record_nb'));
   }
   showItemModal($(this).attr('data-record_nb'), true);
 });
 
+// extension find callback
+function findCallback() {
+
+}
+
+function openInExtension(id) {
+
+  const item = getItemById(id);
+  if(item) {
+    const s = {
+      id: 'loginRequest',
+      username: item.cleartext[1],
+      password: item.cleartext[2],
+      url: item.cleartext[3],
+    }
+    extensionInterface.sendCredentials(s);
+  }
+}
+
 $('body').on('click', '.item-click', function () {
   showItem($(this).attr('data-record_nb'));
 });
 
+$('body').on('click', '.item_url', function() {
+  openInExtension($(this).attr('data-record_nb'));
+  return false;
+}); 
 
 let editItemId;
 
@@ -246,12 +397,12 @@ $('.item_view_edit_btn').click(() => {
   $('#showCreds').modal('hide');
   showItemForm({
     create: false,
-    safe: passhub.currentSafe,
-    folder: passhub.activeFolder,
+    safe: state.currentSafe,
+    folder: state.activeFolder,
     itemID: editItemId,
-    csrf: passhub.csrf,
+    csrf: state.csrf,
   });
-  //  window.location.href = `edit.php?vault=${passhub.currentSafe.id}&id=${editItemId}`;
+  //  window.location.href = `edit.php?vault=${state.currentSafe.id}&id=${editItemId}`;
 });
 
 let intervalTimerID; 
@@ -296,23 +447,34 @@ function showOTP(item) {
   }
 }
 
-
 function showItemModal(id, credsOnly = false) {
-  for (let i = 0; i < passhub.currentSafe.items.length; i++) {
-    if (passhub.currentSafe.items[i]._id == id) {
+
+  try {
+    const item = new Item(id);
+    const path = item.path();
+    $('.item_path').text(`${path}`);
+    
+  } catch(e) {
+    console.log(e);
+  }
+
+  for (let i = 0; i < state.currentSafe.items.length; i++) {
+    if (state.currentSafe.items[i]._id == id) {
       editItemId = id;
-      const item = passhub.currentSafe.items[i];
+      const item = state.currentSafe.items[i];
       if (item.lastModified) {
         const modified = new Date(item.lastModified).toLocaleString();
         $('.modified').text(`Modified: ${modified}`);
       }
 
       const data = item.cleartext;
-      $('#showCredsLabel').text(data[0]);
+      $('#show-creds-title').text(data[0]);
       $('#creds0ID').val(data[1]);
       $('#creds1ID').val(data[2]);
       const url = prepareUrl(utils.escapeHtml(data[3]));
       $('#item_view_url').html(url);
+      $('#item_view_url').attr('data-record_nb', id);
+
       $('#item_view_notes').text(data[4]);
       $('.item_view').show();
       if (item.hasOwnProperty('note') && (item.note == 1)) {
@@ -340,13 +502,23 @@ function showItemModal(id, credsOnly = false) {
 }
 
 function showItem(id) {
+
+  try {
+    const item = new Item(id);
+    const path = item.path();
+    $('.item_pane_path').text(`${path}`);
+    
+  } catch(e) {
+    console.log(e);
+  }
+
   let item = null;
-  if (passhub.searchMode) {
-    item = passhub.getItemById(id);
+  if (state.searchMode) {
+    item = getItemById(id);
   } else {
-    for (let i = 0; i < passhub.currentSafe.items.length; i++) {
-      if (passhub.currentSafe.items[i]._id == id) {
-        item = passhub.currentSafe.items[i];
+    for (let i = 0; i < state.currentSafe.items.length; i++) {
+      if (state.currentSafe.items[i]._id == id) {
+        item = state.currentSafe.items[i];
         break;
       }
     }
@@ -378,8 +550,18 @@ function showItem(id) {
       } else {
         $('#item_pane_file_size').text('-');
       }
+      
+      if (isFileViewable(data[0])) {
+        document.querySelector('#item_pane_view_button').style.display = '';
+      } else {
+        document.querySelector('#item_pane_view_button').style.display = 'none';
+      }
+      
+
       // $('#item_pane_delete_button').click(() => { delete_item.deleteItem($('#item_pane_menu')); });
-      $('#item_pane_download_button').click(() => { downloadFileItem($('#item_pane_menu')); });
+      $('#item_pane_download_button').on('click', () => { saveFileItem($('#item_pane_menu')); });
+      $('#item_pane_view_button').on('click', () => { viewFileItem($('#item_pane_menu')); });
+
       $('#item_pane_menu').addClass('file_record_title');
       $('#item_pane_menu').removeClass('record_title');
     } else {
@@ -410,6 +592,7 @@ function showItem(id) {
         }
         const url = prepareUrl(utils.escapeHtml(data[3]));
         $('#item_pane_url').html(url);
+        $('#item_pane_url').attr('data-record_nb', id);
         if (item.cleartext.length === 6) {
           showOTP(item);
           $('.item_view_otp').show();
@@ -443,9 +626,9 @@ const addItemButtonMenu = {
         showItemForm({
           create: true,
           note: false,
-          safe: passhub.currentSafe,
-          folder: passhub.activeFolder,
-          csrf: passhub.csrf,
+          safe: state.currentSafe,
+          folder: state.activeFolder,
+          csrf: state.csrf,
         });
       }
     },
@@ -455,9 +638,9 @@ const addItemButtonMenu = {
         showItemForm({
           create: true,
           note: true,
-          safe: passhub.currentSafe,
-          folder: passhub.activeFolder,
-          csrf: passhub.csrf,
+          safe: state.currentSafe,
+          folder: state.activeFolder,
+          csrf: state.csrf,
         });
       }
     },
@@ -465,9 +648,9 @@ const addItemButtonMenu = {
       name: 'File',
       callback: () => {
         showFileForm({
-          safe: passhub.currentSafe,
-          folder: passhub.activeFolder,
-          csrf: passhub.csrf,
+          safe: state.currentSafe,
+          folder: state.activeFolder,
+          csrf: state.csrf,
         });
       }
     },
@@ -482,49 +665,206 @@ const addItemButtonMenu = {
 
 $.contextMenu(addItemButtonMenu);
 
+
+function isFileViewable(filename)  {
+  const dot = filename.lastIndexOf('.');
+  if(dot > 0) {
+    const  ext = filename.substring(dot+1).toLowerCase();
+    if( ext == 'pdf') {
+      
+      if(utils.isMobile()) {
+        return false;
+      } 
+           
+      if ((navigator.userAgent.indexOf("Chrome") == -1)
+        && (navigator.userAgent.indexOf("Safari") > 0)
+        && (navigator.userAgent.indexOf("Macintosh") > 0)) {
+          return false;
+      }
+      return true;
+    }
+    if( (ext == 'jpeg') 
+      || (ext == 'jpg') 
+      || (ext == 'png')
+      || (ext == 'gif')
+      || (ext == 'bmp')
+
+      /* || (ext == 'tif')
+       || (ext == 'svg')  
+      */
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const fileMenuEvents = {
+  show: function () {
+    let tr_color = $(this).parent().parent().css('background-color');
+    $(this).parent().parent().css('background-color', tr_color);
+    return true;
+  },
+  hide: function () {
+    if ($(this).parent().parent().prop('tagName') === 'TR') {
+      $(this).parent().parent().css('background-color', '');
+    }
+    return true;
+  },
+};
+
+const fileMenuItems = {
+
+  download: {
+    name: 'Download',
+    callback: function () {
+      saveFileItem($(this));
+    },
+  },
+  
+  view: {
+    name: 'In-memory View',
+    
+    visible: function(key) {
+      const filename = $(this).text();
+      return isFileViewable(filename);
+    },
+    
+    callback: function () {
+      viewFileItem($(this));
+    },
+  },
+
+  cut: {
+    name: 'Cut',
+    callback: function () {
+      $('.toast_header_text').text('Move file to another safe');
+      $('.toast_copy').toast('show');
+      const now = new Date();
+      sessionStorage.setItem('clip', JSON.stringify({
+        operation: 'move',
+        timestamp: now.getTime(),
+        safeID: state.currentSafe.id,
+        item: $(this).attr('data-record_nb')
+      }));
+    },
+  },
+
+  rename: {
+    name: 'Rename',
+    callback: function () {
+      rename_file.renameFile($(this));
+    },
+  },
+  delete: {
+    name: 'Delete',
+    // icon: 'delete',
+    callback: function () {
+      delete_item.deleteItem($(this));
+    },
+  }
+
+};
+
 const fileItemMenu = {
   selector: '.file_record_title',
   trigger: 'left',
   delay: 100,
   autoHide: true,
   zIndex: 10,
-  events: {
-    show: function () {
-      let tr_color = $(this).parent().parent().css('background-color');
-      $(this).parent().parent().css('background-color', tr_color);
-      return true;
-    },
-    hide: function () {
-      if ($(this).parent().parent().prop('tagName') === 'TR') {
-        $(this).parent().parent().css('background-color', '');
-      }
-      return true;
-    },
-  },
-  items: {
-    download: {
-      name: 'Download',
-      callback: function () {
-        downloadFileItem($(this));
-      },
-    },
-    rename: {
-      name: 'Rename',
-      callback: function () {
-        rename_file.renameFile($(this));
-      },
-    },
-    delete: {
-      name: 'Delete',
-      // icon: 'delete',
-      callback: function () {
-        delete_item.deleteItem($(this));
-      },
-    }
-  }
+  events: fileMenuEvents,
+  items: fileMenuItems,
 };
 
 $.contextMenu(fileItemMenu);
+
+const fileItemMenuRight = {
+  selector: '.file_record_title',
+  trigger: 'right',
+  delay: 100,
+  autoHide: true,
+  zIndex: 10,
+  events: fileMenuEvents,
+  items: fileMenuItems,
+};
+
+$.contextMenu(fileItemMenuRight);
+
+const itemMenuEvents = {
+  show: function () {
+    const trColor = $(this).parent().parent().css('background-color');
+    $(this).parent().parent().css('background-color', trColor);
+    return true;
+  },
+  hide: function () {
+    if ($(this).parent().parent().prop('tagName') === 'TR') {
+      $(this).parent().parent().css('background-color', '');
+    }
+    return true;
+  },
+};
+
+const itemMenuItems = {
+  view: {
+    name: 'View',
+    visible: () => {
+      if ($('#item_pane_menu').is(':visible')) {
+        return false;
+      }
+      return true;
+    },
+    callback: function () {
+      showItemModal($(this).attr('data-record_nb'));
+    },
+  },
+  edit: {
+    name: 'Edit',
+    callback: function () {
+      showItemForm({
+        create: false,
+        safe: state.currentSafe,
+        folder: state.activeFolder,
+        itemID: $(this).attr('data-record_nb'),
+        csrf: state.csrf,
+      });
+    },
+  },
+  cut: {
+    name: 'Cut',
+    callback: function () {
+      $('.toast_header_text').text('Move item to another safe');
+      $('.toast_copy').toast('show');
+      const now = new Date();
+      sessionStorage.setItem('clip', JSON.stringify({
+        operation: 'move',
+        timestamp: now.getTime(),
+        safeID: state.currentSafe.id,
+        item: $(this).attr('data-record_nb')
+      }));
+    },
+  },
+  copy: {
+    name: 'Copy',
+    callback: function () {
+      $('.toast_header_text').text('Copy item to another safe');
+      $('.toast_copy').toast('show');
+      const now = new Date();
+      sessionStorage.setItem('clip', JSON.stringify({
+        operation: 'copy',
+        timestamp: now.getTime(),
+        safeID: state.currentSafe.id,
+        item: $(this).attr('data-record_nb')
+      }));
+    },
+  },
+  delete: {
+    name: 'Delete',
+    // icon: 'delete',
+    callback: function () {
+      delete_item.deleteItem($(this));
+    },
+  },
+};
 
 const itemMenu = {
   selector: '.record_title',
@@ -532,115 +872,40 @@ const itemMenu = {
   // delay: 100,
   autoHide: true,
   zIndex: 10,
-  events: {
-    show: function () {
-      const trColor = $(this).parent().parent().css('background-color');
-      $(this).parent().parent().css('background-color', trColor);
-      return true;
-    },
-    hide: function () {
-      if ($(this).parent().parent().prop('tagName') === 'TR') {
-        $(this).parent().parent().css('background-color', '');
-      }
-      return true;
-    },
-  },
-  items: {
-    view: {
-      name: 'View',
-      visible: () => {
-        if ($('#item_pane_menu').is(':visible')) {
-          return false;
-        }
-        return true;
-      },
-      callback: function () {
-        showItemModal($(this).attr('data-record_nb'));
-      },
-    },
-    edit: {
-      name: 'Edit',
-      callback: function () {
-        showItemForm({
-          create: false,
-          safe: passhub.currentSafe,
-          folder: passhub.activeFolder,
-          itemID: $(this).attr('data-record_nb'),
-          csrf: passhub.csrf,
-        });
-      },
-    },
-    cut: {
-      name: 'Cut',
-      callback: function () {
-        $('.toast_header_text').text('Move item to another safe');
-        $('.toast_copy').toast('show');
-        const now = new Date();
-        sessionStorage.setItem('clip', JSON.stringify({
-          operation: 'move',
-          timestamp: now.getTime(),
-          safeID: passhub.currentSafe.id,
-          item: $(this).attr('data-record_nb')
-        }));
-      },
-    },
-    copy: {
-      name: 'Copy',
-      callback: function () {
-        $('.toast_header_text').text('Copy item to another safe');
-        $('.toast_copy').toast('show');
-        const now = new Date();
-        sessionStorage.setItem('clip', JSON.stringify({
-          operation: 'copy',
-          timestamp: now.getTime(),
-          safeID: passhub.currentSafe.id,
-          item: $(this).attr('data-record_nb')
-        }));
-      },
-    },
-    delete: {
-      name: 'Delete',
-      // icon: 'delete',
-      callback: function () {
-        delete_item.deleteItem($(this));
-      },
-    },
-  },
+  events: itemMenuEvents,
+  items: itemMenuItems,
 };
 $.contextMenu(itemMenu);
 
+const itemMenuRight = {
+  selector: '.record_title',
+  trigger: 'right',
+  autoHide: true,
+  zIndex: 10,
+  events: itemMenuEvents,
+  items: itemMenuItems,
+};
+$.contextMenu(itemMenuRight);
+
 function syncSearchSafe(itemID) {
-  const item = passhub.getItemById(itemID);
-  if ((passhub.currentSafe.id == item.SafeID) && (passhub.activeFolder == item.folder)) {
+  
+  const item = getItemById(itemID);
+  if ((state.currentSafe.id == item.SafeID) && (state.activeFolder == item.folder)) {
     return;
   }
   passhub.setActiveSafe(item.SafeID);
   safes.setActiveFolder(item.folder, true);
   passhub.makeCurrentVaultVisible();
+  
 }
 
-function showSearchResult(found) {
-  $('.not_confirmed_safe').hide();
-  $('.confirmed_safe').show();
-  $('.confirmed_safe_buttons').hide();
-
-  $('#item_list_tbody').empty();
-  safes.setItemPaneHeader();
-
-  for (let i = 0; i < found.length; i++) {
-    $('#item_list_tbody').append('<tr class="d-flex">' + itemRow(found[i], true) + '</tr>');
-  }
-  if (found.length > 0) {
-    syncSearchSafe(found[0]._id);
-  }
-  passhub.showTable();
-}
 
 $('body').on('click', '.sync_search_safe', function () {
   syncSearchSafe($(this).attr('data-record_nb'));
   if ($(this).hasClass('d-md-none')) {
-    showItemModal($(this).attr('data-record_nb'));
+    showItem($(this).attr('data-record_nb'));
+    // showItemModal($(this).attr('data-record_nb'));
   }
 });
 
-export { show, showItem, showSearchResult };
+export { show, showItem, /*showSearchResult*/ };

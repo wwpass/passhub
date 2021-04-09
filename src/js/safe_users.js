@@ -1,5 +1,7 @@
 import $ from 'jquery';
 import forge from 'node-forge';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhub from './passhub';
 import passhubCrypto from './crypto';
 import 'jquery-contextmenu';
@@ -23,23 +25,24 @@ function showUsers(result) {
       }
       let li;
       if (!ul[myselfIdx].name) {
-        li = '<div style="margin:12px 0;"><span class="vault_user_name">Safe is not shared</span></div>';
+        li = '<div style="margin:12px 0;"><span class="vault_user_name"><b>You (unnamed)</b></span>';
       } else {
         li = `<div style="margin:12px 0;"><span class="vault_user_name"><b>${ul[myselfIdx].name}</b> (you)</span>`;
-        const role = (ul[myselfIdx].role === 'administrator') ? 'admin' : ul[myselfIdx].role;
-        if (role === 'admin') {
-          $('#unsubscribe').hide();
-        } else {
-          $('#unsubscribe').show();
-        }
-        li += `<span style='float:right; width: 10em; text-align: right;'><b>${role}</b?</span></div>`;
       }
+      const role = (ul[myselfIdx].role === 'administrator') ? 'owner' : ul[myselfIdx].role;
+      if (role === 'owner') {
+        $('#unsubscribe').hide();
+      } else {
+        $('#unsubscribe').show();
+      }
+      li += `<span style='float:right; width: 10em; text-align: right;'><b>${role}</b?</span></div>`;
+      
       $('#UserList').append(li);
       for (let i = 0; i < ul.length; i++) {
         if (i === myselfIdx) {
           continue;
         }
-        const role = (ul[i].role === 'administrator') ? 'admin' : ul[i].role;
+        const role = (ul[i].role === 'administrator') ? 'owner' : ul[i].role;
         if (ul[myselfIdx].role === 'administrator') {
           li = `<div style="margin:12px 0;"><span class="vault_user_name">${ul[i].name}</span>`;
           li += '<div style="float:right">';
@@ -77,22 +80,22 @@ function showUsers(result) {
 
 function setRole(elm, role) {
   if (elm[0].classList.contains('add-user')) { // role_selector in Share_by_mail modal
-    elm[0].innerText = (role === 'administrator') ? 'admin' : role;
+    elm[0].innerText = (role === 'administrator') ? 'owner' : role;
     return;
   }
   $.ajax({
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'role',
       name: elm.parent().parent().find('.vault_user_name')[0].innerText,
       role,
     },
     success: showUsers,
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 }
@@ -104,7 +107,7 @@ const roleMenu = {
   autoHide: true,
   items: {
     administrator: {
-      name: 'admin',
+      name: 'owner',
       callback: function () {
         setRole($(this), 'administrator');
       },
@@ -132,15 +135,15 @@ function confirmUserFinalize(username, eAesKey) {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'confirm',
       name: username,
       key: eAesKey,
     },
     success: showUsers,
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 }
@@ -153,13 +156,13 @@ $('#UserList').on('click', '.confirm_vault_user', function () {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'get_public_key',
       name,
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -181,18 +184,19 @@ $('#UserList').on('click', '.confirm_vault_user', function () {
 });
 
 $('#safeUsers').on('show.bs.modal', () => {
-  $('#safeUsersLabel').find('span').text(passhub.currentSafe.name);
+  $('#safeUsersLabel').find('span').text(state.currentSafe.name);
+  $('#UserList').empty();
   safeUsersUpdatePageReq = false;
   $.ajax({
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
     },
     success: showUsers,
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
   $('#safe_users_alert').text('').hide();
@@ -200,7 +204,7 @@ $('#safeUsers').on('show.bs.modal', () => {
 
 $('#safeUsers').on('hidden.bs.modal', () => {
   if (safeUsersUpdatePageReq) {
-    window.location.href = `index.php?vault=${passhub.currentSafe.id}`;
+    window.location.href = `index.php?vault=${state.currentSafe.id}`;
   }
 });
 
@@ -211,8 +215,8 @@ $('#UserList').on('click', '.del_user', function () {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'delete',
       name: x[0].innerText,
     },
@@ -221,7 +225,7 @@ $('#UserList').on('click', '.del_user', function () {
       passhub.refreshUserData();
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 });
@@ -231,8 +235,8 @@ $('#unsubscribe').click(function () {
     url: 'safe_acl.php',
     method: 'POST',
     data: {
-      verifier: passhub.csrf,
-      vault: passhub.currentSafe.id,
+      verifier: state.csrf,
+      vault: state.currentSafe.id,
       operation: 'unsubscribe',
     },
     success: (result) => {
@@ -240,7 +244,7 @@ $('#unsubscribe').click(function () {
       passhub.refreshUserData();
     },
     error: (hdr, status, err) => {
-      passhub.modalAjaxError($('#safe_users_alert'), hdr, status, err);
+      modalAjaxError($('#safe_users_alert'), hdr, status, err);
     },
   });
 });

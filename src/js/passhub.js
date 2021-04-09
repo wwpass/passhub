@@ -1,16 +1,11 @@
 import $ from 'jquery';
+import state from './state';
 import * as WWPass from 'wwpass-frontend';
 import * as utils from './utils';
 import progress from './progress';
 import passhubCrypto from './crypto';
 import safes from './safes';
 import * as items from './items';
-
-const vaultPaneColor = '#2277e6';
-
-
-// const tablePaneColor = '#dae6f2';
-const tablePaneColor = '#D9EFFF';
 
 function getSharingStatus(ph) {
   $.ajax({
@@ -20,9 +15,9 @@ function getSharingStatus(ph) {
     success: (result) => {
       if (result.status === 'Ok') {
         for (let i = 0; i < result.accepted.length; i++) {
-          for (let s = 0; s < ph.safes.length; s++) {
-            if (ph.safes[s].id == result.accepted[i]) {
-              ph.safes[s].confirm_req = 1;
+          for (let s = 0; s < state.safes.length; s++) {
+            if (state.safes[s].id == result.accepted[i]) {
+              state.safes[s].confirm_req = 1;
             }
           }
           $(`div.hidden-xs[data-safe-id=${result.accepted[i]}]`).find('span').show();
@@ -51,37 +46,30 @@ function getSharingStatus(ph) {
   });
 }
 
-
 export default {
-  searchMode: false,
-  getSharingStatusTimer: null,
-  safes: [],
-  csrf: null,
-  publicKeyPem: null,
-  invitationAcceptPending: false,
-  currentSafe: null,
-  activeFolder: 0,
-  userMail: null,
-  shareModal: null,
-  showTableReq: false,
 
-  modalAjaxError: (alertElement, hdr, status, err) => {
-    if (hdr.status === 0) {
-      alertElement.text('You are offline. Please check your network.').show();
-      return;
-    }
-    alertElement.text(`${status} ${err}`).show();
-  },
+  getSharingStatusTimer: null,
 
   getSafeById(id) {
-    for (let s = 0; s < this.safes.length; s += 1) {
-      if (this.safes[s].id == id) {
-        return this.safes[s];
+    for (let s = 0; s < state.safes.length; s += 1) {
+      if (state.safes[s].id == id) {
+        return state.safes[s];
       }
     }
     return null;
   },
-  
+
+  getFolderById(id) {
+    for (let s = 0; s < state.safes.length; s += 1) {
+      for (let i = 0; i < state.safes[s].folders.length; i += 1) {
+        if (state.safes[s].folders[i]._id === id) {
+          return state.safes[s].folders[i];
+        }
+      }
+    }
+    return null;
+  },
+
   decryptSafeData: (aesKey, safe) => {
     for (let i = 0; i < safe.items.length; i += 1) {
       safe.items[i].cleartext = passhubCrypto.decodeItem(safe.items[i], aesKey);
@@ -124,7 +112,6 @@ export default {
     return Promise.all(promises);
   },
 
-
   indexPageResize() {
     const e = document.querySelector('#probe');
     document.getElementsByTagName('body')[0].appendChild(e);
@@ -139,6 +126,9 @@ export default {
 
     $('#item_form_page').css('min-height', height);
     $('#index_page_row').height(height);
+
+    // $('#image_view_page').css('max-height', height);
+    $('#image_view_page').height(height);
   },
 
   makeCurrentVaultVisible() {
@@ -169,12 +159,11 @@ export default {
 
   reportCurrentSafe() {
     $.ajax({
-      // url: `index.php?current_safe=${passhub.currentSafe.id}`,
       url: 'index.php',
       type: 'POST',
       data: {
-        verifier: this.csrf,
-        current_safe: this.currentSafe.id,
+        verifier: state.csrf,
+        current_safe: state.currentSafe.id,
       },
       error: () => {},
       success: () => {},
@@ -182,14 +171,14 @@ export default {
   },
 
   setActiveSafe(id) {
-    this.currentSafe = this.getSafeById(id);
-    this.activeFolder = 0;
+    state.currentSafe = this.getSafeById(id);
+    state.activeFolder = 0;
     this.reportCurrentSafe();
 
-    if (this.getSharingStatusTimer && !this.invitationAcceptPending && this.currentSafe.key) { // safe confirmed
+    if (this.getSharingStatusTimer && !state.invitationAcceptPending && state.currentSafe.key) { // safe confirmed
       clearTimeout(this.getSharingStatusTimer);
       this.getSharingStatusTimer = null;
-    } else if (!this.getSharingStatusTimer && (this.invitationAcceptPending || !this.currentSafe.key)) {
+    } else if (!this.getSharingStatusTimer && (state.invitationAcceptPending || !state.currentSafe.key)) {
       getSharingStatus(this);
     }
   },
@@ -200,24 +189,13 @@ export default {
     $('#item_view_notes').css('max-height', 'calc(100vh - ' + parseInt(showCredsNotesTop + 150) + 'px)');
   },
 
-  getItemById(id) {
-    for (let s = 0; s < this.safes.length; s += 1) {
-      for (let i = 0; i < this.safes[s].items.length; i += 1) {
-        if (this.safes[s].items[i]._id === id) {
-          return this.safes[s].items[i];
-        }
-      }
-    }
-    return null;
-  },
-
   moveItemFinalize(recordID, dst_safe, dst_folder, item, operation) {
     $.ajax({
       url: 'move.php',
       type: 'POST',
       data: {
         id: recordID,
-        src_safe: this.currentSafe.id,
+        src_safe: state.currentSafe.id,
         dst_safe,
         dst_folder,
         item,
@@ -228,7 +206,7 @@ export default {
       },
       success: (result) => {
         if (result.status === 'Ok') {
-          // window.location.href = `index.php?vault=${this.currentSafe.id}`;
+          // window.location.href = `index.php?vault=${state.currentSafe.id}`;
           this.refreshUserData();
           return;
         }
@@ -241,7 +219,7 @@ export default {
     });
   },
 
-  moveItem(recordId, srcSafe, dstSafe, dstFolder, operation) {
+  moveFile(recordId, srcSafe, dstSafe, dstFolder, operation) {
     $.ajax({
       url: 'move.php',
       type: 'POST',
@@ -249,26 +227,20 @@ export default {
         id: recordId,
         src_safe: srcSafe,
         dst_safe: dstSafe,
-        operation: 'get data',
+        operation,
+        checkRights: true,
       },
       error: (hdr, status, err) => {
         alert(`${status} ${err}`);
       },
       success: (result) => {
+        if (result.status === 'no src write') {
+          ustils.bsAlert('Sorry, "Cut" operation is forbidden. You have only read access to the source safe.');
+          return;
+        }
+
         if (result.status === 'Ok') {
-          let pItem;
-          return passhubCrypto.decryptAesKey(result.src_key)
-            .then((srcAesKey) => {
-              return passhubCrypto.decodeItem(result.item, srcAesKey);
-            })
-            .then((item) => {
-              pItem = item;
-              return passhubCrypto.decryptAesKey(result.dst_key);
-            })
-            .then((dstAesKey) => {
-              return passhubCrypto.encryptItem(pItem, dstAesKey, { note: result.item.note });
-            })
-            .then(eItem => this.moveItemFinalize(recordId, dstSafe, dstFolder, eItem, operation));
+          const eItem = passhubCrypto.moveFile(recordId, getSafeById(srcSafe), getSafeById(dstSafe));
         }
         if (result.status === 'login') {
           window.location.href = 'index.php';
@@ -280,26 +252,126 @@ export default {
     });
   },
 
+
+  moveItem(recordId, srcSafe, dstSafe, dstFolder, operation) {
+    $.ajax({
+      url: 'move.php',
+      type: 'POST',
+      data: {
+        id: recordId,
+        src_safe: srcSafe,
+        dst_safe: dstSafe,
+        operation,
+        checkRights: true,
+      },
+      error: (hdr, status, err) => {
+        alert(`${status} ${err}`);
+      },
+      success: (result) => {
+        if (result.status === 'no src write') {
+          utils.bsAlert('Sorry, "Cut" operation is forbidden. You have only read access to the source safe.');
+          return;
+        }
+        if (result.status === 'no dst write') {
+          utils.bsAlert('Sorry, "Paste" is forbidden. You have only read access to the destination safe.');
+          return;
+        }
+
+        if (result.status === 'Ok') {
+          if ('file' in result.item) {
+            const eItem = JSON.stringify(passhubCrypto.moveFile(result.item, this.getSafeById(srcSafe), this.getSafeById(dstSafe)));
+            console.log(eItem);
+            return this.moveItemFinalize(recordId, dstSafe, dstFolder, eItem, operation)
+          } else {
+            let pItem;
+            return passhubCrypto.decryptAesKey(result.src_key)
+              .then((srcAesKey) => {
+                return passhubCrypto.decodeItem(result.item, srcAesKey);
+              })
+              .then((item) => {
+                pItem = item;
+                return passhubCrypto.decryptAesKey(result.dst_key);
+              })
+              .then((dstAesKey) => {
+                return passhubCrypto.encryptItem(pItem, dstAesKey, { note: result.item.note });
+              })
+              .then(eItem => this.moveItemFinalize(recordId, dstSafe, dstFolder, eItem, operation));
+          }
+        }
+        if (result.status === 'login') {
+          window.location.href = 'index.php';
+          return false;
+        }
+        alert(result.status);
+        return false;
+      },
+    });
+  },
+
+
   search(what) {
     const result = [];
     const lcWhat = what.toLowerCase();
-    for (let s = 0; s < this.safes.length; s += 1) {
-      if (this.safes[s].key) { // key!= null => confirmed, better have a class
-        for (let i = 0; i < this.safes[s].items.length; i += 1) {
+    for (let s = 0; s < state.safes.length; s += 1) {
+      if (state.safes[s].key) { // key!= null => confirmed, better have a class
+        for (let i = 0; i < state.safes[s].items.length; i += 1) {
           let found = false;
-          if (this.safes[s].items[i].cleartext[0].toLowerCase().indexOf(lcWhat) >= 0) {
+          if (state.safes[s].items[i].cleartext[0].toLowerCase().indexOf(lcWhat) >= 0) {
             found = true;
-          } else if (this.safes[s].items[i].cleartext[3].toLowerCase().indexOf(lcWhat) >= 0) {
+          } else if (state.safes[s].items[i].cleartext[1].toLowerCase().indexOf(lcWhat) >= 0) {
             found = true;
-          } else if (this.safes[s].items[i].cleartext[4].toLowerCase().indexOf(lcWhat) >= 0) {
+          } else if (state.safes[s].items[i].cleartext[3].toLowerCase().indexOf(lcWhat) >= 0) {
+            found = true;
+          } else if (state.safes[s].items[i].cleartext[4].toLowerCase().indexOf(lcWhat) >= 0) {
             found = true;
           }
           if (found) {
-            result.push(this.safes[s].items[i]);
+            result.push(state.safes[s].items[i]);
           }
         }
       }
     }
+    return result;
+  },
+
+  advise(url) {
+    const u = new URL(url);
+    let hostname = u.hostname.toLowerCase();
+    if(hostname.substring(0,4) === 'www.') {
+      hostname = hostname.substring(4);
+    }
+    const result = [];
+    if(hostname){
+      for (let s = 0; s < state.safes.length; s += 1) {
+        if (state.safes[s].key) { // key!= null => confirmed, better have a class
+          for (let i = 0; i < state.safes[s].items.length; i += 1) {
+            try {
+              let itemUrl = state.safes[s].items[i].cleartext[3].toLowerCase();
+              if (itemUrl.substring(0,4) != 'http') {
+                itemUrl = 'https://' + itemUrl;
+              }
+
+              itemUrl = new URL(itemUrl);
+              let itemHost = itemUrl.hostname.toLowerCase();
+              if(itemHost.substring(0,4) === 'www.') {
+                itemHost = itemHost.substring(4);
+              }
+              if (itemHost == hostname) {
+                result.push({ 
+                    safe: state.safes[s].name,
+                    title: state.safes[s].items[i].cleartext[0],
+                    username: state.safes[s].items[i].cleartext[1],
+                    password: state.safes[s].items[i].cleartext[2],
+                });
+              }
+            } catch(err) {
+
+            }
+          }
+        }
+      }
+    }
+    // extensionInterface.sendAdvise(result);
     return result;
   },
 
@@ -308,53 +380,62 @@ export default {
       progress.lock();
     }
     passhubCrypto.getPrivateKey(ePrivateKey, ticket)
-      .then(() => this.decryptSafes(this.safes))
+      .then(() => this.decryptSafes(state.safes))
       .then(() => {
-        this.safes.sort((a, b) => 
+        state.safes.sort((a, b) => 
           a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         );
-        if(!this.currentSafe) {
-          this.currentSafe = this.safes[0];
+        if(!state.currentSafe) {
+          state.currentSafe = state.safes[0];
         }
-        if (this.invitationAcceptPending || (this.currentSafe.key == null)) {
+        if (state.invitationAcceptPending || (state.currentSafe.key == null)) {
           setTimeout(getSharingStatus, 30 * 1000, this);
         }
 
-        if (typeof index_page_show_index != 'undefined') {
+//        if (typeof index_page_show_index != 'undefined') {
+        if (false) {
           if (index_page_show_index) {
             let found = false;
-            for (let s = 0; s < this.safes.length; s++) {
-              for (let i = 0; i < this.safes[s].items.length; i++ ) {
-                if (this.safes[s].items[i]._id == index_page_show_index) {
+            for (let s = 0; s < state.safes.length; s++) {
+              for (let i = 0; i < state.safes[s].items.length; i++ ) {
+                if (state.safes[s].items[i]._id == index_page_show_index) {
                   found = true;
-                  if (typeof this.safes[s].items[i].folder === 'undefined') {
-                    this.activeFolder = 0;
+                  if (typeof state.safes[s].items[i].folder === 'undefined') {
+                    state.activeFolder = 0;
                   } else {
-                    this.activeFolder = this.safes[s].items[i].folder;
+                    state.activeFolder = state.safes[s].items[i].folder;
                   }
-//                  safes.setActiveFolder(this.activeFolder);
+//                  safes.setActiveFolder(state.activeFolder);
                 }
               }
               if (!found) {
-                for (let i = 0; i < this.safes[s].folders.length; i++ ) {
-                  if (this.safes[s].folders[i]._id == index_page_show_index) {
+                for (let i = 0; i < state.safes[s].folders.length; i++ ) {
+                  if (state.safes[s].folders[i]._id == index_page_show_index) {
                     found = true;
-                    this.activeFolder = this.safes[s].folders[i]._id;
-//                    safes.setActiveFolder(this.activeFolder);
+                    state.activeFolder = state.safes[s].folders[i]._id;
+//                    safes.setActiveFolder(state.activeFolder);
                   }
                 }
               }
             }
             index_page_show_index = false;
-            safes.setActiveFolder(this.activeFolder);
+            safes.setActiveFolder(state.activeFolder);
+            safes.showSafes();
             this.showTable();
             this.indexPageResize();
           }
         } else {
-          safes.setActiveFolder(this.activeFolder);
+          safes.showSafes();
+          this.showSafes(); // mobile: start with safes pane
+
+          // safes.setActiveFolder(state.currentSafe.id);
           this.indexPageResize();
         }
         this.makeCurrentVaultVisible();
+
+        document.querySelector('#search_string').value = '';
+        document.querySelector('#search_string_xs').value = '';
+
         progress.unlock();
         return true;
       })
@@ -372,28 +453,29 @@ export default {
       url: 'get_user_data.php',
       type: 'POST',
       data: {
-        verifier: this.csrf,
+        verifier: state.csrf,
       },
 
       error: () => {},
       success: (result) => {
         if (result.status === 'Ok') {
-          this.safes = result.data.safes;
-          this.publicKeyPem = result.data.publicKeyPem;
-          this.decryptSafes(this.safes)
+          state.safes = result.data.safes;
+          state.publicKeyPem = result.data.publicKeyPem;
+          this.decryptSafes(state.safes)
             .then(() => {
-              this.safes.sort((a, b) => 
+              state.safes.sort((a, b) => 
                 a.name.toLowerCase().localeCompare(b.name.toLowerCase())
               );
-              this.currentSafe = this.getSafeById(result.data.currentSafe);
-              if (!this.currentSafe)  {
-                this.currentSafe = this.safes[0];
+              state.currentSafe = this.getSafeById(result.data.currentSafe);
+              if (!state.currentSafe)  {
+                state.currentSafe = state.safes[0];
               }  
-              if (this.invitationAcceptPending || (this.currentSafe.key == null)) {
+              if (state.invitationAcceptPending || (state.currentSafe.key == null)) {
                 setTimeout(getSharingStatus, 30 * 1000, this);
               }
     
-              safes.setActiveFolder(this.activeFolder);
+              safes.showSafes();
+              // safes.setActiveFolder(state.activeFolder);
               this.indexPageResize();
               this.makeCurrentVaultVisible();
 
@@ -411,24 +493,27 @@ export default {
   },
 
   getUserData() {
-    this.csrf = document.getElementById('csrf').getAttribute('data-csrf');
+    document.querySelector('#search_string').value = 'Search..';
+    document.querySelector('#search_string_xs').value = 'Search..';
+
+    state.csrf = document.getElementById('csrf').getAttribute('data-csrf');
 
     $.ajax({
       url: 'get_user_data.php',
       type: 'POST',
       data: {
-        verifier: this.csrf,
+        verifier: state.csrf,
       },
       error: () => {},
       success: (result) => {
         if (result.status === 'Ok') {
-          this.safes = result.data.safes;
-          this.invitationAcceptPending = result.data.invitation_accept_pending;
-          this.currentSafe = this.getSafeById(result.data.currentSafe);
-          this.publicKeyPem = result.data.publicKeyPem;
-          this.shareModal = result.data.shareModal;
+          state.safes = result.data.safes;
+          state.invitationAcceptPending = result.data.invitation_accept_pending;
+          state.currentSafe = this.getSafeById(result.data.currentSafe);
+          state.publicKeyPem = result.data.publicKeyPem;
+          state.shareModal = result.data.shareModal;
           this.decodeKeys(result.data.ticket, result.data.ePrivateKey);
-          this.userMail = result.data.user_mail;
+          state.userMail = result.data.user_mail;
           if (result.data.onkeyremoval && WWPass.pluginPresent()) {
             WWPass.waitForRemoval().then(() => {
               window.location.href = 'logout.php';
@@ -441,13 +526,5 @@ export default {
       },
     });
   },
-
-  humanReadableFileSize(size) {
-    if (size < 1024) return `${size} B`;
-    const i = Math.floor(Math.log(size) / Math.log(1024));
-    let num = (size / Math.pow(1024, i));
-    const round = Math.round(num);
-    num = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round
-    return `${num} ${'KMGTPEZY'[i-1]}B`;
-  },
 };
+

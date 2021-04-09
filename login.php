@@ -72,7 +72,7 @@ if ($iOS) {
         $incompatible_browser = "iOS";
     }
     $h1_text = "Sorry, older verions of $iOS browsers are no longer supported";
-    $advise = "Still you can open PassHub in a desktop or a laptop browser and scan the QR code with Passkey app on your $iOS";
+    $advise = "Still you can open PassHub in a desktop or a laptop browser and scan the QR code with WWPass Key app on your $iOS";
 }
 
 // IE

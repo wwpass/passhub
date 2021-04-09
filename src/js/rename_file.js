@@ -1,4 +1,6 @@
 import $ from 'jquery';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhubCrypto from './crypto';
 import passhub from './passhub';
 
@@ -14,25 +16,24 @@ $('#id_FileRename_button').click(function () {
     $('#renameFile').modal('hide');
     return;
   }
-  passhubCrypto.decryptAesKey(passhub.currentSafe.key)
+  passhubCrypto.decryptAesKey(state.currentSafe.key)
     .then((aesKey) => {
       const newName = passhubCrypto.encryptItem([name, '', '', '', ''], aesKey);
       $.ajax({
         url: 'file_ops.php',
         type: 'POST',
         data: {
-          verifier: passhub.csrf,
+          verifier: state.csrf,
           operation: 'rename',
-          SafeID: passhub.currentSafe.id,
+          SafeID: state.currentSafe.id,
           itemId: $(this).attr('data-record_nb'),
           newName,
         },
         error: (hdr, status, err) => {
-          passhub.modalAjaxError($('#rename_file_alert'), hdr, status, err);
+          modalAjaxError($('#rename_file_alert'), hdr, status, err);
         },
         success: (result) => {
           if (result.status === 'Ok') {
-            // window.location.href = `index.php?vault=${passhub.currentSafe.id}&folder=${passhub.activeFolder}`;
             $('#renameFile').modal('hide');
             passhub.refreshUserData();
             return;

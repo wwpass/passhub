@@ -62,7 +62,7 @@ if (isset($_GET['registration_action'])) {
 
 if (isset($_GET['change_mail'])) {
     echo Utils::render(
-        'change_mail.html', 
+        'registration_action.html', 
         [
             // layout
             'narrow' => true, 
@@ -72,6 +72,8 @@ if (isset($_GET['change_mail'])) {
             //content
             'email' => $_SESSION['form_email'],
             'success' => true,
+            'change' => true,
+            'close_action' => '"index.php"', 
             'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
         ]
     );

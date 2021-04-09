@@ -11,6 +11,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" crossorigin="anonymous" 
     integrity="sha384-3ceskX3iaEnIogmQchP8opvBy3Mi7Ce34nWjpBIwVTHfGYWQS9jwHDVRnpKKHJg7"></script>
 
+    <style>
+      .qrblockExt {
+        width: auto;
+      }
+      .landingContent__code-containerExt {
+        padding: 10px;
+      }
+    </style> 
+
   </head>
   <body class="loginPage" style="background-image: url('public/img/formentera-beach.jpeg'); background-size: cover">
     <header class="container">
@@ -104,6 +113,7 @@
             </div>
             <div class="landingContent__text">
               <p class="text--sm text--center text--dark landingContent__text--qr"
+                id="qrtext"
                 style="max-width:260px;">
                 Scan the QR code with <span class="landingContent__text--qr-bold button--getStarted"
                   style="cursor:pointer; color:black;">
@@ -123,7 +133,9 @@
               </div>
             </div>
             <div class="landingContent__code-qr" id="qrcode">
+              <!--
               <canvas width="256" height="256"></canvas>
+              -->
             </div>
             <p class="text--sm text--center text--dark landingContent__text--qr landingContent__hardTokenText landingContent__hardToken">
               Or connect&nbsp;<span class="landingContent__text--qr-bold">PassKey</span>

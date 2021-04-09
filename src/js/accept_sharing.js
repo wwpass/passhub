@@ -1,5 +1,6 @@
 import $ from 'jquery';
-import passhub from './passhub';
+import state from './state';
+import { modalAjaxError } from './utils';
 
 $('#add_by_invite_btn').click(() => {
   const safename = $('#SafeName_invite').val().trim();
@@ -19,10 +20,10 @@ $('#add_by_invite_btn').click(() => {
         newSafeName: safename,
         inviteCode: invitecode,
         newUserName: username,
-        verifier: passhub.csrf,
+        verifier: state.csrf,
       },
       error: (hdr, status, err) => {
-        passhub.modalAjaxError($('#add_from_invite_name_alert'), hdr, status, err);
+        modalAjaxError($('#add_from_invite_name_alert'), hdr, status, err);
       },
       success: (result) => {
         if (result.status === 'Ok') {

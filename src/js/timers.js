@@ -1,11 +1,16 @@
 import { updateTicket } from 'wwpass-frontend';
 import $ from 'jquery';
 
+let idleStart = new Date() / 1000;
+
+function restartIdleTimers() {
+  idleStart = new Date() / 1000;
+}
+
 function initTimers(times) {
 
   const maxTicketAge = times.ttl / 2 + 30;
   let ticketTimeStamp = new Date() / 1000 - times.ticketAge;
-  let idleStart = new Date() / 1000;
 
   document.onclick = () => {
     idleStart = new Date() / 1000;
@@ -35,4 +40,9 @@ function initTimers(times) {
   }
 }
 
-initTimers(timersArgs);
+// hack, sorry
+if (typeof timersArgs !== "undefined") {
+  initTimers(timersArgs);
+}
+
+export {restartIdleTimers}

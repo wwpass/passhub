@@ -9,6 +9,58 @@
   overflow-y:auto;
 }
 
+/*------*/
+
+#safe_list_ul {
+  padding-top: 10px;
+  color: white;
+  margin-left: -10px;
+}
+#safe_list_ul details {
+  padding-left: 20px; 
+  /* padding-left:10px; */
+}
+
+#safe_list_ul details summary{
+  outline: none;
+  padding-left:10px; 
+}
+
+#safe_list_ul .leaf {
+  margin-left: 37px; 
+  /* margin-left:27px; */
+  cursor:pointer;
+  padding-left: 10px; 
+}
+
+#safe_list_ul .leaf:hover{
+  background: rgb(255,255,255,0.1);
+}
+
+#safe_list_ul summary:hover{
+  background: rgb(255,255,255,0.1);
+}
+
+#safe_list_ul .active-folder {
+  background: rgb(255,255,255,0.3);
+}
+
+#safe_list_ul .active-folder:hover {
+  background: rgb(255,255,255,0.3);
+}
+
+#safe_list_ul .menu-dots {
+  cursor:pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: $safe_list_ul-menu-dots-background;
+}
+
+
+/*------*/
+
+
 .list-item-vault {
   cursor: pointer;
   color:white;

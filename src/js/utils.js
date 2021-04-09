@@ -1,13 +1,4 @@
-import forge from 'node-forge';
 import $ from 'jquery';
-
-const createSafe = (publicKeyTxt, name, items, folders) => {
-  const aesKey = forge.random.getBytesSync(32);
-  const publicKey = forge.pki.publicKeyFromPem(publicKeyTxt);
-  const encryptedAesKey = publicKey.encrypt(aesKey, 'RSA-OAEP');
-  const hexEncryptedAesKey = forge.util.bytesToHex(encryptedAesKey);
-  return { name, aes_key: hexEncryptedAesKey };
-};
 
 const escapeHtml = (unsafe) => {
   return unsafe
@@ -24,16 +15,8 @@ function passhub_url_base() {
   return urlBase;
 }
 
-const isXs = () => {
-  if ($('#xs_indicator').is(':visible')) {
-    return true;
-  }
-  return false;
-};
-
 function serverLog(msg) {
   $.ajax({
-    // url: `index.php?current_safe=${passhub.currentSafe.id}`,
     url: 'serverlog.php',
     type: 'POST',
     data: {
@@ -45,9 +28,49 @@ function serverLog(msg) {
   });
 }
 
+function bsAlert(msg) {
+  $('#bsAlert').text(msg);
+  $('#bsAlertModal').modal('show');
+}
+
+const isXs = () => {
+  if ($('#xs_indicator').is(':visible')) {
+    return true;
+  }
+  return false;
+};
+
+function modalAjaxError(alertElement, hdr, status, err) {
+  if (hdr.status === 0) {
+    alertElement.text('You are offline. Please check your network.').show();
+    return;
+  }
+  alertElement.text(`${status} ${err}`).show();
+};
+
+const humanReadableFileSize = (size) => {
+  if (size < 1024) return `${size} B`;
+  const i = Math.floor(Math.log(size) / Math.log(1024));
+  let num = (size / Math.pow(1024, i));
+  const round = Math.round(num);
+  num = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round
+  return `${num} ${'KMGTPEZY'[i-1]}B`;
+};
+
+const isMobile = () => {
+  const isIOS = navigator.userAgent.match(/iPhone|iPod|iPad/i)
+  || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // crazy ios13 on iPad..
+  
+  const mobileDevice = isIOS || navigator.userAgent.match(/Android/i);
+  return mobileDevice;
+}
+
 export {
-  createSafe,
+  bsAlert,
   escapeHtml,
   isXs,
   serverLog,
+  modalAjaxError,
+  humanReadableFileSize,
+  isMobile
 };

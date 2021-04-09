@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "layout_req.html" %}
 
 {% block content %}
 
@@ -72,6 +72,32 @@
     .hardware {
         display: none;
     }
+
+    .landingContent__code-qr {
+        width: 256px;
+        padding:5px; 
+        margin: 0 auto;
+    }
+
+    .qrblockExt {
+        width: 90%;
+        margin: 45px auto;
+    }
+    /*
+    .landingContent__code-containerExt {
+        padding: 10px;
+    }
+    */
+    /*
+    .qrblock__codeExt {
+    width: 300px;
+    margin: 45px auto;
+    background: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    }
+    */
+
 </style>
 
     <div style='max-width: 320px; background: white; border-radius: 10px; 
@@ -80,7 +106,7 @@
 
 
 
-        <div class="landingContent__codeHeading"
+        <div class="landingContent__codeHeading_static"
             style='background: #eee; border-radius: 10px 10px 0 0'>
             <h4 class="heading heading--center heading--h4 heading--dark heading--code"
             style='font-size: 24px; line-height: 30px; padding: 10px 20px; 
@@ -108,8 +134,7 @@
                 </span> to&nbsp;open&nbsp;your vault
             </p>
         </div>
-        <div class="landingContent__code-qr" id="qrcode"
-            style='width: 256px; height: 256px; padding:5px; margin: 0 auto;'>
+        <div class="landingContent__code-qr" id="qrcode">
             <canvas width="160" height="160"></canvas>
         </div>
 
@@ -131,7 +156,7 @@
 
                   <use xlink:href="public/img/landing/sprite.svg#icon-button_logo"></use>
                 </svg>
-                Log in with PassKey
+                Log in with WWPass Key
         </button>
     </div>
 

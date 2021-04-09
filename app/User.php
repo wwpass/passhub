@@ -30,6 +30,10 @@ class User
             new \MongoDB\BSON\ObjectID($this->UserID);
     }
 
+    function updateLastSeen() {
+        $this->mng->users->updateMany(['_id' => $this->_id], ['$set' =>['lastSeen' =>Date('c')]]);
+    }
+
     public function setCurrentSafe($SafeID) {
         if (ctype_xdigit($SafeID)) {
             $result = $this->mng->users->updateMany(
@@ -66,7 +70,14 @@ class User
         return $this->profile->publicKey_CSE;
     }
 
-    public function isSiteAdmin() {
+    public function disabled() {
+        if (!isset($this->profile)) {
+            $this->getProfile();
+        }
+        return isset($this->profile->disabled) && ($this->profile->disabled == true);
+    }
+
+    public function isSiteAdmin($create_if_first = false) {
         if (!isset($this->profile)) {
             $this->getProfile();
         }
@@ -75,16 +86,31 @@ class User
         ) {
             return true;
         }
-        return false;
+        // check if we are the first:
+        $admins = $this->mng->users->find(['site_admin' => true])->toArray();
+        if( (count($admins) > 0) || !$create_if_first) {
+            return false;
+        }
+        Utils::err('first admin');
+        $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
+        return true;
     }
 
-    public function toggleSiteAdmin() {
-        if ($this->isSiteAdmin()) {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false]]);
-        } else {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
+    public function setStatus($new_status) {
+        if($new_status == 'admin') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, disabled => false]]);
+            return ['status' => "Ok"];
         }
-        return ['status' => "Ok"];
+        if($new_status == 'active') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => false]]);
+            return ['status' => "Ok"];
+        }
+        if($new_status == 'disabled') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => true]]);
+            return ['status' => "Ok"];
+        }
+        Utils::err('usr err 107 operation ' . $operation);
+        return ['status' => "Internal error"];
     }
 
     public function isCSE() {
@@ -207,7 +233,7 @@ class User
         $cursor = $this->mng->safe_users->find(['SafeID' => $SafeID, 'UserID' => $this->UserID]);
         $a = $cursor->toArray();
         if (count($a) != 1) {
-            Utils::err("get_role error 134 count " . count($a) . " UserID " . $UserID . " SafeID " . $SafeID);
+            Utils::err("get_role error 134 count " . count($a) . " UserID " . $this->UserID . " SafeID " . $SafeID);
             return false;
         }
         $row = $a[0];
@@ -588,15 +614,15 @@ class User
                             "I would like to share a safe with you in PassHub. "
                             . "If you’re new to PassHub, it is easy and fast "
                             . "to get started. To access this safe, you will first need "
-                            . "to download and initialize the WWPass PassKey mobile app "
-                            . "from the android or iOS store. Once your PassKey is ready, "
-                            . "please visit " . $_POST['origin'] . " and use the PassKey app to login"
+                            . "to download and initialize the WWPass Key mobile app "
+                            . "from the Android or iOS store. Once your WWPass Key is ready, "
+                            . "please visit " . $_POST['origin'] . " and use the WWPass Key app to login"
                             . " to your PassHub account."
                         );  
                         
                     Utils::err("share by mail: User with " . htmlspecialchars($UserName) . " not registered");
-                    return "User " . $email . " is not registered."
-                    ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
+                    return "User " . $email . " is not registered";
+                    // ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
                 }
                 $TargetUserID = (string)($a[0]->_id);
                 if ($TargetUserID == $this->UserID) {
@@ -818,16 +844,22 @@ class User
     }
 
     public function checkLdapAccess() {
+        Utils::err('checkLdapAccess');
         if (!isset($this->profile)) {
             $this->getProfile();
         }
         if (isset($this->profile->userprincipalname)) {
             $ds=ldap_connect(LDAP['url']);
+            Utils::err('Url ' . LDAP['url']);
+            Utils::err(print_r($ds,true));
+
             ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
             ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
             ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
             
             $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
+            Utils::err('Bind to ' . LDAP['bind_dn'] . ' ' . LDAP['bind_pwd']);
+            Utils::err('bind result ' . print_r($r, true));
 
             if (!$r) {
                 $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
@@ -841,16 +873,23 @@ class User
           
             $ldap_filter = "(&{$user_filter}{$group_filter})";
             $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
+            Utils::err('LDAP search with filter ' . $ldap_filter);
+            Utils::err('Base dn ' . LDAP['base_dn']);
+
             if ($sr == false) {
                 Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
             }
             $info = ldap_get_entries($ds, $sr);
+            Utils::err('User enabled: ' . $info['count']);
             $user_enabled = $info['count'];
             if ($user_enabled) {
                 return true;
             }
+            Utils::err('Ldap: access denied');
+
             return false;
         }
+        Utils::err('LDAP: no userprincipalname n user profile');
         return "not bound";
     }
 }

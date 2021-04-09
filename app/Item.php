@@ -61,8 +61,7 @@ class Item
 
         if (count($a) != 1) {
             Utils::err("error itm 307, entryID $this->entryID count is " . count($a));
-            echo "Internal server error itm 307";
-            exit();
+            return -1;
         }
         $row = $a[0];
         return $row->SafeID;
@@ -120,7 +119,7 @@ class Item
         }
     }
 
-    public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID) {
+    public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
 
         $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
 
@@ -136,10 +135,14 @@ class Item
         $user = new User($this->mng, $UserID);
 
         if (!$user->canRead($srcSafeID)) {
-            return array("no rights");
+            return "no src read";
         }
+        if (($operation == "move" ) && !$user->canWrite($srcSafeID)) {
+            return "no src write";
+        }
+
         if (!$user->canWrite($dstSafeID)) {
-            return array("no rights");
+            return "no dst write";
         }
 
         $srcKey = $user->getEncryptedAesKey($srcSafeID);
@@ -157,7 +160,7 @@ class Item
         }
         $user = new User($this->mng, $UserID); 
         if ($user->canWrite($SafeID) == false) {
-            Utils::err("error itm 150 UserID " . $UserID . " SafeID " . $SafeID);
+            Utils::err("error 150 (no rights) UserID " . $UserID . " SafeID " . $SafeID);
             return "no rights";
         }
 
@@ -212,14 +215,17 @@ class Item
     public function delete($UserID, $declaredSafeID) {
 
         $SafeID = $this->getSafe();
+        if(SafeID == -1) {
+            return "Record not found";
+        }
         if ($SafeID != $declaredSafeID) {
             Utils::err("error 186 delete_item safe mismatch: real SafeID '$SafeID', requested '$declaredSafeID'");
-            return "error 186";
+            return "Record not found";
         }
         $user = new User($this->mng, $UserID);
         if ($user->canWrite($SafeID) == false) {
             Utils::err("error del_item rights user = '$UserID' safe = '$SafeID'");
-            return "Error: You do not have enough rights to delete records";
+            return "Sorry, you do not have editor rights for this safe";
         }
 
         //get item, check if there are files
@@ -254,11 +260,11 @@ class Item
     // TODO: preserve modification data
     public function move($UserID, $sourceSafeID, $targetSafeID, $dst_folder, $data, $operation) {
 
-            /*    // TODO
-            - if dst_folder exists and belongs to dst_safe
-            - if the user has rights to write to dst_folder
-            - if the user has rights to access source folder
-            */
+        /*    // TODO
+        - if dst_folder exists and belongs to dst_safe
+        - if the user has rights to write to dst_folder
+        - if the user has rights to access source folder
+        */
         $js = json_decode($data);
         if ($js !== null) {
             if (isset($js->version) 
@@ -279,6 +285,9 @@ class Item
                 ];
                 if (isset($js->note)) {
                     $record['note'] = $js->note;
+                }
+                if (isset($js->file)) {
+                    $record['file'] = $js->file;
                 }
 
                 if ($operation == "move") {

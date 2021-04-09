@@ -18,7 +18,7 @@
                 {% if de %}
                     Wir haben eine Bestätigung an <i><b>{{ email }}</b></i>  gesendet
                 {% else %}
-                    We've sent a verification message to 
+                    We've sent a 6-digit verification code to 
                     <i><b>{{ email }}</b></i>
                 {% endif %}
 
@@ -29,18 +29,55 @@
 
                     Sollten Sie diese E-Mail nicht erhalten haben, überprüfen Sie Ihren Spam- Ordner oder <a href="feedback.php">kontaktieren Sie uns</a>.                    
                 {% else %}
-                    Click on the link in the message to activate your account.<br>
-                    If you do not receive this email, check your Spam e-mail folder 
-                    or <a href="feedback.php">contact us.</a>
+                <style>
+                    #fake_username1, #fake_password1 {
+                      border:none; 
+                      width:0;
+                      padding:0;
+                    }
+                  </style>
+
+                  <input type="text" id="fake_username1"><input type="password" id="fake_password1">
+                {% if change %}
+                    Please enter the code to change your email:
+                {% else %}
+                    Please enter the code to activate your account:
+                {% endif %}
+
+                    <style>
+                        #code6 {
+                            display: inline;
+                            width: 12em;
+                            margin-right:1.5em;
+                        }
+                        #code6_error {
+                            display: none;
+                            color: red;
+                            margin-bottom: 1em;
+                        }
+                    </style>
+
+                    <div style='margin-bottom:1.5em;'>
+                        <input type="text" placeholder="6-digit code" id="code6" class="form-control"
+                        aria-label="6-digit code" aria-describedby="basic-addon2">
+                        <button class=" btn btn-outline-primary disabled" id="button6" type="button">Verify</button>
+                    </div>
+                    <div id="code6_error">
+                    </div> 
+                    <p>
+                        If you do not receive this email, please check your Spam folder, make sure the provided email address is correct,
+                         
+                        or <a href="feedback.php">contact us.</a>
+                    </p>
                 {% endif %}
             </p>
         </div>
-        <button class="btn btn-primary" type="button" style="float:right; margin-right:1em" 
+        <button class="btn btn-secondary" type="button" style="float:right; margin-right:1em" 
           onclick="window.location.href={{close_action}}">
             {% if de %}
                 Schließen
             {% else %}
-                Close
+                I'll do it later
             {% endif %}
         </button>
     </div>
@@ -51,5 +88,57 @@
     <h4> Please try again later</h4>
 {% endif %}
 
+
 </div>
+<script>
+    document.querySelector('#code6').focus();
+    document.querySelector('#code6').addEventListener('input', function() {
+        if (document.querySelector("#code6").value.trim().length == 6) {
+            document.querySelector("#button6").classList.remove("disabled");
+            document.querySelector("#button6").classList.remove("btn-outline-primary");
+            document.querySelector("#button6").classList.add("btn-primary");
+        } else {
+            document.querySelector("#button6").classList.add("disabled");
+            document.querySelector("#button6").classList.remove("btn-primary");
+            document.querySelector("#button6").classList.add("btn-outline-primary");
+        }
+    });
+    document.querySelector('#code6').addEventListener('focus', (event) => {
+        document.querySelector("#code6_error").innerText = '';
+        document.querySelector("#code6_error").style.display = 'none';
+    });
+
+    {% if change %}
+        purpose = "change";
+    {% else %}
+        purpose = "registration";
+    {% endif %}
+
+    $('#button6').click(function() {
+        if (document.querySelector("#code6").value.trim().length != 6) {
+            return;
+        }
+        $.ajax({
+            url: 'registration_action.php',
+            type: 'POST',
+            data: {
+                code6: document.querySelector("#code6").value.trim(),
+                purpose
+            },
+            error: (hdr, status, err) => {
+                // passhub.modalAjaxError($('#delete_safe_alert'), hdr, status, err);
+            },
+            success: (result) => {
+                if (result.status === 'Ok') {
+                    console.log(result);
+                    window.location.href="index.php";
+                    return;
+                }
+                document.querySelector("#code6_error").innerText = result.status;
+                document.querySelector("#code6_error").style.display = 'block';
+            }
+        })
+    });
+
+</script>
 {% endblock %}

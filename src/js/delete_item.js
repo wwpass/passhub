@@ -1,4 +1,6 @@
 import $ from 'jquery';
+import * as utils from './utils';
+import state from './state';
 import passhub from './passhub';
 
 function deleteItem(item) {
@@ -19,17 +21,16 @@ $('#id_deleteItem_button').click(function () {
     url: 'delete.php',
     type: 'POST',
     data: {
-      vault: passhub.currentSafe.id,
-      verifier: passhub.csrf,
+      vault: state.currentSafe.id,
+      verifier: state.csrf,
       id: $(this).attr('data-record_nb'),
     },
     error: (hdr, status, err) => {
       $('#id_deleteItem_button').hide();
-      passhub.modalAjaxError($('#deleteItem').find('.alert'), hdr, status, err);
+      utils.modalAjaxError($('#deleteItem').find('.alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
-        // window.location.href = `index.php?vault=${passhub.currentSafe.id}&folder=${passhub.activeFolder}`;
         $('#deleteItem').modal('hide');
         if ($('#item_pane_title').is(':visible')) {
           passhub.showTable();
@@ -37,6 +38,12 @@ $('#id_deleteItem_button').click(function () {
         passhub.refreshUserData();
         return;
       }
+      if (result.status === 'Record not found') {
+        utils.bsAlert('Record not found. Could be erased by another user');
+        passhub.refreshUserData();
+        return;
+      }
+
       if (result.status === 'login') {
         window.location.href = 'expired.php';
         return;

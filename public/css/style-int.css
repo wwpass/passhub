@@ -29,7 +29,7 @@ body {
 .top_icon {
   stroke: white;
   vertical-align: middle;
-  margin-right: 10px;
+  margin: 0 15px;
 }
 
 .is-table-row {
@@ -55,6 +55,55 @@ body {
   overflow-y: auto;
 }
 
+/*------*/
+#safe_list_ul {
+  padding-top: 10px;
+  color: white;
+  margin-left: -10px;
+}
+
+#safe_list_ul details {
+  padding-left: 20px;
+  /* padding-left:10px; */
+}
+
+#safe_list_ul details summary {
+  outline: none;
+  padding-left: 10px;
+}
+
+#safe_list_ul .leaf {
+  margin-left: 37px;
+  /* margin-left:27px; */
+  cursor: pointer;
+  padding-left: 10px;
+}
+
+#safe_list_ul .leaf:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#safe_list_ul summary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#safe_list_ul .active-folder {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#safe_list_ul .active-folder:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+#safe_list_ul .menu-dots {
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #64a0ee;
+}
+
+/*------*/
 .list-item-vault {
   cursor: pointer;
   color: white;
@@ -188,6 +237,8 @@ body {
 
 .records_table > thead > tr > th {
   border-bottom: 2px solid #b5d0f0;
+  padding-top: 9px;
+  padding-bottom: 9px;
 }
 
 thead {
@@ -395,7 +446,7 @@ h1 {
   background-color: #dae6f2;
   color: #333;
   font-size: 18px;
-  padding: 15px 0 10px 0;
+  padding: 15px 0 0 0;
 }
 
 /* multiple occasions, pw hide/show */
@@ -510,6 +561,16 @@ article h3 {
 .toast:not(:last-child) {
   margin-right: 1rem;
   margin-bottom: 1rem;
+}
+
+#search_string {
+  background-color: #dae6f2;
+  padding: 0 0.75rem;
+  height: 30px;
+}
+
+#search_string_xs {
+  background-color: #dae6f2;
 }
 
 /*# sourceMappingURL=style-int.biz.css.map */

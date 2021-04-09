@@ -41,7 +41,7 @@ try {
         $sp = explode("@", $ticket)[1];
     }
     $dt = number_format((microtime(true) - $t0), 3);
-    Utils::timingLog("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+    // Utils::timingLog("get    " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 } catch (WWPass\Exception $e) {
     $err_msg = 'Caught WWPass exception: ' . $e->getMessage();
     Utils::err(get_class($e));

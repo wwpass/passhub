@@ -47,7 +47,7 @@ function move_record_proxy($mng) {
         return "internal error mov 42";
     }
     $operation = $_POST['operation'];
-    if (($operation != "move") && ($operation != "copy") && ($operation != "get data")) {
+    if (($operation != "move") && ($operation != "copy")) {
         Utils::err("error mov 55");
         return "internal error mov 55";
     }
@@ -63,10 +63,11 @@ function move_record_proxy($mng) {
         return "internal error mov 66";
     }
 
-    if ($operation == "get data") {
+    if (isset($_POST['checkRights'])) {
         $item = new Item($mng, $entryID);
-        return $item->getMoveOperationData($UserID, $SafeID, $TargetSafeID);
+        return $item->getMoveOperationData($UserID, $SafeID, $TargetSafeID, $operation);
     }
+
     $new_item = trim($_POST['item']);
     $dst_folder = 0;
     if (isset($_POST['dst_folder'])) {

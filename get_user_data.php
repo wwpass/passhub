@@ -31,12 +31,11 @@ function getUserDataProxy($mng)
     if (!isset($_SESSION['UserID'])) {
         return ["status" => "login"];
     }
-
     if (isset($_POST['verifier']) && !Csrf::isValid($_POST['verifier'])) {
-        Utils::err("get user data bad verifier " . $_POST['verifier'] . " vs " . $_SESSION['csrf']);
+        Utils::err("get user data bad verifier1 " . $_POST['verifier'] . " vs " . $_SESSION['csrf']);
         return "Internal error";
     } else if (isset($_POST['csrf']) && !Csrf::isValid($_POST['csrf'])) {
-        Utils::err("get user data bad verifier " . $_POST['csrf'] . " vs " . $_SESSION['csrf']);
+        Utils::err("get user data bad csrf1 " . $_POST['csrf'] . " vs " . $_SESSION['csrf']);
         return "Internal error";
     } else if (!isset($_POST['verifier']) && !isset($_POST['csrf']) ) {
         Utils::err("get user data no verifier ");

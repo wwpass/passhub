@@ -1,264 +1,244 @@
 import $ from 'jquery';
-import openmailclient from './openmailclient';
-import './account';
+import 'jquery-contextmenu';
+import axios from 'axios';
 
-page_args.verifier = document.getElementById('csrf').getAttribute('data-csrf');
+// import openmailclient from './openmailclient';
+// import './account';
+import './timers';
 
-function userTable() {
+let verifier = document.getElementById('csrf').getAttribute('data-csrf');
+
+function cmp(o1, o2) {
+  const u1 = o1.email.toUpperCase();
+  const u2 = o2.email.toUpperCase();
+  if (u1 < u2) {
+    return -1;
+  }
+  if (u1 > u2) {
+    return 1;
+  }
+  return 0;
+}
+
+function userTable(data) {
   const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
   $('#th_seen').html(`Seen<br> (${timeZone})`);
-  const { users } = page_args;
+
+  $('#stats').text(data.stats);
+
+  let {users} = data;
+
+  users.sort(cmp);
+
+  const userTableBody = document.querySelector('#userTableBody');
+  while (userTableBody.firstChild) {
+    userTableBody.removeChild(userTableBody.firstChild);
+  }
+
   for (let u = 0; u < users.length; u++) {
     if (!users[u].email) {
       users[u].email = '-';
     }
-    let row = '<tr>';
-    if (users[u]._id == page_args.me) {
+
+    let role = 'active';
+    if(users[u].disabled) {
+      role = 'disabled';
+    } else if(users[u].site_admin) {
+      role = 'admin';
+    } else if(!users[u]._id) {
+      role = 'invited';
+    }
+
+    let row = `<tr data-email = ${users[u].email} data-id = ${users[u]._id}>`;
+    if (users[u]._id == data.me) {
+      row = '<tr style="font-weight:bold">'
       row += '<td></td>';
-      row += '<td>';
-      if (users[u].site_admin) {
-        row += "<svg class='top_icon' style='stroke-width:0; fill: green' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#checked'></use></svg>";
-//        row += "<svg class='top_icon' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#i-search'></use></svg>";    
-//        '<span class = "glyphicon glyphicon-check" 
-//          style="color:grey; display:block; text-align:center; margin:0 auto;"></span></td>';
-      } else {
-        row += "<svg class='top_icon' style='stroke: grey' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#unchecked'></use></svg></td>";
-      }
+      row += `<td style="text-align:center;">${role}</td>`; 
       row += `<td><b>${users[u].email}</b></td>`;
       //row += `<td><b>${users[u]._id}</b></td>`;
       row += `<td><b>${users[u].safe_cnt}</b></td>`;
       row += `<td><b>${users[u].shared_safe_cnt}</b></td><td><b>That's You</b></td></tr>`;
     } else {
-      row += `<td class="delete_user" style="cursor:pointer" data-mail = ${users[u].email} data-id = ${users[u]._id}>
+      row += `<td class="delete_user" style="cursor:pointer">
       <svg style='stroke-width:0; fill: red' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#cross'></use></svg>
       </td>`;
-      row += `<td class="site_admin" style="cursor:pointer"  data-mail = ${users[u].email} data-id = ${users[u]._id}>`;
-      if (users[u].site_admin) {
-        row += "<svg class='top_icon' style='stroke-width:0; fill: green' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#checked'></use></svg></td>";
+
+      if(role == 'invited') {
+        row += `<td style="text-align:center;">authorized</td>`; 
+        row += `<td>${users[u].email}</td>`;
+        row += '<td></td><td></td><td></td>';
       } else {
-        row += "<svg class='top_icon' style='stroke-width:0; fill: grey' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#unchecked'></use></svg></td>";
-      }
-      row += `<td>${users[u].email}</td>`;
-      // row += `<td>${users[u]._id}</td>`;
-      row += `<td>${users[u].safe_cnt}</td>`;
-      const seen = new Date(users[u].lastSeen).toLocaleString();
-      row += `<td>${users[u].shared_safe_cnt}</td><td>${seen}</td></tr>`;
+        row += `<td style="text-align:center;"><span class='user_status_selector dropdown-toggle'>${role}</span></td>`; 
+        row += `<td>${users[u].email}</td>`;
+        // row += `<td>${users[u]._id}</td>`;
+        row += `<td>${users[u].safe_cnt}</td>`;
+        const seen = new Date(users[u].lastSeen).toLocaleString();
+        row += `<td>${users[u].shared_safe_cnt}</td><td>${seen}</td></tr>`;
+        }
     }
     $('#userTableBody').append(row);
   }
+  $('#newUserMail').val('');
 }
 
-userTable();
+function getPageData() {
 
-$('.delete_user').click(function () {
-  $('#user_mail').text($(this).attr('data-mail'));
-  $('#user_id').text($(this).attr('data-id'));
+  axios.post('iam.php', {
+      verifier,
+      operation: 'users'
+  }).then((result) => {
+    console.log(result);
+    if (result.data.status === 'Ok') {
+      userTable(result.data);
+      return;
+    }
+    if (result.data.status === 'login') {
+      window.location.href = 'expired.php';
+      return;
+    }
+  })
+  .catch((error) =>{console.log(error)})
+}  
+
+setTimeout(function() {
+  $('#newUserMail').val('');
+}, 1000)
+getPageData();
+
+$('#userTableBody').on('click', '.delete_user', function () {
+  const tr = $(this)[0].closest('tr');
+  let {email, id} = tr.dataset;
+  $('#user_mail').text(email);
+  if( !id ||  (id == "undefined")) {
+    id ='';
+  }
+  $('#user_id').text(id);
   $('#deleteUserModal').modal('show');
 });
 
 $('#deleteUserModal').on('show.bs.modal', () => {
   $('#delete_user_alert').text('').hide();
 });
-/*
-$('.invite_external_user').click(() => {
-  $('#inviteByMail').modal('show');
-});
-*/
-$('.white_list').click(() => {
-  $('#mailWhiteList').modal('show');
-});
 
-function fillWhiteList(mailArray) {
-
-  function cmp(o1, o2) {
-    const u1 = o1.email.toUpperCase();
-    const u2 = o2.email.toUpperCase();
-    if (u1 < u2) {
-      return -1;
-    }
-    if (u1 > u2) {
-      return 1;
-    }
-    return 0;
-  }
-
-  if (mailArray.length === 0) {
-    $('#white_list_ul').append('<div style="list-style-type: none;">&lt;List of invited users: empty.&gt;</div>');
-    return;
-  }
-
-  mailArray.sort(cmp);
-
-  for (let m = 0; m < mailArray.length; m++) {
-//    const rm = `<span class = "glyphicon glyphicon-remove" data-mail = ${mailArray[m].email}></span>`;
-    const rm = `<span style="cursor:pointer" data-mail = ${mailArray[m].email}><svg style='stroke-width:0; fill: red' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#cross'></use></svg></span>`;
-    $('#white_list_ul').append(`<div class='white_list_item'>${rm} ${mailArray[m].email}</div>`);
-  }
-}
-
-$('body').on('click', '.white_list_item>span', function () {
-  const email = $(this).attr('data-mail');
-  $.ajax({
-    url: 'iam.php',
-    type: 'POST',
-    data: {
-      verifier: page_args.verifier,
-      deleteMail: email,
-    },
-    error: (hdr, status, err) => {
-      $('#inviteByMailAlert').text(`${status} ${err}`).show();
-    },
-    success: (result) => {
-      if (result.status === 'Ok') {
-        $('#newUserMail').val('').focus();
-        $('#white_list_ul').empty();
-        fillWhiteList(result.mail_array);
-        return;
-      }
-      if (result.status === 'login') {
-        window.location.href = 'expired.php';
-        return;
-      }
-      $('#inviteByMailAlert').html(result.status).show();
-    },
-  });
-});
-
-$('#mailWhiteList').on('shown.bs.modal', () => {
-  $('#white_list_ul').empty();
-  $.ajax({
-    type: 'GET',
-    data: {
-      white_list: true,
-    },
-    error: (hdr, status, err) => {
-      $('#delete_user_alert').text(`${status} ${err}`).show();
-    },
-    success: (result) => {
-      if (result.status === 'Ok') {
-        fillWhiteList(result.mail_array);
-        return;
-      }
-      if (result.status === 'login') {
-        window.location.href = 'expired.php';
-      }
-    },
-  });
-});
-
-$('.site_admin').click(function () {
-  $.ajax({
-    url: 'edit_user.php',
-    type: 'POST',
-    data: {
-      verifier: page_args.verifier,
-      id: $(this).attr('data-id'),
-      //   email:  $('#user_mail').text(),
-    },
-    error: (hdr, status, err) => {
-      alert(`${status} ${err}`);
-    },
-    success: (result) => {
-      if (result.status === 'Ok') {
-        window.location.href = 'iam.php';
-        return;
-      }
-      if (result.status === 'login') {
-        window.location.href = 'expired.php';
-        return;
-      }
-      alert(result.status);
-    },
-  });
-});
-
-$('#deleteUserBtn').click(() => {
-  $.ajax({
-    url: 'delete_user.php',
-    type: 'POST',
-    data: {
-      verifier: page_args.verifier,
+$('#deleteUserBtn').on('click', function() {
+  axios.post('iam.php', {
+      verifier,
+      operation: 'delete',
       id: $('#user_id').text(),
       email: $('#user_mail').text(),
-    },
-    error: (hdr, status, err) => {
-      $('#delete_user_alert').text(`${status} ${err}`).show();
-    },
-    success: (result) => {
-      if (result.status === 'Ok') {
-        window.location.href = 'iam.php';
-        return;
-      }
-      if (result.status === 'login') {
-        window.location.href = 'expired.php';
-        return;
-      }
-      $('#delete_user_alert').html(result.status).show();
-    },
+  })
+  .then( (result) => {
+    if (result.data.status === 'Ok') {
+      $('#deleteUserModal').modal('hide');
+      getPageData();
+      return;
+    }
+    if (result.data.status === 'login') {
+      window.location.href = 'expired.php';
+      return;
+    }
+    $('#delete_user_alert').html(result.data.status).show();
+  })
+  .catch((error) => {
+    alert(error);
   });
 });
 
-// $('#newUserMail').on('input', function () {
-$('#newUserMail').focusin(() => {
-  if ($('#inviteByMailAlert').is(':visible')) {
-    $('#inviteByMailAlert').text('').hide();
-  }
-});
-
-$('.white_list_cancel').on('click', () => {
-  $('#newUserMail').val('').focus();
-});
-
-/*
-function openMailClient(to, subj, body) {
-  const encodedBody = encodeURIComponent(body); 
-  const link = `mailto:${to}?subject=${subj}&body=${encodedBody}`;
-  $('#mailhref').attr('href', link);
-  document.getElementById('mailhref').click();
-}
-*/
-
-$('#id_SubmitNewUserMail').click(() => {
+function submitNewUser() {  
   const email = $('#newUserMail').val().trim();
   const re = /\S+@\S+\.\S+/;
 
   if (!re.test(email)) {
-    $('#inviteByMailAlert').text(' * Please provide a valid email address').show();
+    $('#inviteByMailAlert').text('Please provide a valid email address').show();
     return;
   }
+  axios.post('iam.php',
+    {
+      verifier,
+      operation: "newuser",
+      email,
+  })
+  .then((result) =>{
+    if (result.data.status === 'Ok') {
+      getPageData();
+      return;
+    }
+    if (result.data.status === 'login') {
+      window.location.href = 'expired.php';
+      return;
+    }
+    $('#inviteByMailAlert').html(result.data.status).show();
 
-  $.ajax({
-    url: 'iam.php',
-    type: 'POST',
-    data: {
-      verifier: page_args.verifier,
-      newUserMail: email,
-    },
-    error: (hdr, status, err) => {
-      $('#inviteByMailAlert').text(`${status} ${err}`).show();
-    },
-    success: (result) => {
-      if (result.status === 'Ok') {
-        $('#newUserMail').val('').focus();
-        $('#white_list_ul').empty();
-        fillWhiteList(result.mail_array);
-        const url = window.location.href.substring(0, window.location.href.lastIndexOf('/')) + '/';
-        const subj = `You have been granted access to ${url} password manager`;
-        const body = `Please follow the instructions on \n\n ${url} \n\n to create your account`;
-        openmailclient.openMailClient(email, subj, body);
-        return;
-      }
-      if (result.status === 'login') {
-        window.location.href = 'expired.php';
-        return;
-      }
-      $('#inviteByMailAlert').html(result.status).show();
-    },
-  });
-});
+  })
+  .catch((error) => {
+    alert(error);
+  })
+};
 
-$('#mailWhiteList').on('shown.bs.modal', () => {
+$('#SubmitNewUserMail').on('click', submitNewUser);
+
+$('#newUserMail').on('keydown', function(e) {
   $('#inviteByMailAlert').text('').hide();
-  $('#invitation_mail').text("You are invited to create an account at ");
-  $('#newUserMail').val('').focus();
+  if(e.key == "Enter") {
+    submitNewUser();
+  }
+});  
+
+$('#newUserMail').on('focusin', () => {
+  $('#inviteByMailAlert').text('').hide();
 });
+
+function setStatus(jQitem, operation) {
+  const tr = jQitem[0].closest('tr');
+  const { email, id} = tr.dataset;
+  axios.post('iam.php',
+    {
+      verifier,
+      operation,
+      id,
+      email,
+  })
+  .then((result) => {
+    if (result.data.status === 'Ok') {
+      getPageData();
+      return;
+    }
+    if (result.data.status === 'login') {
+      window.location.href = 'expired.php';
+      return;
+    }
+    alert(result.data.status);
+  })
+  .catch((error) => {
+    alert(error);
+  })
+}
+
+const roleMenu = {
+  selector: '.user_status_selector',
+  trigger: 'left',
+  delay: 100,
+  autoHide: true,
+  items: {
+    active: {
+      name: 'active',
+      callback: function () {
+        setStatus($(this), 'active');
+      },
+    },
+    disabled: {
+      name: 'disabled',
+      callback: function () {
+        setStatus($(this), 'disabled');
+      },
+    },
+    admin: {
+      name: 'admin',
+      callback: function () {
+        setStatus($(this), 'admin');
+      },
+    },
+  },
+};
+
+$.contextMenu(roleMenu);

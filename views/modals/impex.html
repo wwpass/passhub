@@ -45,27 +45,35 @@
             <div class="alert alert-danger" role="alert" 
                 id="restore_alert" style="margin-top:15px">
             </div>
-
-            <div class="custom-file">
-                <input type="file" class="custom-file-input" id="import_form_fileinput_id" name="filename" accept=".xml,.csv">
-                <label class="custom-file-label text-truncate" for="customFile">Choose file</label>
-            </div>
-
-            <div class = "card bg-light p-3" style='margin: 1rem 0'>
-                <p><b>Select mode:</b></p>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="restore_mode" value="Import" checked>
-                    <label class="form-check-label">Import into a new safe</label>
+            <div class='restore_parameters'>    
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="import_form_fileinput_id" name="filename" accept=".xml,.csv">
+                    <label class="custom-file-label text-truncate" for="customFile">Choose file</label>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="restore_mode" value="Restore">
-                    <label class="form-check-label">Restore (Merge into existing safes where possible)</label>
-                    </div>
-            </div>
 
-            <p>
-            Supported file types  are CSV and KeePass 2.x XML
-            </p>
+                <div class = "card bg-light p-3" style='margin: 1rem 0'>
+                    <p><b>Select mode:</b></p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="restore_mode" value="Import" checked>
+                        <label class="form-check-label">Import into a new safe</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="restore_mode" value="Restore">
+                        <label class="form-check-label">Restore (Merge into existing safes where possible)</label>
+                        </div>
+                </div>
+
+                <p>
+                Supported files are (auto-detect)
+                <ul>
+                    <li>KeePass 2.x XML</li>
+                    <li>KeePassX CSV</li>
+                    <li>Chrome passwords CSV</li>
+                    <li>Firefox passwords CSV</li>
+                    <li>Lastpass CSV</li>
+                </ul>
+                </p>
+            </div>
         </div>
 
         <div class="modal-footer">

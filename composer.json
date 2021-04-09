@@ -7,11 +7,13 @@
         "wwpass/apiclient": "^4.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8"
+        "phpunit/phpunit": "^8",
+        "helmich/mongomock": "^2.4"
     },
     "autoload": {
         "psr-4": {
             "PassHub\\": "app/"
         }
     }
+
 }

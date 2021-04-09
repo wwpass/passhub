@@ -16,7 +16,7 @@ td {
 
 table {
     border-collapse: collapse;
-    margin: 20px;
+    width:100%;
 }
 
 table, th, td {
@@ -29,9 +29,14 @@ table, th, td {
    overflow-y:visible;
    overflow-x:hidden;
 }
+
+.user_status_selector {
+  cursor: pointer;
+  text-decoration: underline;
+}
 </style>
 
-<div class="card col-12 col-lg-10 col-8 phub-dialog">
+<div class="card col-12 col-xl-10 phub-dialog">
   <div class="card-header">
     <h1>User Management
       <button type="button" class="close" 
@@ -44,44 +49,49 @@ table, th, td {
   <div class="card-body">
 
     <div class="card">
-      <pre style="margin:20px; font-size: 16px">{{ stats }}</pre>
+      <pre id="stats" style="margin:20px; font-size: 16px"></pre>
     </div>
 
-    <div style='margin:20px;'>
-        <div style='display: inline-block'>
-          <svg style='stroke-width:0; fill: red' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#cross'></use></svg>
-           delete a user
-          <br>
-          <svg style='stroke-width:0; fill: green' width='24' height='24'><use xlink:href='public/img/SVG2/sprite.svg#checked'></use></svg>
-           toogle admin rights
-        </div>
-        <div style='/*display: inline-block; */ float:right'>
-            <a href='#' class='white_list' style='float:right; font-size: larger' >Mail White list</a>
-            <br>
-    <!--
-            <button class='btn btn-default invite_external_user' style='float:right' >Invite external user</button>
-    -->
-        </div>
-    </div>
+<style>
+  #fake_username1, #fake_password1 {
+    border:none; 
+    width:0;
+    padding:0;
+  }
+</style>
 
+    <div>
+      <div style='background:#eee; height:4em;padding:0.5em 1em 0.3em; margin: 1em 0 0 0;'>
+        <input type="text" id="fake_username1"><input type="password" id="fake_password1">
+        <span id='inviteByMailAlert' style='color:red; outline-style:none;'></span> 
+        <span style='float:right;'>
+          Authorize
+          <input type="email" id="newUserMail" maxlength=254 autocomplete="off" 
+          placeholder='Email' style='width:20em;height:2em; margin:0 0.5em'>
+          <button type="button" class="btn btn-sm btn-primary " 
+          id="SubmitNewUserMail" style="vertical-align: top;">Ok</button>
+        </span>
+      </div>
 
-    <div class = "iam_table_scroll_control" >
-        <table style="margin: 0 auto">
-            <thead>
-                <tr>
-                <th></th>
-                <th>Admin</th>
-                <th>Mail</th>
-                <!--<th>ID</th>-->
-                <th>Safes<br>total</th>
-                <th>Safes<br>shared</th>
-                <th id='th_seen'>Seen</th>
-                </tr>
-            </thead>
-            <tbody  id='userTableBody'>
-            </tbody>
-        </table>
-    </div>
+      <div class = "iam_table_scroll_control" >
+          <table style="width:100%">
+              <thead>
+                  <tr>
+                  <th></th>
+                  <th style="min-width: 7em;">Status</th>
+                  <th style='width: 40%'>Mail</th>
+                  <!--<th>ID</th>-->
+                  <th>Safes<br>total</th>
+                  <th>Safes<br>shared</th>
+                  <th id='th_seen' style='min-width: 14em'>Seen</th>
+                  </tr>
+              </thead>
+              <tbody  id='userTableBody'>
+              </tbody>
+          </table>
+      </div>
+    </div>  
+
   </div>
 </div>
 
@@ -107,6 +117,7 @@ table, th, td {
   </div>
 </div>
 
+<!--
 <style>
   
   .white_list_cancel {
@@ -141,6 +152,7 @@ table, th, td {
 
 </style>
 
+
 <div class="modal" id="mailWhiteList" tabindex="-1" role="dialog" aria-labelledby="inviteByMailLabel">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -164,21 +176,19 @@ table, th, td {
     </div>
   </div>
 </div>  
+
+
+<a id="mailhref"></a>
+-->
+
 <div id="csrf" data-csrf='{{ verifier }}' style='display:none'>
 </div>
-<a id="mailhref"></a>
 
-<script>
-var page_args = {
-    users: JSON.parse('{{ users | raw }}'),
-    me: "{{ me }}"
-}
-</script>
+{{include ('modals/idle_and_removal.html')}}
 
 <script src = "public/js/dist/iam.js?v=191212"></script> 
 
 </div>
 </div>
 
-{{include ('modals/idle_and_removal.html')}}
 {% endblock %}

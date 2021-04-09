@@ -15,7 +15,7 @@ function showAlert(message) {
 function cancelFileForm() {
   progress.unlock();
   $('#file_form_page').hide();
-  $('#index_page_row').show();
+  $('.main-page').show();
   passhub.indexPageResize();
 }
 
@@ -105,7 +105,7 @@ function submitFileForm() {
         progress.unlock();
         if (result.status === 'Ok') {
           $('#file_form_page').hide();
-          $('#index_page_row').show();
+          $('.main-page').show();
           passhub.indexPageResize();
           passhub.refreshUserData();
           return;
@@ -146,7 +146,7 @@ function showFileForm(initParams) {
   $('.file_form_save').show();
   $('.file_form_close').show();
 
-  $('#index_page_row').hide();
+  $('.main-page').hide();
   $('#file_form_page').show();
   $.ajax({
     url: 'create_file.php',

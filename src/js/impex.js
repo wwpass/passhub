@@ -1,6 +1,8 @@
 import $ from 'jquery';
 import forge from 'node-forge';
 import { saveAs } from 'file-saver';
+import { modalAjaxError } from './utils';
+import state from './state';
 import passhub from './passhub';
 import * as utils from './utils';
 import {
@@ -84,8 +86,8 @@ function doBackupCSV3() {
   if (passhub.exportSafe) {
     exportSafe(passhub.exportSafe);
   } else {
-    for (let s = 0; s < passhub.safes.length; s++) {
-      exportSafe(passhub.safes[s]);
+    for (let s = 0; s < state.safes.length; s++) {
+      exportSafe(state.safes[s]);
     }
   }
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -189,8 +191,8 @@ function doBackupXML2() {
   xml += '            <Name>Passhub</Name>\r\n';
 
   if (!passhub.exportSafe) {
-    for (let s = 0; s < passhub.safes.length; s++) {
-      exportSafe(passhub.safes[s]);
+    for (let s = 0; s < state.safes.length; s++) {
+      exportSafe(state.safes[s]);
     }
   } else {
     exportSafe(passhub.exportSafe);
@@ -231,11 +233,11 @@ $('#backup_button').click(() => {
     type: 'POST',
     data: {
       export: 1,
-      verifier: passhub.csrf,
+      verifier: state.csrf,
     },
     error: (hdr, status, err) => {
       $('#backup_button').hide();
-      passhub.modalAjaxError($('#backup_alert'), hdr, status, err);
+      modalAjaxError($('#backup_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -267,7 +269,7 @@ $('#backup_button').click(() => {
 function uploadImportedData(safeArray) {
   if (safeArray.length === 0) {
     $('#import_button').hide();
-    $('#restoreModal .modal-body').hide();
+    $('#restoreModal .restore_parameters').hide();
     $('#restore_alert').text('no records to update').show();
     return;
   }
@@ -276,12 +278,12 @@ function uploadImportedData(safeArray) {
     type: 'POST',
     data: {
       import: safeArray,
-      verifier: passhub.csrf,
+      verifier: state.csrf,
     },
     error: (hdr, status, err) => {
       $('#import_button').hide();
-      $('#restoreModal .modal-body').hide();
-      passhub.modalAjaxError($('#restore_alert'), hdr, status, err);
+      $('#restoreModal .restore_parameters').hide();
+      modalAjaxError($('#restore_alert'), hdr, status, err);
     },
     success: (result) => {
       if (result.status === 'Ok') {
@@ -290,7 +292,7 @@ function uploadImportedData(safeArray) {
         return;
       }
       $('#import_button').hide();
-      $('#restoreModal .modal-body').hide();
+      $('#restoreModal .restore_parameters').hide();
       $('#restore_alert').html(result.status).show();
     },
   });
@@ -299,7 +301,7 @@ function uploadImportedData(safeArray) {
 $('#restoreModal').on('show.bs.modal', () => {
   $('#restore_alert').text('').hide();
   $('#import_button').show();
-  $('#restoreModal .modal-body').show();
+  $('#restoreModal .restore_parameters').show();
 
   document.querySelector('#import_form_fileinput_id').value = '';
   $('#import_form_fileinput_id').next('.custom-file-label').html('Choose File');
@@ -344,7 +346,7 @@ $('#import_button').click(() => {
       $('#restore_alert').text(err).show();
       return;
     }
-    const { publicKeyPem } = passhub;
+    const publicKeyPem = state.publicKeyPem;
     const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
 
     const restoreMode = document.querySelector('input[name="restore_mode"]:checked').value;
@@ -354,12 +356,12 @@ $('#import_button').click(() => {
         type: 'POST',
         data: {
           export: 1,
-          verifier: passhub.csrf,
+          verifier: state.csrf,
         },
         error: (hdr, status, err) => {
           $('#import_button').hide();
-          $('#restoreModal .modal-body').hide();
-          passhub.modalAjaxError($('#restore_alert'), hdr, status, err);
+          $('#restoreModal .restore_parameters').hide();
+          modalAjaxError($('#restore_alert'), hdr, status, err);
         },
         success: (result) => {
           if (result.status === 'login') {
@@ -371,7 +373,7 @@ $('#import_button').click(() => {
               .then(safeArray => uploadImportedData(safeArray));
           }
           $('#import_button').hide();
-          $('#restoreModal .modal-body').hide();
+          $('#restoreModal .restore_parameters').hide();
           $('#restore_alert').html(result.status).show();
           return false;
         },
