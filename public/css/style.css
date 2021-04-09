@@ -622,14 +622,14 @@ main {
 
 .landingContent__code-qr {
   width: 160px;
-  height: 160px;
+  /* height: 160px;*/
   padding: 5px;
   margin: 0 auto; }
-  .landingContent__code-qr canvas {
+.landingContent__code-qr canvas {
     width: 160px !important;
     height: 160px !important;
     display: block !important; }
-  .landingContent__code-qr img {
+.landingContent__code-qr img {
     display: none !important; }
 
 .landingContent__list {
@@ -907,7 +907,8 @@ main {
     right: -80px; }
   .landingContent__code-qr {
     width: 256px;
-    height: 256px; }
+/*    height: 256px; */ 
+  }
   .landingContent__code-qr canvas {
     width: 256px !important;
     height: 256px !important; }

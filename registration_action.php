@@ -92,11 +92,11 @@ $url = strtolower($_POST['base_url']);
 $parts = explode("@", $email);
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
+    $error_msg = "Invalid email address: " . htmlspecialchars($email);
 } else if (count($parts) != 2) {
-    $error_msg = "Invalid e-mail address: " . htmlspecialchars($email);
+    $error_msg = "Invalid email address: " . htmlspecialchars($email);
 } else if (!Iam::isMailAuthorized($mng, $email)) {
-    $error_msg = "<p>The e-mail address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
+    $error_msg = "<p>The email address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
 } else {
     $puid = new Puid($mng, $_SESSION['PUID']);
     $result = $puid->getVerificationCode($email);

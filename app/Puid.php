@@ -35,6 +35,7 @@ class Puid
     }
 
     public function getUserByPuid() {
+
         $cursor = $this->mng->users->find([ 'PUID' => $this->PUID ]);
         $puids = $cursor->toArray();
         $num_puids = count($puids);
@@ -51,6 +52,8 @@ class Puid
                 return array("status" => "not found");
             }
             if ($num_puids == 1) {
+                $user = new User($this->mng, $puids[0]->UserID);
+                $user->updateLastSeen();
                 return array("UserID" => $puids[0]->UserID, "status" => "Ok");
             }
         }
@@ -64,7 +67,7 @@ class Puid
         $codes = $cursor->toArray();
         $num_users = count($codes);
         if ($num_users  != 0) {
-            return ["status" => "This e-mail address is already in use. Please provide another e-mail address."];
+            return ["status" => "This email address is already in use. Please provide another email address."];
         }
         $v1 = random_int(0, 9999);
         $v2 = random_int(0, 9999);

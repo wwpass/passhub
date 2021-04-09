@@ -4,11 +4,22 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% if description is defined %}
+    <meta name="description" content="{{description}}">
+    {% else %}
     <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
+    {% endif %}
+
     <link rel="icon" type="image/png" href="public/img/favicon.ico">
     <title>PassHub</title>
     <link rel="stylesheet" href="public/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/css/style-int.css?v=210216">
+    <link rel="stylesheet" href="public/css/style-int.css?v=210222">
+
+    <style>
+      .text--white-link:visited {
+        color: white;
+      }
+    </style>
 
 {% if google_analytics is not defined and hideContentSecurityPolicy is not defined %}  
 <!--

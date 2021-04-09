@@ -426,6 +426,8 @@ export default {
           }
         } else {
           safes.showSafes();
+          this.showSafes(); // mobile: start with safes pane
+
           // safes.setActiveFolder(state.currentSafe.id);
           this.indexPageResize();
         }

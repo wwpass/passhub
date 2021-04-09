@@ -51,7 +51,7 @@ try {
     $dt = number_format((microtime(true) - $t0), 3);
     $sp = explode("@", $_SESSION['wwpass_ticket'])[1];
 
-    Utils::timingLog("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
+    // Utils::timingLog("update " . $dt . " " . $_SERVER['REMOTE_ADDR'] . " @" . $sp);
 
     $_SESSION['wwpass_ticket_creation_time'] = time();
 } catch (Exception $e) {

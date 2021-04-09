@@ -160,7 +160,7 @@ class Item
         }
         $user = new User($this->mng, $UserID); 
         if ($user->canWrite($SafeID) == false) {
-            Utils::err("error itm 150 UserID " . $UserID . " SafeID " . $SafeID);
+            Utils::err("error 150 (no rights) UserID " . $UserID . " SafeID " . $SafeID);
             return "no rights";
         }
 

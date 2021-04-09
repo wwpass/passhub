@@ -304,9 +304,11 @@ const show = (folder) => {
     }
     $('.empty_safe').hide();
     $('#records_table').show();
+    /*
     if (found.length > 0) {
       syncSearchSafe(found[0]._id);
     }
+    */
     passhub.showTable();
     return;  
   }
@@ -886,6 +888,7 @@ const itemMenuRight = {
 $.contextMenu(itemMenuRight);
 
 function syncSearchSafe(itemID) {
+  
   const item = getItemById(itemID);
   if ((state.currentSafe.id == item.SafeID) && (state.activeFolder == item.folder)) {
     return;
@@ -893,6 +896,7 @@ function syncSearchSafe(itemID) {
   passhub.setActiveSafe(item.SafeID);
   safes.setActiveFolder(item.folder, true);
   passhub.makeCurrentVaultVisible();
+  
 }
 
 

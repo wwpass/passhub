@@ -30,6 +30,10 @@ class User
             new \MongoDB\BSON\ObjectID($this->UserID);
     }
 
+    function updateLastSeen() {
+        $this->mng->users->updateMany(['_id' => $this->_id], ['$set' =>['lastSeen' =>Date('c')]]);
+    }
+
     public function setCurrentSafe($SafeID) {
         if (ctype_xdigit($SafeID)) {
             $result = $this->mng->users->updateMany(
@@ -66,7 +70,14 @@ class User
         return $this->profile->publicKey_CSE;
     }
 
-    public function isSiteAdmin() {
+    public function disabled() {
+        if (!isset($this->profile)) {
+            $this->getProfile();
+        }
+        return isset($this->profile->disabled) && ($this->profile->disabled == true);
+    }
+
+    public function isSiteAdmin($create_if_first = false) {
         if (!isset($this->profile)) {
             $this->getProfile();
         }
@@ -75,16 +86,31 @@ class User
         ) {
             return true;
         }
-        return false;
+        // check if we are the first:
+        $admins = $this->mng->users->find(['site_admin' => true])->toArray();
+        if( (count($admins) > 0) || !$create_if_first) {
+            return false;
+        }
+        Utils::err('first admin');
+        $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
+        return true;
     }
 
-    public function toggleSiteAdmin() {
-        if ($this->isSiteAdmin()) {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false]]);
-        } else {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
+    public function setStatus($new_status) {
+        if($new_status == 'admin') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, disabled => false]]);
+            return ['status' => "Ok"];
         }
-        return ['status' => "Ok"];
+        if($new_status == 'active') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => false]]);
+            return ['status' => "Ok"];
+        }
+        if($new_status == 'disabled') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => true]]);
+            return ['status' => "Ok"];
+        }
+        Utils::err('usr err 107 operation ' . $operation);
+        return ['status' => "Internal error"];
     }
 
     public function isCSE() {

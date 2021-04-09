@@ -280,9 +280,9 @@ function searchOff() {
   if (state.searchMode) {
     state.searchMode = false;
     if(state.activeFolder) {
-      setActiveFolder(state.activeFolder);
+      setActiveElement(state.activeFolder);
     } else {
-      setActiveFolder(state.curentSafe.id);
+      setActiveElement(state.currentSafe.id);
     }
   }
 }

@@ -27,8 +27,14 @@ class Iam
         $cursor = $mng->mail_invitations->find(['email' => $email]);
         foreach ( $cursor as $row) {
             // already invited
-            return ['status' => 'already in the list'];
+            return ['status' => 'already used'];
         }
+        $users = User::findUserByMail($mng, $email);
+        $c = count($users);
+        if($c > 0) {
+            return ['status' => 'already used'];
+        } 
+
         $mng->mail_invitations->insertOne(['email' => $email]);
         return self::whiteMailList($mng);
     }
@@ -69,9 +75,22 @@ class Iam
 
     private static function getUserArray($mng, $UserID) 
     {
-        $cursor = $mng->users->find([], ['projection' => ["_id" => true, "lastSeen" => true, "email" => true, "site_admin" =>true]]);
+        $cursor = $mng->users->find([], ['projection' => [
+                "_id" => true, 
+                "lastSeen" => true, 
+                "email" => true, 
+                "site_admin" =>true, 
+                "disabled" => true
+                ]
+            ]);
         $user_array = $cursor->toArray();
-    
+
+        $mail_list = [];
+
+        foreach ($user_array as $user) {
+            array_push($mail_list,$user['email']);
+        }
+
         $i_am_admin = false;
         $admins_found = false;
         foreach ($user_array as $user) {
@@ -83,11 +102,25 @@ class Iam
                 }
             }
         }
-    
+        
+        $invited = Iam::whiteMailList($mng)['mail_array'];
+        Utils::err(print_r($mail_list, true));
+        foreach($invited as $i) {
+            if(!in_array($i['email'], $mail_list)) {
+                array_push($user_array, ["email" => $i['email'], "status" => "invited"]);
+            }
+        }
+
         if ($admins_found === false) {   // first time visit to iam.php 
             $id =  (strlen($UserID) != 24)? $UserID : new \MongoDB\BSON\ObjectID($UserID);
             $mng->users->updateOne(['_id' => $id], ['$set' =>['site_admin' => true]]);
-            $cursor = $mng->users->find([], ['projection' => ["_id" => true, "lastSeen" => true, "email" => true, "site_admin" =>true]]);
+            $cursor = $mng->users->find([], ['projection' => [
+                "_id" => true, 
+                "lastSeen" => true, 
+                "email" => true, 
+                "site_admin" =>true,
+                "disabled" =>true,
+                ]]);
             $user_array = $cursor->toArray();
         } else if ($i_am_admin === false) {
             Utils::errorPage("not enough rights"); // TODO exception
@@ -141,29 +174,50 @@ class Iam
         
         
         foreach ($user_array as $user) {
-            $user->_id = (string)$user->_id;
-            $user->safe_cnt =0;
-            $user->shared_safe_cnt =0;
-        
-            foreach ($safe_user_array as $r) {
-                if ($r->UserID == $user->_id) {
-                    $user->safe_cnt += 1;
-                    if (in_array($r->SafeID, $shared_safes)) {
-                        $user->shared_safe_cnt += 1;
+            if(isset($user->_id)) {
+                $user->_id = (string)$user->_id;
+                $user->safe_cnt =0;
+                $user->shared_safe_cnt =0;
+            
+                foreach ($safe_user_array as $r) {
+                    if ($r->UserID == $user->_id) {
+                        $user->safe_cnt += 1;
+                        if (in_array($r->SafeID, $shared_safes)) {
+                            $user->shared_safe_cnt += 1;
+                        }
                     }
                 }
             }
         }
+
         return ["stats" => $stats, "user_array" => $user_array];
     }
         
-    static function deleteUser($mng, $id) {
-        $user = new User($mng, $id);
+    static function deleteUser($mng, $userToDelete) {
 
-        $user->getProfile();
-        if ($user->profile['email']) {
-            $result = $mng->mail_invitations->deleteMany(['email' => $user->profile['email']]);
+        if(isset($userToDelete['id']) && $userToDelete['id']) {
+            $user = new User($mng, $userToDelete['id']);
+
+            $user->getProfile();
+            if ($user->profile['email']) {
+                $result = $mng->mail_invitations->deleteMany(['email' => $user->profile['email']]);
+            }
+            return $user->deleteAccount();
         }
-        return $user->deleteAccount();
+
+        if(isset($userToDelete['email']) && $userToDelete['email']) {
+            $result = $mng->mail_invitations->deleteMany(['email' => $userToDelete['email']]);
+            $users = User::findUserByMail($mng, $userToDelete['email']);
+            $c = count($users);
+            if($c == 1) {
+                $id = $users[0];                                
+                $user = new User($mng, $users[0]);
+                return $user->deleteAccount();
+            } 
+            if($c == 0) {
+                return "Ok";
+            }
+        }
+        return "user not found";
     }
 }
