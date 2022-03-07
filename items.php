@@ -31,25 +31,32 @@ function items_proxy($mng) {
         return "login";
     }
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
-        Utils::err("error items 45");
-        return "Internal error";
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
+
+    // Converts it into a PHP object
+    $req = json_decode($json);
+   
+
+    if(!Csrf::validCSRF($req)) {
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
     }
 
-    if (!isset($_POST['vault']) || (ctype_xdigit($_POST['vault']) == false)) {
+    if (!isset($req->vault) || (ctype_xdigit($req->vault) == false)) {
         Utils::err("error items 50");
         return "Internal error";
     }
 
-    $SafeID = $_POST['vault'];
+    $SafeID = $req->vault;
     $UserID = $_SESSION["UserID"];
 
-    if (isset($_POST['check'])) {
+    if (isset($req->check)) {
         $user = new User($mng, $UserID);
         if ($user->canWrite($SafeID) == false) {
             return "Sorry, you do not have editor rights for this safe";
         }
-        if (!isset($_POST['entryID']) 
+        if (!isset($req->entryID) 
             && isset($_SESSION['plan'])  
             && ($_SESSION['plan'] == "FREE") 
             && defined('FREE_ACCOUNT_MAX_RECORDS')
@@ -64,14 +71,14 @@ function items_proxy($mng) {
         return 'Ok';
     }
 
-    $encrypted_data = $_POST['encrypted_data'];
+    $encrypted_data = $req->encrypted_data;
 
-    if (isset($_POST['entryID'])) { // update
-        $item = new Item($mng, trim($_POST['entryID']));
+    if (isset($req->entryID)) { // update
+        $item = new Item($mng, trim($req->entryID));
         return $item->update($UserID, $SafeID, $encrypted_data);
     }
 
-    $folder = isset($_REQUEST['folder'])? $_REQUEST['folder'] : 0;
+    $folder = isset($req->folder)? $req->folder : 0;
     return Item::create_items_cse($mng, $UserID, $SafeID, $encrypted_data, $folder);
 }
 

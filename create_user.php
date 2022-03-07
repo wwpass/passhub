@@ -37,16 +37,24 @@ function createUser_proxy($mng) {
         Utils::err("create 41");
         return "Internal error (create) 41";
     }
-    if (!isset($_POST['publicKey'])) {
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
+
+    // Converts it into a PHP object
+    $req = json_decode($json);
+
+
+    if (!isset($req->publicKey)) {
         Utils::err("create 47");
         return "internal error (create) 47";
     }
-    if (!isset($_POST['encryptedPrivateKey'])) {
+
+    if (!isset($req->encryptedPrivateKey)) {
         Utils::err("create 51");
         return "internal error (create) 51";
     }
     $puid = new Puid($mng, $_SESSION['PUID']);
-    return $puid->createUser($_POST);
+    return $puid->createUser($req);
 }
 
 $result = createUser_proxy($mng);

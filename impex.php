@@ -34,18 +34,25 @@ function impex_proxy($mng) {
         return "login";
     }
     $UserID = $_SESSION['UserID'];
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
-        Utils::err("impex bad verifier");
-        return "Internal error";
+
+    $json = file_get_contents('php://input');
+    $req = json_decode($json);
+
+    if(!Csrf::validCSRF($req)) {
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
     }
-    if (isset($_POST['export'])) {
+
+    if (isset($req->export)) {
+        Utils::log('user ' . $UserID . ' activity  export');
         $user = new User($mng, $UserID);
         return array("status" => "Ok", "data" => $user->getSafes());
-    } else if (isset($_POST['import'])) {
+    } else if (isset($req->import)) {
+        Utils::log('user ' . $UserID . ' activity  import');
         $user = new User($mng, $UserID);
-        return $user->importSafes($_POST);
+        return $user->importSafes($req);
     } else {
-        Utils::err("Backup internal error 67 " . print_r($_POST,true));
+        Utils::err("Backup internal error 67 " . print_r($req, true));
         return  "Backup internal error 67";
     }
 }

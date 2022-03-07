@@ -76,7 +76,7 @@ class Item
         $user = new User($mng, $UserID);
         if ($user->canWrite($SafeID) == false) {
             Utils::err("error itm 360 UserID " . $UserID . " SafeID " . $SafeID);
-            return "no rights";
+            return "Sorry, you do not have editor rights for this safe";
         }
 
         $records = [];
@@ -84,7 +84,7 @@ class Item
             $js = json_decode($item);
             if ($js !== null) {
 
-                if (isset($js->version) && (($js->version == 3)|| ($js->version == 4)) && isset($js->iv) && isset($js->data) && isset($js->tag)) {
+                if (isset($js->version) && (($js->version == 3)|| ($js->version == 4) || ($js->version == 5)) && isset($js->iv) && isset($js->data) && isset($js->tag)) {
                     $record = [];
                     $record['SafeID'] = $SafeID;
                     $js = (array)$js;
@@ -161,12 +161,12 @@ class Item
         $user = new User($this->mng, $UserID); 
         if ($user->canWrite($SafeID) == false) {
             Utils::err("error 150 (no rights) UserID " . $UserID . " SafeID " . $SafeID);
-            return "no rights";
+            return "Sorry, you do not have editor rights for this safe";
         }
 
         $js = json_decode($data);
         if ($js !== null) {
-            if (isset($js->version) && (($js->version == 3)|| ($js->version == 4)) && isset($js->iv) && isset($js->data) && isset($js->tag)) {
+            if (isset($js->version) && (($js->version == 3) || ($js->version == 4)  || ($js->version == 5)) && isset($js->iv) && isset($js->data) && isset($js->tag)) {
                 $result = $this->mng->safe_items->updateOne(
                     ['_id' => $this->_id], 
                     ['$set' => ['iv' => $js->iv,
@@ -215,7 +215,7 @@ class Item
     public function delete($UserID, $declaredSafeID) {
 
         $SafeID = $this->getSafe();
-        if(SafeID == -1) {
+        if($SafeID == -1) {
             return "Record not found";
         }
         if ($SafeID != $declaredSafeID) {
@@ -268,7 +268,7 @@ class Item
         $js = json_decode($data);
         if ($js !== null) {
             if (isset($js->version) 
-                && (($js->version == 3) || ($js->version == 4))  
+                && (($js->version == 3) || ($js->version == 4) || ($js->version == 5))  
                 && isset($js->iv) 
                 && isset($js->data) 
                 && isset($js->tag)
@@ -313,10 +313,10 @@ class Item
                 }
                 Utils::err(print_r($result, true));
                 return("Copy internal error");
-        
             }
+            return "Internal error itm 317";
         }
-        return "Internal error itm 310";
+        return "Internal error itm 319";
     }
 
 }

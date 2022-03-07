@@ -24,36 +24,32 @@ $mng = DB::Connection();
 
 session_start();
 
-if (!isset($_SESSION['UserID'])) {
-    header("Location: logout.php");
-    exit();
-}
-
 function changSafeName_proxy($mng) {
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    if (!isset($_SESSION['UserID'])) {
+        return "login";
+    }
+    $json = file_get_contents('php://input');
+    $req = json_decode($json);
+
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (46)";
+        return ['status' => "Bad Request (68)"];
+    }
+    if (!isset($req->eName)) {
+        return "Safe name cannot be empty";
     }
 
-    if (!isset($_POST['newSafeName'])) {
-        return "Vault name cannot be empty";
-    }
-    if (!isset($_POST['vault'])) {
+    if (!isset($req->vault)) {
         return "internal error 38: vault not set";
     }
-    $SafeID = trim($_POST['vault']);
+    $SafeID = trim($req->vault);
 
     if (!ctype_xdigit((string)$SafeID)) {
-        return "internal error 42: illegal vault";
+        return "internal error 42: illegal safe";
     }
-    $newName = trim($_POST['newSafeName']);
-    if ($newName == "") {
-        return "Vault name cannot be empty";
-    }
-    $newName = mb_strimwidth($newName, 0, MAX_SAFENAME_LENGTH);
     $user = new User($mng, $_SESSION['UserID']);
-    return $user->changeSafeName($SafeID, $newName);
+    return $user->changeSafeName($SafeID, $req->eName);
 }
 
 $status = changSafeName_proxy($mng);

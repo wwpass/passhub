@@ -128,7 +128,7 @@ class Utils
         }
     }
 
-    function timingLog($message) {
+    public static function timingLog($message) {
         if (defined('LOG_DIR') && ($message != "")) {
             $fname = LOG_DIR . '/timing-' . date("ymd") . ".log";
             if ($fh = fopen($fname, 'a')) {
@@ -199,7 +199,7 @@ class Utils
         }
         
         echo self::render(
-            'upsert_user.html', 
+            'r-upsert_user.html', 
             [
                 // layout
                 'narrow' => true, 
@@ -237,4 +237,19 @@ class Utils
         );
         exit();
     } 
+
+
+    public static function render_react(string $template, array $context = []): string
+    {
+        $loader = new \Twig\Loader\FilesystemLoader('frontend');
+        $twig = new \Twig\Environment(
+            $loader, 
+            [
+                // 'cache' => 'views/cache',
+                'cache' => false,
+            ]
+        );
+        return $twig->render($template, $context);        
+    }
+
 }

@@ -60,6 +60,14 @@ class User
         $profile = $res_array[0];
 
         $profile->email = isset($profile->email) ? $profile->email : "";
+
+        if(!isset($profile->desktop_inactivity)) {
+            if(defined('IDLE_TIMEOUT')) {
+                $profile->desktop_inactivity = IDLE_TIMEOUT;
+            } else {
+                $profile->desktop_inactivity = 10 * 60;
+            }
+        }
         $this->profile = $profile;
     }
 
@@ -113,6 +121,20 @@ class User
         return ['status' => "Internal error"];
     }
 
+    public function setInactivityTimeout($id, $value) {
+        if( !is_numeric($value) || ($value < 5*60) || ($value > 5*60*60)) {
+            return;
+        }
+        $timeout = $value;
+
+        if($id =='desktop_inactivity') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['desktop_inactivity' => $timeout]]);
+        }
+        if($id =='mobile_inactivity') {
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['mobile_inactivity' => $timeout]]);
+        }
+    }
+
     public function isCSE() {
         if (isset($this->profile)) {
             if (!isset($this->profile->publicKey_CSE) || !isset($this->profile->privateKey_CSE)) {
@@ -124,6 +146,7 @@ class User
 
     public function getSafes() {
 
+        $t0 = microtime(true);
         $mng_res = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
 
         $this->safe_array = array();
@@ -134,20 +157,32 @@ class User
             $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
             $this->safe_array[$id]->user_count = count($safe_users);
         } 
+        $dt = number_format((microtime(true) - $t0), 3);
+        Utils::timingLog("safe_users " . $dt);
 
         $response = array();
         $storage_used = 0;
         $total_records = 0;
         foreach ($this->safe_array as $safe) {
             if ($safe->isConfirmed()) {
+                $t0 = microtime(true);
+
                 $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id);
+
+                $dt = number_format((microtime(true) - $t0), 3);
+                Utils::timingLog("safe items " . $dt);
+
                 foreach ($items as $record) {
                     if (property_exists($record, 'file')) {
                         $storage_used += $record->file->size;
                     }
                 } 
                 $total_records += count($items);
+
+                $t0 = microtime(true);
                 $folders = Folder::get_folder_list_cse($this->mng, $this->UserID, $safe->id);
+                $dt = number_format((microtime(true) - $t0), 3);
+                Utils::timingLog("safe folders " . $dt);
             } else {
                 $items = [];
                 $folders = [];
@@ -161,8 +196,14 @@ class User
                 "key" => $safe->encrypted_key_CSE,
                 "items" => $items,
                 "folders" => $folders,
-                "users" => $safe->user_count
+                "users" => $safe->user_count,
             ];
+            if(property_exists($safe,"version")) {
+                $safe_entry["version"] = $safe->version; 
+                $safe_entry["eName"] = $safe->eName; 
+                $safe_entry["name"] = "error";
+            }
+
             // $response[$safe->id] = $safe_entry;
             array_push($response, $safe_entry);
         }
@@ -172,19 +213,59 @@ class User
     }
 
     public function getData() {
-
+        
+        $t0 = microtime(true);
+        
         $this->getProfile();
+
+        $dt = number_format((microtime(true) - $t0), 3);
+        Utils::timingLog("getProfile " . $dt);
+        
+        $t0 = microtime(true);
+
+        $safes=$this->getSafes();
+        $dt = number_format((microtime(true) - $t0), 3);
+        Utils::timingLog("getSafes " . $dt);
+
 
         $data = [
             'publicKeyPem' => $this->profile->publicKey_CSE,
             // 'invitation_accept_pending' => $this->invitation_accept_pending,
             'invitation_accept_pending' => false,
             'currentSafe' => $this->profile->currentSafe,
-            'user_mail' => $this->profile->email,
+            'email' => $this->profile->email,
             'ePrivateKey' => $this->profile->privateKey_CSE,
-            'safes' => $this->getSafes(),
-            'ticket' => $_SESSION['wwpass_ticket']
+            'safes' => $safes,
+
+//            'safes' => $this->getSafes(),
+            'ticket' => $_SESSION['wwpass_ticket'],
+            'plan' => $this->profile->plan
         ];
+
+        if($this->profile->plan == 'FREE') {
+            $data['MAX_RECORDS'] = FREE_ACCOUNT_MAX_RECORDS;
+            $data['MAX_STORAGE'] = FREE_ACCOUNT_MAX_STORAGE;
+            if(defined('FREE_MAX_FILE_SIZE')) {
+                $data['MAX_FILE_SIZE'] = FREE_MAX_FILE_SIZE;
+            } else {
+                $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
+            }
+            /*
+            $goPremium = new GoPremium($this);
+            if ($goPremium->showStatus()) {
+                $data['goPremium'] = true;       
+            }
+            */
+        } else {
+            $data['MAX_RECORDS'] = 'unlimited';
+            $data['MAX_STORAGE'] = MAX_STORAGE_PER_USER;
+            $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
+        }
+        if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
+            if (Survey::showStatus($this)) {
+                $data['takeSurvey'] = true;
+            }
+        }
 
         if (array_key_exists('folder', $_GET)) {
             $data['active_folder'] = $_GET['folder'];
@@ -204,6 +285,10 @@ class User
         } else {
             $data['onkeyremoval'] = false;
         }
+        $data['WWPASS_TICKET_TTL'] = WWPASS_TICKET_TTL;
+        $data['idleTimeout'] = $this->profile->desktop_inactivity;
+        $data['ticketAge'] =  (time() - $_SESSION['wwpass_ticket_creation_time']);
+
         return ['status' => 'Ok', 'data' => $data];
     }
 
@@ -262,7 +347,7 @@ class User
         return ($this->getUserRole($SafeID) == self::ROLE_ADMINISTRATOR);
     }
 
-    public function createSafe($safe) {
+    public function createSafe1($safe) {
         if ($safe['name'] == "") {
             return "Please fill in new safe name";
         }
@@ -279,11 +364,46 @@ class User
         return array("status" =>"Ok", "id" => $SafeID);
     }
     
-    function changeSafeName($SafeID, $newName) {
+    public function createSafe($safe) {
 
+        if (($safe->name == "") && !property_exists($safe,"eName")) {
+            return "Please fill in new safe name";
+        }
+        $SafeID = (string)new \MongoDB\BSON\ObjectId();
+        
+        if($safe->version == 3) {
+            $this->mng->safe_users->insertOne(
+                ['SafeID' => $SafeID, 'UserID' => $this->UserID, /*'SafeName' =>$safe->name, */
+                'eName' => $safe->eName,
+                'version' => $safe->version,
+                'UserName' => null,
+                'role' => self::ROLE_ADMINISTRATOR,
+                'encrypted_key_CSE' => $safe->aes_key]
+            );
+   
+        } else {
+
+            $this->mng->safe_users->insertOne(
+                ['SafeID' => $SafeID, 'UserID' => $this->UserID, 'SafeName' =>$safe->name,
+
+                'UserName' => null,
+                'role' => self::ROLE_ADMINISTRATOR,
+                'encrypted_key_CSE' => $safe->aes_key]
+            );
+        }
+        Utils::log('user ' . $this->UserID . ' activity safe created');
+        $this->setCurrentSafe($SafeID);
+        return array("status" =>"Ok", "id" => $SafeID);
+    }
+
+
+    function changeSafeName($SafeID, $eName) {
+
+        /*
         $filter = [ 'UserID' => $this->UserID, 'SafeName' => $newName ];
         $mng_res = $this->mng->safe_users->find($filter);
     
+
         $res_array = $mng_res->ToArray();
     
         if (count($res_array)) {  // if user already has safe with this name
@@ -293,39 +413,43 @@ class User
             }
             return "Ok";
         }
-    
+
+*/
         $result = $this->mng->safe_users->updateMany(
             ['UserID' => $this->UserID, 'SafeID' => $SafeID], 
-            ['$set' =>['SafeName' =>$newName]]
+            ['$set' =>['eName' =>$eName, "version" => 3],
+            '$unset' => ['SafeName'=>""]]
         );
+        Utils::err(print_r($result,true));
         if ($result->getModifiedCount() == 1) {
             Utils::log('user ' . $this->UserID . ' activity safe renamed');
             return "Ok";
         }
+
         Utils::err("UserID $this->UserID SafeID $SafeID newName $newName Modified count: " . $result->getModifiedCount());
         return "Internal error 323";
     }
    
-    public function importSafes($post) {
+    public function importSafes($req) {
 
-        if (!isset($post['import'])) {
+        if (!isset($req->import)) {
             Utils::err("import_safes imported trees not defined");
             return "internal error";
         }
         
-        foreach ($post['import'] as $safe) {
-            if (isset($safe['id'])) {  //merge
-                $SafeID = $safe['id'];
+        foreach ($req->import as $safe) {
+            if (isset($safe->id)) {  //merge
+                $SafeID = $safe->id;
                 if (!$this->canWrite($SafeID)) {
                     return "access vioaltion or safe does not exist";
                 }
 
-                if (isset($safe['entries']) && (count($safe['entries']) >0)) {
-                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe['entries'], 0);
+                if (isset($safe->entries) && (count($safe->entries) >0)) {
+                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
                 }
-                if (isset($safe['folders'])) {
-                    foreach ($safe['folders'] as $folder) {
-                        if (isset($folder['_id'])) {
+                if (isset($safe->folders)) {
+                    foreach ($safe->folders as $folder) {
+                        if (isset($folder->_id)) {
                             Folder::merge($this->mng, $this->UserID, $SafeID, 0, $folder);
                             // look inside
                         } else {
@@ -337,23 +461,25 @@ class User
                     }
                 }
                 continue;
-            } else if (!isset($safe['key']) || !ctype_xdigit((string)$safe['key'])) {
+            } else if (!isset($safe->key) || !ctype_xdigit((string)$safe->key)) {
                 Utils::err("import_safes key illegal or undefined");
                 return "internal error";
             }
+
             //TODO truncate name length if required
             // patch naming
-            $safe['aes_key'] = $safe['key'];
+            $safe->aes_key = $safe->key;
             $result = $this->createSafe($safe);
             if (is_string($result)) {
                 return $result;
             }
             $SafeID = $result['id'];
-            if (isset($safe['entries']) && (count($safe['entries']) > 0)) {
-                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe['entries'], 0);
+
+            if (isset($safe->entries) && (count($safe->entries) > 0)) {
+                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
             }
-            if (isset($safe['folders'])) {
-                foreach ($safe['folders'] as $folder) {
+            if (isset($safe->folders)) {
+                foreach ($safe->folders as $folder) {
                     $r = Folder::import($this->mng, $this->UserID, $SafeID, 0, $folder);
                     if ($r['status'] != 'Ok') {
                         return $r;
@@ -412,7 +538,7 @@ class User
                 return "Internal error del 472";
             }
             Utils::log(
-                'user ' . $this->UserID .' safe deleted with '
+                'user ' . $this->UserID .' activity safe deleted with '
                 . $deleted['items'] . ' items and '
                 . $deleted['folders'] . ' folders'
             );
@@ -423,36 +549,36 @@ class User
     }
     
     public function account() {
+        if (!isset($this->profile)) {
+            $this->getProfile();
+        }
+
         $total_records = 0;
         $total_storage = 0;
         $total_safes = 0;
+
         $result = [];
-    
-        $cursor = $this->mng->users->find(['_id' => $this->_id]);
-    
-        foreach ($cursor as $row) {
-            if (property_exists($row, 'email')) {
-                $result['email'] = $row->email;
+        $result['email'] = $this->profile->email; 
+        $result['desktop_inactivity'] = 
+            $result['mobile_inactivity'] = $this->profile->desktop_inactivity;
+
+        if (property_exists($this->profile, 'plan')) {
+            $result['plan'] = $this->profile->plan;
+            if ($this->profile->plan == 'Premium') {
+                $result['expires'] = $this->profile->expires;
             }
-            if (property_exists($row, 'plan')) {
-                $result['plan'] = $row->plan;
-                if ($row->plan == 'Premium') {
-                    $result['expires'] = $row->expires;
-                }
-                if ($row->plan == 'FREE') {
-                    $result['upgrade_button'] = true;
-                }
-            } else if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-                $result['plan'] = 'Premium';
-                if (property_exists($row, 'expires')) {
-                    $result['expires'] = $row->expires->__toString();
-                } else {
-                    $result['expires'] = 'never';
-                }
+            if ($this->profile->plan == 'FREE') {
+                $result['upgrade_button'] = true;
             }
-            break;
+        } else if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+            $result['plan'] = 'Premium';
+            if (property_exists($this->profile, 'expires')) {
+                $result['expires'] = $this->profile->expires->__toString();
+            } else {
+                $result['expires'] = 'never';
+            }
         }
-    
+        
         $safes = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
         foreach ($safes as $safe) {
             $total_safes += 1;
@@ -474,7 +600,6 @@ class User
         } 
     
         if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_RECORDS')) {
-            Utils::err("account is free, setting max records to " . FREE_ACCOUNT_MAX_RECORDS);       
             $result['maxRecords'] = FREE_ACCOUNT_MAX_RECORDS;
         }
     
@@ -482,9 +607,14 @@ class User
             $result['maxStorage'] = MAX_STORAGE_PER_USER;
         } 
         if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_STORAGE')) {
-            Utils::err("account is free, setting max storage to " . FREE_ACCOUNT_MAX_STORAGE);       
             $result['maxStorage'] = FREE_ACCOUNT_MAX_STORAGE;
         }
+        if($this->isSiteAdmin()) {
+            $result['site_admin'] = true;
+        }
+        if (!defined('PUBLIC_SERVICE')) {
+            $result['business'] = true;
+        } 
     
         $result['status'] = 'Ok';
         return $result;
@@ -503,14 +633,26 @@ class User
             ['$set' => ['plan' => 'Premium', 'expires' => $expires]]
         );
     }
+
+    public function premium_paid($transaction_id) {
+
+        $now = new \DateTime();
+		$period = new \DateInterval('P1Y');
+		$expiration_date = $now->add($period); 
+	
+        $result = $this->mng->users->updateOne(
+            ['_id' => $this->_id], 
+            ['$set' => ['plan' => 'Premium',
+             'expires' => $expiration_date->format(DATE_ATOM),
+             'payment_id' => $transaction_id]
+            ]
+        );
+    }
     
     public function deleteAccount() {
 
         $this->getProfile();
 
-        if (!isset($this->email)) {
-            $this->email = "";
-        }
         $result = $this->mng->safe_users->deleteMany(['UserID' => $this->UserID]);
         $removed_safe_user_records = $result->getDeletedCount();
     
@@ -533,7 +675,6 @@ class User
         $result = $this->mng->reg_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->change_mail_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->users->deleteMany(['_id' => $this->_id]);
-        Utils::err("removed " . $removed_safe_user_records . " records in safe_users");
         Utils::log("user " . $this->UserID . " account deleted, mail " . $this->email);
         return ['status' => "Ok", "access" => $removed_safe_user_records];
     }
@@ -552,11 +693,21 @@ class User
         }
         return false;
     }
-    
-    public function safeAcl($post) {
 
-        $SafeID = $post['vault'];
-        $operation = isset($post['operation']) ? $post['operation']: null;
+    static function findUserByMail($mng, $email) {
+        $pregEmail = preg_quote($email);
+        $a = (
+            $mng->users->find(
+                ['email' => new \MongoDB\BSON\Regex('^' . $pregEmail . '$', 'i')]
+            )
+        )->toArray();
+        return $a;
+    }
+    
+    public function safeAcl($req) {
+
+        $SafeID = $req->vault;
+        $operation = isset($req->operation) ? $req->operation: null;
         
         if (!ctype_xdigit($SafeID)) {
             return "Bad arguments";
@@ -581,9 +732,9 @@ class User
             return "Internal error acl 442";
         }
    
-        $UserName = isset($post['name']) ? $post['name']: null;
-        $RecipientKey = isset($post['key']) ? $post['key']: null;
-        $role = isset($post['role']) ? $post['role']: null;
+        $UserName = isset($req->name) ? $req->name: null;
+        $RecipientKey = isset($req->key) ? $req->key: null;
+        $role = isset($req->role) ? $req->role: null;
         
         $update_page_req = false;
         if ($UserName != null) {
@@ -608,7 +759,7 @@ class User
                     $email = htmlspecialchars($UserName);
                     $email_link = htmlspecialchars($UserName) 
                         . "?subject=" 
-                        . htmlspecialchars("I would like to share a safe with you in " . $_POST['origin'])
+                        . htmlspecialchars("I would like to share a safe with you in " . $req->origin)
                         . "&amp;body="
                         . htmlspecialchars(
                             "I would like to share a safe with you in PassHub. "
@@ -616,7 +767,7 @@ class User
                             . "to get started. To access this safe, you will first need "
                             . "to download and initialize the WWPass Key mobile app "
                             . "from the Android or iOS store. Once your WWPass Key is ready, "
-                            . "please visit " . $_POST['origin'] . " and use the WWPass Key app to login"
+                            . "please visit " . $req->origin . " and use the WWPass Key app to login"
                             . " to your PassHub account."
                         );  
                         
@@ -652,33 +803,45 @@ class User
                     return "no user found " . $UserName;
                 }
                 $TargetUserID = (string)($a[0]->_id);
+
+/*
+                
                 $recipientSafeName = '[Shared]';
-                if (isset($post['safeName'])) {
-                    $recipientSafeName = $post['safeName'];
+                if (isset($req->safeName)) {
+                    $recipientSafeName = $req->safeName;
                 }
+                */
+
                 if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
                     $role = self::ROLE_ADMINISTRATOR;
                 } else {
                     $role = self::ROLE_READONLY;
                 }
     
-                if (isset($post['role']) && in_array(
-                    $post['role'],
+                if (isset($req->role) && in_array(
+                    $req->role,
                     [self::ROLE_READONLY, 
                     self::ROLE_ADMINISTRATOR, 
                     self::ROLE_EDITOR]
                 )
                 ) {
-                    $role = $post['role'];
+                    $role = $req->role;
                 }
                 $result = $this->mng->safe_users->insertOne(
-                    ['UserID' => $TargetUserID,
+                    [
                     'SafeID' => $SafeID,
+                    'UserID' => $TargetUserID,
                     'UserName' => null, 
-                    'SafeName' => $recipientSafeName,
                     'role' => $role,
-                    'encrypted_key_CSE' => $RecipientKey]
+                    'encrypted_key_CSE' => $RecipientKey,
+                    'eName' => $req->eName,
+                    'version' => 3
+                    ]
                 );
+
+//                'SafeName' => $recipientSafeName,
+
+
                 if ($result->getInsertedCount() != 1) {
                     return "Internal error acl 318";
                 }

@@ -31,9 +31,11 @@ function create_file_item_proxy($mng) {
         return "login";
     }
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
-        return "Internal error";
+    if(!Csrf::validCSRF((object)["verifier" => $_POST['verifier']])) {  //convert POST to OBJ
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
     }
+
     if (!isset($_POST['vault']) || (ctype_xdigit($_POST['vault']) == false)) {
         Utils::err("error create 36");
         return "Internal error";
@@ -69,12 +71,14 @@ function create_file_item_proxy($mng) {
     $meta = $_POST['meta'];
     $file = $_POST['file'];
 
+    $fileContent = file_get_contents($_FILES['blob']['tmp_name']);
+
     if (!isset($_POST['meta']) || !isset($_POST['file'])) {
         Utils::err("error file create 83");
         return(["status" => "Internal error"]);
     }
     try {
-        return File::create($mng, $UserID, $SafeID, $folder, $meta, $file);
+        return File::create($mng, $UserID, $SafeID, $folder, $meta, $file, $fileContent);
     } catch (Exception $e) {
         return $e->getMessage(); 
     }

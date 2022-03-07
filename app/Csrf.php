@@ -31,4 +31,12 @@ class Csrf
         }
         return false;
     }
+
+    public static function validCSRF($req) {
+
+        if (!isset($req->verifier) || !Csrf::isValid($req->verifier)) {
+            return false;
+        } 
+        return true;
+    }
 }

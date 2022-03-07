@@ -28,7 +28,6 @@ $mng = DB::Connection();
 
 session_start();
 
-
 /*
 if(!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
     http_response_code(400);
@@ -53,10 +52,31 @@ if (isset($_SESSION['UserID']) && isset($_GET['later'])) {
     exit();
 } 
 
-if (isset($_POST['code6']) && isset($_POST['purpose'])) {
+$email = '';
+$url = '';
+$req = (object)[];
+
+if(isset($_POST['email'])) {
+    $req = (object)$_POST;
+} else {
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
+
+    // Converts it into a PHP object
+    $req = json_decode($json);
+}
+
+if (isset($req->code6) && isset($req->purpose)) {
+    /*
+    if(!Csrf::validCSRF($req)) {
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
+    }
+    */
+    
     Utils::err('Session[PUID] ' . $_SESSION['PUID']);
     $puid = new Puid($mng, $_SESSION['PUID']);
-    $result = $puid->processCode6($_POST['code6'], $_POST['purpose']);
+    $result = $puid->processCode6($req->code6, $req->purpose);
     Utils::err(print_r($result, true));
 
     if (!is_array($result)) {
@@ -86,8 +106,11 @@ if (isset($_POST['code6']) && isset($_POST['purpose'])) {
     exit();
 }
 
-$email = $_POST['email'];
-$url = strtolower($_POST['base_url']);
+
+if($email == '') {
+    $email = $req->email;
+    $url = strtolower($req->base_url);
+}
 
 $parts = explode("@", $email);
 
@@ -105,8 +128,8 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 
         $hostname = "PassHub";
         
-        if (isset($_POST['host'])) {
-            $hostname = str_replace("passhub", "PassHub", $_POST['host']);
+        if (isset($req->host)) {
+            $hostname = str_replace("passhub", "PassHub", $req->host);
         }
         $cta = "<p> Your 6-digit activation code is</p><p><b>". $result['code6'] . "</b></p>";
 
@@ -116,11 +139,6 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $result = Utils::sendMail($email, $subject, $body);
 
         Utils::err('verification mail sent to ' . $email);
-/*
-        if (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE || !isset($_SESSION['UserID'])) {
-            $_SESSION = [];
-        }
-*/        
         $sent = true;
         if ($result['status'] !== 'Ok') {
             Utils::err("error sending email");

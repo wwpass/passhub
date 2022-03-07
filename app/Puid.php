@@ -97,8 +97,14 @@ class Puid
         return array("status" => "Ok", "code" => $v, 'code6' => $code6);
     }
     
-    public function createUser($post /* $publicKey, $encryptedPrivateKey*/) {
+    public function createUser($req /* $publicKey, $encryptedPrivateKey*/) {
 
+        $record = [
+            'publicKey_CSE' =>$req->publicKey,
+            'privateKey_CSE' => $req->encryptedPrivateKey,
+            'currentSafe' => null
+        ];
+  
         if (defined('LDAP')) {
             $email = $_SESSION['email'];
             $userprincipalname = $_SESSION['userprincipalname'];
@@ -109,24 +115,24 @@ class Puid
             if ($num_puids == 1) {  //found, delete all others
                 if (property_exists($puids[0], 'email')) {
                     $email = $puids[0]->email;
+
+                    $mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
+                    if ($mail_domains[0] === strtolower($email)) {
+                        $record['site_admin'] = true;
+                    }
                 }
             }
         }
   
-        $record = [
-            'publicKey_CSE' =>$post['publicKey'],
-            'privateKey_CSE' => $post['encryptedPrivateKey'],
-            'currentSafe' => null
-        ];
-  
         if (isset($email)) {
             $record['email'] = $email;
+
         }
         if (isset($userprincipalname)) {
             $record['userprincipalname'] = $userprincipalname;
         }
   
-        if (defined('PREMIUM')) {
+        if (defined('PREMIUM')  && defined('PUBLIC_SERVICE')) {
             $record['plan'] = 'FREE';
         }
   
@@ -139,9 +145,9 @@ class Puid
         if (1) {
             $this->mng->puids->insertOne(['PUID' => $this->PUID, 'UserID' => $UserID]);
         }
-        if (isset($post['import'])) { 
+        if (isset($req->import)) { 
             $user = new User($this->mng, $UserID);
-            $user->importSafes($post);
+            $user->importSafes($req);
         }
         if (isset($email)) {
             Utils::err("new user $email $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
