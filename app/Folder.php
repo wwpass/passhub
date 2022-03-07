@@ -47,21 +47,21 @@ class Folder
     // TODO add Utils::err
     public static function operation($mng, $UserID, $data) {
 
-        if (!isset($data['SafeID'])) {
+        if (!isset($data->SafeID)) {
             Utils::err("folder_ops SafeID not defined");
             return "internal error";
         }
-        if (!isset($data['folderID'])) {
+        if (!isset($data->folderID)) {
             Utils::err("folder_ops folderID not defined");
             return "internal error";
         }
-        if (!isset($data['operation'])) {
+        if (!isset($data->operation)) {
             Utils::err("folder_ops operation not defined");
             return "internal error";
         }
 
-        $SafeID = $data['SafeID'];
-        $folderID = $data['folderID'];
+        $SafeID = $data->SafeID;
+        $folderID = $data->folderID;
 
         if (!ctype_xdigit((string)$UserID) || !ctype_xdigit((string)$SafeID)
             || !ctype_xdigit((string)$folderID)
@@ -86,7 +86,7 @@ class Folder
             }
         }
 
-        if ($data['operation'] == 'delete') {
+        if ($data->operation == 'delete') {
             if ($folderID == 0) {
                 Utils::err("delete folder 0");
                 return "internal error";
@@ -94,11 +94,11 @@ class Folder
             // check if empty
             $mng_cursor = $mng->safe_folders->find(['parent' => $folderID]);
             if (count($mng_cursor->ToArray()) > 0) {
-                return "Folder not empty";
+                return "not empty";
             }
             $mng_cursor = $mng->safe_items->find(['folder' => $folderID]);
             if (count($mng_cursor->ToArray()) > 0) {
-                return "Folder not empty";
+                return "not empty";
             }
             $result = $mng->safe_folders->deleteMany(
                 ['SafeID' => $SafeID, '_id' => new \MongoDB\BSON\ObjectID($folderID)]
@@ -112,7 +112,7 @@ class Folder
             return "Ok";
         }
 
-        if ($data['operation'] == 'delete_not_empty') {
+        if ($data->operation == 'delete_not_empty') {
             if ($folderID == 0) {
                 Utils::err("delete folder 0");
                 return "internal error";
@@ -126,22 +126,22 @@ class Folder
             return ['status' => 'Ok', 'items' => $deleted['items'], 'folders' => $deleted['folders']];
         }
 
-        if (($data['operation'] == 'create') || ($data['operation'] == 'rename')) {
-            if (!isset($data['name'])) {
+        if (($data->operation == 'create') || ($data->operation == 'rename')) {
+            if (!isset($data->name)) {
                 Utils::err("folder_ops name not defined");
                 return "internal error";
             }
-            $js = json_decode($data['name']);
+            $js = json_decode($data->name);
             if ($js == null) {
                 Utils::err("itm 261 cannot decompose json name ");
                 return "internal error";
             }
             if ((isset($js->version) && ($js->version ==3) && isset($js->iv) && isset($js->data) && isset($js->tag)) == false ) {
-                Utils::err("itm 265 name json structure " . $data['name']);
+                Utils::err("itm 265 name json structure " . $data->name);
                 return "internal error";
             }
 
-            if ($data['operation'] == 'create') {
+            if ($data->operation == 'create') {
                 $r = $mng->safe_folders->insertOne(
                     ['SafeID' => $SafeID, 
                     'iv' => $js->iv, 
@@ -153,7 +153,7 @@ class Folder
                 );
                 if ($r->getInsertedCount() == 1) {
                     $folder_id = $r->getInsertedId();
-                    Utils::log('user ' . $UserID . ' activity folder ' . $data['operation']);
+                    Utils::log('user ' . $UserID . ' activity folder ' . $data->operation);
                     return ["status" => "Ok", "id" => (string)$folder_id];
                 }
             } else {
@@ -168,7 +168,7 @@ class Folder
                 );
                 if ($r->getModifiedCount() == 1) {
                     $folder_id = $r->getUpsertedId();
-                    Utils::log('user ' . $UserID . ' activity folder ' . $data['operation']);
+                    Utils::log('user ' . $UserID . ' activity folder ' . $data->operation);
                     return ["status" => "Ok", "id" => (string)$folder_id];
                 }
             }
@@ -177,20 +177,21 @@ class Folder
             Utils::err(print_r($result, true));
             return "Internal error";
         }
-        Utils::err("folder_ops operation " . $data['operation']);
+        Utils::err("folder_ops operation " . $data->operation);
         return 'internal error';
     }
 
     public static function import($mng, $UserID, $SafeID, $parent, $folder) {
-        //    Utils::err(print_r($folder, true));
-        $result = self::operation($mng, $UserID, ['SafeID' => $SafeID, 'folderID' => $parent, 'operation' => 'create', 'name' => $folder['name']]);
+
+
+        $result = self::operation($mng, $UserID, (object)['SafeID' => $SafeID, 'folderID' => $parent, 'operation' => 'create', 'name' => $folder->name]);
         if ($result['status'] == 'Ok') {
             $id = $result['id'];
-            if (isset($folder['entries']) && (count($folder['entries']) > 0)) {
-                Item::create_items_cse($mng, $UserID, $SafeID, $folder['entries'], $id);
+            if (isset($folder->entries) && (count($folder->entries) > 0)) {
+                Item::create_items_cse($mng, $UserID, $SafeID, $folder->entries, $id);
             }
-            if (isset($folder['folders'])) {
-                foreach ($folder['folders'] as $child) {
+            if (isset($folder->folders)) {
+                foreach ($folder->folders as $child) {
                     $r = self::import($mng, $UserID, $SafeID, $id, $child);
                     if ($r['status'] != 'Ok') {
                         return $r;
@@ -202,18 +203,21 @@ class Folder
     }
 
     public static function merge($mng, $UserID, $SafeID, $parent, $folder) {
+        Utils::err('Hello1');
+        Utils::err(print_r($folder, true));
 
-        if (isset($folder['entries']) && (count($folder['entries']) > 0)) {
-            Item::create_items_cse($mng, $UserID, $SafeID, $folder['entries'], $folder['_id']);
+        if (isset($folder->entries) && (count($folder->entries) > 0)) {
+            Utils::err('Hello2');
+            Item::create_items_cse($mng, $UserID, $SafeID, $folder->entries, $folder->_id);
         }
-        if (isset($folder['folders'])) {
-            foreach ($folder['folders'] as $child) {
+        if (isset($folder->folders)) {
+            foreach ($folder->folders as $child) {
 
-                if (isset($child['_id'])) {
-                    self::merge($mng, $UserID, $SafeID, $folder['_id'], $child);
+                if (isset($child->_id)) {
+                    self::merge($mng, $UserID, $SafeID, $folder->_id, $child);
                     // look inside
                 } else {
-                    $r = self::import($mng, $UserID, $SafeID, $folder['_id'], $child);
+                    $r = self::import($mng, $UserID, $SafeID, $folder->_id, $child);
                     if ($r['status'] != 'Ok') {
                         return $r;
                     }

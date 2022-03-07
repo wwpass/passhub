@@ -31,21 +31,27 @@ function delete_safe_proxy($mng) {
         return "login";
     }
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
+
+    // Converts it into a PHP object
+    $req = json_decode($json);
+    
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (46)";
+        return ['status' => "Bad Request (68)"];
     }
 
-    if (!isset($_POST['SafeID'])) {
+    if (!isset($req->SafeID)) {
         return "internal error del 36";
     }
-    if (!isset($_POST['operation'])) {
+    if (!isset($req->operation)) {
         return "internal error del 52";
     }
 
-    $SafeID = trim($_POST['SafeID']);
+    $SafeID = trim($req->SafeID);
     $user = new User($mng, $_SESSION['UserID']);
-    return $user->deleteSafe($SafeID, $_POST['operation']);
+    return $user->deleteSafe($SafeID, $req->operation);
 }
 
 $result = delete_safe_proxy($mng);

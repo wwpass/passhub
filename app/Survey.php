@@ -25,24 +25,37 @@ class Survey
         return 0;
     }
 
-    public static function showStatus($mng, $UserID) {
+    public static function showStatus($user) {
 
+        $mng = $user->mng;
+        $UserID = $user->UserID;
+       
         if ((time() - self::userCreationTime($UserID)) < 60*60*24*30) {
-                // Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
+                Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
             return false;
         }
     
         $cursor = $mng->survey->find(['UserID' => $UserID]);
         $result = $cursor->toArray();
         if (count($result) == 0) {
+            Survey::shown($mng, $UserID);
             return true;
         }
 
         if ($result[0]['status'] == 'shown') {
             if ((time() - strtotime($result[0]['modified'])) > 60*60*24*7) {
+                Survey::shown($mng, $UserID);
                 return true;
             } else {
-                // Utils::err('survey: too early');
+                Utils::err('survey: too early');
+            }
+        }
+        if ($result[0]['status'] == 'sent') {
+            if ((time() - strtotime($result[0]['modified'])) > 60*60*24*180) {
+                Survey::shown($mng, $UserID);
+                return true;
+            } else {
+                Utils::err('survey: already received '  . (int)((time() - strtotime($result[0]['modified']))/60/60/24) . ' days ago');
             }
         }
         return false;

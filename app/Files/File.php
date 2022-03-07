@@ -44,6 +44,90 @@ abstract class File
         throw new \Exception('Site is misconfigured. Consult system administrator.');
     }
 
+
+    public static function create($mng, $UserID, $SafeID, $folder, $meta, $file, $filecontent) {
+
+        $user = new User($mng, $UserID);
+
+        if ($user->canWrite($SafeID) == false) {
+            Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
+            return "Sorry, you do not have editor rights for this safe";
+        }
+
+        $file_js = json_decode($file);
+        // $data = base64_decode($file_js->data, true);
+        $data = $filecontent;
+
+
+        if (!defined('MAX_FILE_SIZE')) {
+            $max_file_size = 5 * 1024 * 1024;
+        } else {
+            $max_file_size = MAX_FILE_SIZE;
+        }
+        Utils::err("upload file size " . strlen($data));
+        if (strlen($data) > $max_file_size) {
+            return ['status' => "File size exceeds " . Utils::humanReadableFileSize($max_file_size)];
+        }
+
+        if (defined('MAX_STORAGE_PER_USER')) {
+            $result = $user->account();
+            if ($result['status'] == "Ok") {
+                if ($result['used'] +  strlen($data) > $result['maxStorage']) {
+                    return ['status' => "No room to store the file, used " 
+                    . Utils::humanReadableFileSize($result['used']) . " out of ". Utils::humanReadableFileSize($result['maxStorage'])];
+                }
+            } else {
+                return $result;
+            }
+        }
+
+        $file_id = new \MongoDB\BSON\ObjectID();
+        $file_id = (string)$file_id;
+
+        $f = self::newFile($file_id);
+        $result = $f->upload($data);
+        if ($result['status'] != "Ok") {
+            Utils::err($result['status']);
+            return $result;
+        }
+
+        $meta_js = json_decode($meta);
+        if ($meta_js !== null) {
+            if (isset($meta_js->version) && ($meta_js->version ==3) && isset($meta_js->iv) && isset($meta_js->data) && isset($meta_js->tag)) {
+                $result = $mng->safe_items->insertOne(
+                    ['SafeID' => $SafeID,
+                    'iv' => $meta_js->iv,
+                    'data' => $meta_js->data,
+                    'tag' => $meta_js->tag,
+                    'folder' => $folder,
+                    'lastModified' =>Date('c'),
+                    'version' => 3,
+                    'file' => ['id' => (string)$file_id,
+                        'size' => strlen($data),
+                        'key' =>$file_js->key,
+                        'iv' => $file_js->iv,
+                        'tag' => $file_js->tag]
+                    ]        
+                );
+                if ($result->getInsertedCount() == 1) {
+                    Utils::log('user ' . $UserID . ' activity file upload ' . strlen($data) . ' bytes');
+                    $firstID = (string) $result->getInsertedId();
+                    return ["status" =>  "Ok", "firstID" => $firstID];
+                }
+            } else {
+                Utils::err(print_r($js, true));
+                exit();
+            }
+        } else {  //version 2: data are fields hex encrypted, should not happen
+            Utils::err("wrong item format");
+        }
+        // ?????????????????????????!!!!!!!!!!!!!!!!!!!!!!!?????????????????????
+        Utils::err(print_r($result, true));
+        exit();
+    }
+
+
+/*
     public static function create($mng, $UserID, $SafeID, $folder, $meta, $file) {
 
         $user = new User($mng, $UserID);
@@ -122,25 +206,26 @@ abstract class File
         Utils::err(print_r($result, true));
         exit();
     }
+*/
 
-    public static function operation($mng, $UserID, $data) {
+    public static function operation($mng, $UserID, $req) {
 
-        if (!isset($data['SafeID'])) {
+        if (!isset($req->SafeID)) {
             Utils::err("file_ops SafeID not defined");
             return "internal error file 60";
         }
 
-        if (!isset($data['itemId'])) {
+        if (!isset($req->itemId)) {
             Utils::err("file_ops itemId not defined");
             return "internal error file 65";
         }
 
-        if (!isset($data['operation'])) {
+        if (!isset($req->operation)) {
             Utils::err("file_ops operation not defined");
             return "internal error file 70";
         }
 
-        $SafeID = $data['SafeID'];
+        $SafeID = $req->SafeID;
 
         if (!ctype_xdigit((string)$UserID) || !ctype_xdigit((string)$SafeID)) {
             Utils::err("file_ops UserID " . $UserID . " SafeID " . $SafeID . " itemId " . $itemId);
@@ -148,10 +233,10 @@ abstract class File
         }
         $user = new User($mng, $UserID);
 
-        $itemId = $data['itemId'];
+        $itemId = $req->itemId;
         $id =  (strlen($itemId) != 24)? $itemId : new \MongoDB\BSON\ObjectID($itemId);
 
-        if ($data['operation'] == 'download') {
+        if ($req->operation == 'download') {
 
             if ($user->canRead($SafeID) == false) {
                 Utils::err("error itm 335 role = '$role'");
@@ -177,7 +262,7 @@ abstract class File
             Utils::log('user ' . $UserID . ' activity file download ' . strlen($result['data']) . ' bytes');
             return ['status' => "Ok", 'filename' => ['iv' => $row->iv, 'data' => $row->data, 'tag' => $row->tag],
                 'file' => ['key' => $row->file->key, 'iv' => $row->file->iv, 'data' => $data, 'tag' => $row->file->tag]];
-        } else if ($data['operation'] == 'rename') {
+        } else if ($req->operation == 'rename') {
             if ($user->canWrite($SafeID) == false) {
                 Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
                 return "Sorry, you do not have editor rights for this safe";
@@ -192,7 +277,7 @@ abstract class File
             }
             $row = $a[0];  // found
 
-            $js = json_decode($data['newName']);
+            $js = json_decode($req->newName);
             if ($js == null) {
                 Utils::err(print_r($js, true));
                 return ['status' => 'internal error 225'];
@@ -215,7 +300,7 @@ abstract class File
                 return  "Internal server error 233";
             }
         }
-        Utils::err("unknown file op " .  $data['operation']);
+        Utils::err("unknown file op " .  $req->operation);
         return  "Internal server error 239";
     }
 }

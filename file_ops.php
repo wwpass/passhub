@@ -30,11 +30,18 @@ function file_ops_proxy($mng) {
         return "login";
     }
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
+
+    // Converts it into a PHP object
+    $req = json_decode($json);
+        
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (46)";
+        return ['status' => "Bad Request (68)"];
     }
-    return File::operation($mng, $_SESSION['UserID'],  $_POST);
+
+    return File::operation($mng, $_SESSION['UserID'],  $req);
 }
 
 header('Content-type: application/json');

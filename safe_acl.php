@@ -31,12 +31,15 @@ function safe_acl_proxy($mng)
         return "login";
     }
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    $json = file_get_contents('php://input');
+    $req = json_decode($json);
+
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (46)";
+        return ['status' => "Bad Request (68)"];
     }
 
-    if (!isset($_POST['vault']) ) {
+    if (!isset($req->vault) ) {
         return "internal error acl 33";
     }
 
@@ -50,7 +53,7 @@ function safe_acl_proxy($mng)
     // return safe_acl($mng, $UserID, $SafeID, $operation, $UserName, $RecipientKey, $role);
 
     $user = new User($mng, $UserID);
-    return $user->safeAcl($_POST);
+    return $user->safeAcl($req);
 }
 
 

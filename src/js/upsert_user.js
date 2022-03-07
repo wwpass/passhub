@@ -1,13 +1,18 @@
-import $ from 'jquery';
+import axios from 'axios';
 import forge from 'node-forge';
 import passhubCrypto from './crypto';
 
 import { doRestoreXML, importTemplate } from './import';
 
+/*
+
 // https://stackoverflow.com/questions/41529138/import-pem-keys-using-web-crypto
 // https://github.com/digitalbazaar/forge/issues/255
 
 // var wwpassCrypto = WWPassCrypto.initWithTicket(page_args.wwpassTicket);
+*/
+
+
 
 const crypto = window.crypto || window.msCrypto;
 const subtle = crypto ? (crypto.webkitSubtle || crypto.subtle) : null;
@@ -24,25 +29,30 @@ function sendWhenReady() {
       publicKey: credentials_to_send.publicKey,
       encryptedPrivateKey: credentials_to_send.encryptedPrivateKey,
     };
+
     if (!upgrade) {
       const publicKey = forge.pki.publicKeyFromPem(credentials_to_send.publicKey);
       const { template_safes } = page_args;
       const rootSafe = doRestoreXML(template_safes);
       user.import = importTemplate(rootSafe.folders, publicKey);
     }
-    $.ajax({
-      url: ajaxUrl,
-      type: 'POST',
-      data: user,
-      error: () => {
-      },
-      success: (result) => {
-        if (result.status === 'Ok') {
-          window.location.href = 'index.php';
-          return;
-        }
-        alert("XX " + result.status);
-      },
+
+    axios.post(ajaxUrl, user
+    )
+    .then((reply) => {
+      const result = reply.data;
+      if(result.status === 'Ok') {
+        window.location.href = 'index.php';
+        return;
+      }
+      alert(result.status);
+    })
+    .catch((error) => {
+      const hdr = '';
+      const status = '';
+      const err = error;
+      // ----  $('#backup_button').hide();
+      // ----  modalAjaxError($('#backup_alert'), hdr, status, err);
     });
   }
 }
@@ -101,23 +111,12 @@ function publicKeyExported_spki(key) {
 function keyPairGenerated(keypair) {
   let elapsed = new Date();
   elapsed -= start_time;
-  $('#create_userwait').text(`KeyPair generated in ${elapsed} ms (cryptoAPI)`);
+  document.querySelector('#create_userwait').textContent=`KeyPair generated in ${elapsed} ms (cryptoAPI)`;
 
   subtle.exportKey('pkcs8', keypair.privateKey).then(privateKeyExported_pkcs8).catch(cryptoapi_catch);
   subtle.exportKey('spki', keypair.publicKey).then(publicKeyExported_spki).catch(cryptoapi_catch);
 }
 
-/*
-var subtle_present = false;
-if (window.crypto) {
-  if (window.crypto.subtle) {
-    subtle_present = true;
-  }
-}
-*/
-
-// if (subtle_present) {
-// Safari 10 does not export RSA OAEP
 
 if (subtle && !((navigator.userAgent.match('Version/10') && navigator.userAgent.match('iPhone')))) {
   subtle.generateKey({
@@ -131,21 +130,20 @@ if (subtle && !((navigator.userAgent.match('Version/10') && navigator.userAgent.
   const state = forge.rsa.createKeyPairGenerationState(2048, 0x10001);
   let waitMessage = '>';
   let secondsPassed = 0;
-  $('#create_userwait').text(`Wait ${waitMessage}`);
+  const createUserWaitElement = document.querySelector('#create_userwait');
+  reateUserWaitElement.textContent = `Wait ${waitMessage}`;
   const step = () => {
     // run for 100 ms
     if (!forge.rsa.stepKeyPairGenerationState(state, 1000)) {
       setTimeout(step, 1);
       waitMessage = '.' + waitMessage;
       secondsPassed += 1;
-      $('#create_userwait').text(`Wait ${waitMessage}`);
-      $('#seconds_passsed').text(`seconds passed ${secondsPassed}`);
+      reateUserWaitElement.textContent = `Wait ${waitMessage}`;
+      document.querySelector('#seconds_passsed').textContent = `seconds passed ${secondsPassed}`;
     } else {
       let elapsed = new Date();
       elapsed -= start_time;
-      $('#create_userwait').text(`KeyPair generated in ${elapsed} ms (forge)`);
-      // $('#upsert_progress').hide();
-      $('#seconds_passsed').hide();
+      reateUserWaitElement.textContent = `KeyPair generated in ${elapsed} ms (forge)`;
       const publicPem = forge.pki.publicKeyToPem(state.keys.publicKey);
 
       // const privatePem = forge.pki.privateKeyToPem(state.keys.privateKey);

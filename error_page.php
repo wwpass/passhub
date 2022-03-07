@@ -90,6 +90,6 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
     }
 }
 echo Utils::render(
-    'error_page.html', $twig_args
+    'r-error_page.html', $twig_args
 ); 
 

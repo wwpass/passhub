@@ -8,7 +8,7 @@
  * @category  Password_Manager
  * @package   PassHub
  * @author    Mikhail Vysogorets <m.vysogorets@wwpass.com>
- * @copyright 2016-2018 WWPass
+ * @copyright 2016-2021 WWPass
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -30,17 +30,20 @@ function delete_item_proxy($mng)
         return "login";
     }
     
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    $json = file_get_contents('php://input');
+    $req = json_decode($json);
+    
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (26)";
+        return ['status' => "Bad Request (68)"];
     }
 
-    if (!isset($_POST['id']) || !isset($_POST['vault']) ) {
+    if (!isset($req->id) || !isset($req->vault) ) {
         return "error del 32";
     }
-    $entryID = trim($_POST['id']);
+    $entryID = trim($req->id);
     $item = new Item($mng, $entryID);
-    return $item->delete(trim($_SESSION['UserID']), $_POST['vault']);
+    return $item->delete(trim($_SESSION['UserID']), $req->vault);
 }
 
 $result = delete_item_proxy($mng);

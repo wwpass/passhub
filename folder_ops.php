@@ -28,12 +28,17 @@ function folder_ops_proxy($mng) {
     if (!isset($_SESSION['UserID'])) {
         return "login";
     }
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
 
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
+    // Converts it into a PHP object
+    $req = json_decode($json);
+    
+    if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
-        return "Bad Request (46)";
+        return ['status' => "Bad Request (68)"];
     }
-    return Folder::operation($mng, $_SESSION['UserID'],  $_POST);
+    return Folder::operation($mng, $_SESSION['UserID'],  $req);
 }
 
 $result = folder_ops_proxy($mng);

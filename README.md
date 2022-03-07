@@ -16,18 +16,18 @@
 
 ## Server Requirements
 
-- PHP 7.0+
+- PHP 7.4+
 - PHP composer
-- MongoDB 3.2+
+- MongoDB 4.4+
 
 ## Preferred run-time environment
 
-- Ubuntu 18.04
+- Ubuntu 20.04
 - NGINX Web server
 
 ## Getting passhub.business archive
 
-You may either download the latest release of the PassHub archive [passhub.business.*.tgz](https://github.com/wwpass/passhub/releases/download/v1.2.0/passhub.business.20191022.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
+You may either download the latest release of the PassHub archive [passhub.business.\*.tgz](https://github.com/wwpass/passhub/releases/download/v1.2.0/passhub.business.20191022.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
 
 To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
 
@@ -45,7 +45,7 @@ You get a tarball named as `passhub.business.YYYYMMDD.tgz`
 
 With the tarball in hands, deploy your own instance of PassHub.
 
-Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/InstallingPassHubOnUbuntu18.04.md). The document is mainly oriented on Ubuntu 18.04, but any modern Linux distribution should work.
+Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/InstallingPassHubOnUbuntu20.04.md). The document is mainly oriented on Ubuntu 20.04, but any modern Linux distribution should work.
 
 ## Feedback and Support
 

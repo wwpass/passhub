@@ -26,16 +26,30 @@ class Safe
     public $user_count;
 
     function __construct($row) {
-        $this->id = $row->SafeID;
-        $this->name = $row->SafeName;
-        if ($this->name == '') {
-            $this->name =  "My First Safe";  // TODO: prevent user to name safe this way
+/*
+        $vars=is_object($row)?get_object_vars($row):$row;
+        if(!is_array($row)) throw Exception('no props to import into the object!');
+        foreach ($vars as $key => $value) {
+            $this->$key = $value;
         }
+*/
+
+        if(property_exists($row,"version") && ($row->version == 3)) {
+            $this->version = $row->version;
+            $this->eName = $row->eName;
+        } else {
+            $this->name = $row->SafeName;
+            if ($this->name == '') {
+                $this->name =  "My First Safe";  // TODO: prevent user to name safe this way
+            }
+        }
+
+        // $this->name = $row->SafeName;
+        $this->id = $row->SafeID;
+
         $this->user_id = $row->UserID;
         $this->user_name = $row->UserName;
         $this->user_role = $row->role;
-        // at least one of the two
-        //SSE
         $this->encrypted_key = isset($row->encrypted_key) ? $row->encrypted_key:null;
         $this->encrypted_key_CSE = isset($row->encrypted_key_CSE) ? $row->encrypted_key_CSE:null;
         $this->confirm_req = 0;

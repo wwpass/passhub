@@ -1,17 +1,21 @@
-# Installing PassHub on Ubuntu 18.04
+---
+sidebar_label: "Installing PassHub on Ubuntu 20.04"
+sidebar_position: 11
+---
+
+# Installing PassHub on Ubuntu 20.04
 
 ## About This Document
 
 PassHub is a web-based password manager for individuals and teams with support for client-side encryption. PassHub relies on WWPass authentication and data encryption technology and can work both with hardware WWPass Key and WWPass Key smartphone application.
 
-In this guide, we'll discuss how to get PassHub installed on your Ubuntu 18.04
-server.
+In this guide, we describe how to get PassHub installed on your Ubuntu 20.04 server.
 
-Practical knowledge of web server deployment is required, including DNS configuration and  SSL certificates.  
+Practical knowledge of web server deployment is required, including DNS configuration and SSL certificates.
 
 ## Prerequisites
 
-To deploy Passhub, you should set up Ubuntu 18.04 Server and
+To deploy Passhub, you should set up Ubuntu 20.04 Server and
 configure a regular, non-root user with `sudo` privileges. The following hardware requirements should be met:
 
 - CPU: 1 Core
@@ -29,83 +33,107 @@ PassHub requires a WWPass Service Provider certificate, which can be obtained at
 
 Since this is our first interaction with the apt packaging system in this session, we should update our local package index, so that we have access to the most recent versions of packages. After that, Nginx can be installed.
 
-```sh
+```bash
 sudo apt update
 sudo apt install -y nginx
 ```
 
-On Ubuntu 18.04, Nginx is configured to start running upon installation.
+On Ubuntu 20.04, Nginx is configured to start running upon installation.
 
 ## Step 2.1: Install MongoDB Database
 
-```sh
-sudo apt install mongodb
-```
+While it is possible to use MongoDB version which comes with Ubuntu, we highly recommend MongoDB version 4.4.
+
+Please follow instructions on MongoDB site: https://docs.mongodb.com/v4.4/installation/, specifically for Ubuntu 20.04 use
+https://docs.mongodb.com/v4.4/tutorial/install-mongodb-on-ubuntu
 
 ## Step 3: Install PHP
 
+PHP version 7.4 which comes with Ubuntu 20.04 is generally Ok, However for the latest MongoDB version, get MongoDB PHP driver with PECL, according to MongoDB instructions: https://docs.mongodb.com/php-library/current/tutorial/install-php-library/
+
 Type the following command to install PHP and additional modules required by PassHub:
 
-```sh
-sudo apt install -y php-fpm php-curl php-mbstring php-mongodb php-mail php-pear php-net-smtp
+```bash
+sudo apt install -y php-fpm php-curl php-mbstring php-mail php-pear php-net-smtp
 ```
-To configure LDAP connection, add php-ldap module:
 
-```sh
+### 3.1: Maximum upload size
+
+Increase maximum upload size limits in `/etc/php/7.4/fpm/php.ini`:
+
+```
+post_max_size = 30M
+upload_max_filesize = 30M
+memory_limit = 256M
+
+```
+
+### 3.2: MongoDB driver
+
+Install MongoDB PHP driver according to https://docs.mongodb.com/drivers/php/
+
+You may check the installed module version with the CLI command
+
+```php
+php -r 'echo phpversion("mongodb");'
+```
+
+(Should be 1.10 or higher)
+
+### 3.3: LDAP module
+
+To configure LDAP connection, add **php-ldap** module:
+
+```bash
 sudo apt install -y php-ldap
 ```
 
+Finally, restart **php7.4-fpm** so that your configuration changes take effect:
 
-Finally, you need to restart php7.2-fpm so that your configuration changes take effect:
-
-```sh
-sudo service php7.2-fpm restart
+```bash
+sudo service php7.4-fpm restart
 ```
 
-## Step 3.1: Install PHP Composer
+### 3.4: Install PHP Composer
 
-```sh
+For better results use **Composer version 2**: https://getcomposer.org/download/
+
+While not recommended, it is still possible to use Composer version 1, which comes with Ubuntu
+
+```bash
 sudo apt install composer
-```
-
-Some VPS distributions of Ubuntu 18.04 come without zip/unzip tools, required by composer. Install them as follows:
-
-```sh
-sudo apt install zip unzip
 ```
 
 ## Step 4: Extract PassHub Files
 
-Go to Github latest [passhub release](https://github.com/wwpass/passhub/releases/latest), download passhub.business.xxxxx.tgz archive and put it to your server home directory.
+Untar phub2-ent.tgz archive and put it to your server home directory.
 
 Extract the contents of the archive into the `/var/www` directory:
 
-```sh
+```bash
 cd /var/www
-sudo tar xvzf ~/passhub.xxxx.tgz
+sudo tar xvzf ~/phub2-ent.tgz
 ```
 
 Change ownership of the extracted files:
 
-```sh
-sudo chown -R username:www-data /var/www/passhub
+```bash
+sudo chown -R www-data:www-data /var/www/passhub
 ```
 
-**Note**: don't forget to change the `username` with the actual name of your account.
-
-## Step 4.1 Install PHP libraries
+### 4.1 Install PHP libraries
 
 In the _/var/www/passhub_ directory run composer:
 
-```sh
+```bash
 sudo composer install
 ```
 
-## Step 4.2 Create working directories
+### 4.2 Create working directories
 
-We also need to create PassHub log and working directories:
+Create PassHub log and working directories:
 
-```sh
+```bash
 sudo mkdir /var/log/passhub
 sudo chown www-data:www-data /var/log/passhub
 sudo mkdir /var/lib/passhub
@@ -116,50 +144,43 @@ sudo chown www-data:www-data /var/lib/passhub
 
 To configure Nginx web server, we need to obtain two SSL certificates: first, the HTTPS certificate to protect web connection and second - WWPass Service Provider certificate for PassHub.
 
-Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more then one already existing URLs served by Nginx. If PassHub is not the first destination, you are probably already experienced enough to adapt following instructions to your needs.
+Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more than one already existing URLs served by Nginx. If PassHub is not the first destination, you are probably already experienced enough to adapt following instructions to your needs.
 
 Here are the steps for freshly installed Nginx.
 
 ### 5.1 PassHub URL
 
-Start with selecting URL for the PassHub service, e.g. 'passhub.yourcompany.com'. Set your DNS accordingly.
+Start with selecting a URL for the PassHub service, e.g. 'passhub.yourcompany.com'. Set your DNS accordingly.
 
 ### 5.1 SSL certificates
 
-Obtain the SSL certificate from Certificate authority of your choice. We recommend [Let's Encrypt CA](https://letsencrypt.org/).
+Obtain the SSL certificate from Certificate Authority of your choice, e.g. [Let's Encrypt CA](https://letsencrypt.org/).
 
 ### 5.2 WWPass certificates
 
-PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site. For new Nginx deployment, you can use `/var/www/html` directory to store the verification file.
+PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site.
 
-### 5.3 Nginx configuration  
+### 5.3 Nginx configuration
 
-We need to create a new Nginx configuration file for our PassHub installation.
+There are no specific requirements for nginx configuration. Below is just a possible example
 
-Create a new configuration file by typing:
-
-```sh
-sudo nano /etc/nginx/sites-available/passhub.conf
-```
-
-Add the following content to the file:
-
-```
+```nginx
 server {
   listen 80;
   listen [::]:80;
   server_name example.com;
   location / {
-    rewrite ^(.*)$ https://example.com$1;
+    rewrite ^(.*)$ https://passhub.yourcompany.com$1;
   }
 }
 server {
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
-  server_name example.com;
+  server_name passhub.yourcompany.com;
   ssl on;
   ssl_certificate /path/to/ssl/certificate/fullchain.pem;
   ssl_certificate_key /path/to/ssl/certificate/privkey.pem;
+  client_max_body_size 30M;
   root /var/www/passhub;
   index index.php index.html index.htm;
   location ~/(config|helpers|src) {
@@ -168,29 +189,26 @@ server {
   }
   location ~ \.php$ {
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    fastcgi_pass unix:/run/php/php7.4-fpm.sock;
   }
 }
 ```
 
 **Notes**:
 
-1. Change ```example.com``` to the DNS name of your server;
-2. Make sure ```ssl_certificate``` and ```ssl_certificate_key``` point to
-existing SSL certificate files;
+1. Change `passhub.yourcompany.com` to the DNS name of your server;
+2. Make sure `ssl_certificate` and `ssl_certificate_key` point to existing SSL certificate files;
 
-Save and close the file when you are finished.
-
-Next, create a symbolic link in the ```/etc/nginx/sites-enabled/```
+Create a symbolic link in the `/etc/nginx/sites-enabled/`
 directory so that Nginx can pick up the configuration file we just created:
 
-```sh
+```bash
 sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-enabled/passhub.conf
 ```
 
-Now it is time to test our Nginx configuration for possible errors:
+Check the Nginx configuration for possible errors:
 
-```sh
+```bash
 sudo nginx -t
 ```
 
@@ -209,41 +227,40 @@ nginx: configuration file /etc/nginx/nginx.conf test failed
 
 Revise your Nginx configuration and re-test.
 
-Once your Nginx configuration contains no errors, it is time to
-tell Nginx to reload configuration data:
+Once your Nginx configuration contains no errors, reload nginx with new configuration data:
 
-```sh
+```bash
 sudo nginx -s reload
 ```
 
-**Tip**: to temporarily disable your PassHub instance in Nginx, remove the symbolic link in the ```/etc/nginx/sites-enabled/```
+**Tip**: to temporarily disable your PassHub instance in Nginx, remove the symbolic link in the `/etc/nginx/sites-enabled/`
 directory and reload Nginx configuration like this:
 
-```sh
+```bash
 sudo rm /etc/nginx/sites-enabled/passhub.conf
 sudo nginx -s reload
 ```
 
 To re-enable Nginx, just re-create the symbolic link and reload Nginx configuration:
 
-```sh
+```bash
 sudo ln -s /etc/nginx/sites-available/passhub.conf /etc/nginx/sites-enabled/passhub.conf
 sudo nginx -s reload
 ```
 
 ## Step 6: Adjust PassHub Configuration
 
-We now need to create a new PassHub configuration using the sample configuration file bundled with the PassHub distribution.
+Create a new PassHub configuration using the sample configuration file bundled with the PassHub distribution.
 
-Create a new configuration file by copying ```config-sample.php```:
+Create a new configuration file by copying `config-sample.php`:
 
-```sh
+```bash
 sudo cp /var/www/passhub/config/config-sample.php /var/www/passhub/config/config.php
 ```
 
 And open it in a text editor:
 
-```sh
+```bash
 sudo nano /var/www/passhub/config/config.php
 ```
 
@@ -302,7 +319,7 @@ define('MONGODB_CONNECTION_LINE', 'mongodb://localhost');
 //define('MONGODB_CONNECTION_LINE', "mongodb://username:password@phub-srv1:port,phub-srv2:port,phub-arbiter:port/phub?replicaSet=rsphub&ssl=true");
 
 
-// ** FILE storage** all sizes in Bytes 
+// ** FILE storage** all sizes in Bytes
 define('MAX_FILE_SIZE', 5 * 1024 * 1024);
 
 // local file storage: FILE_DIR should be created in advance
@@ -374,35 +391,37 @@ define(
     ]
 );
 
-// if LDAP is not defined: allowed mail domains, space separated
+
+
+// if LDAP is not defined: start with admin's email. The user will be assigned admin priviledges on the first login
+
+define('MAIL_DOMAIN', "admin@yourcompany.com");
+
+//alernatively (not recommentded) it is possible to allow any users with email address from particular domain:
+
 define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
 
-// or use your mail only to start
-// define('MAIL_DOMAIN', "you@yourcompany.com");
-//
-// define('MAIL_DOMAIN', "any");
+// or just allow anonymous registration (not recommended)
+define('MAIL_DOMAIN', "any");
 
-// if no LDAP or MAIL_DOMAIN is defined, anonymous registration and sharing are used  
-// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
-define('SHARING_CODE_TTL', 48*60*60);
+// if no LDAP or MAIL_DOMAIN is defined, anonymous registration and sharing are used
 
 // **
 
-// white-label login page 
+// white-label login page
 // define('LOGIN_PAGE', "views/login.html");
 
 
 ```
 
-We need to perform the following adjustments:
+Perform the following adjustments:
 
-1. Set ```WWPASS_CERT_FILE``` to the absolute path to your WWPass service provider certificate file (eg. /etc/ssl/yourcompany.com.crt);
-2. Set ```WWPASS_KEY_FILE``` to the absolute path to your WWPass service provider key file (e.g. /etc/ssl/yourcompany.com.key);
-3. Set ```WWPASS_CA_FILE``` to the absolute path to the WWPass certificate authority file (e.g. /etc/ssl/wwpass_sp_ca.crt). You can download ```wwpass_ca.cer``` here:
-https://developers.wwpass.com/downloads/wwpass.ca
-4. Set ```SUPPORT_MAIL_ADDRESS``` to an email address you are going to use for handling user support requests;
+1. Set `WWPASS_CERT_FILE` to the absolute path to your WWPass service provider certificate file (eg. /etc/ssl/yourcompany.com.crt);
+2. Set `WWPASS_KEY_FILE` to the absolute path to your WWPass service provider key file (e.g. /etc/ssl/yourcompany.com.key);
 
-Additionally, you may want to adjust the ```WWPASS_PIN_REQUIRED``` parameter, which controls whether PassHub should request PIN during authentication. Set it to ```false``` if you want to disable PIN requests, leave the default ```true``` value otherwise.
+3. Set `SUPPORT_MAIL_ADDRESS` to an email address you are going to use for handling user support requests;
+
+Additionally, you may want to adjust the `WWPASS_PIN_REQUIRED` parameter, which controls whether PassHub should request PIN during authentication. Set it to `false` if you want to disable PIN requests, leave the default `true` value otherwise.
 
 Save and close the file when you are finished.
 
@@ -412,15 +431,15 @@ Passhub uses email service for feedback messages and user email address verifica
 
 ### Option 1. Mail server on the same computer where PassHub is running
 
- If you have one, you are all set: Passhub uses it by default.
+If you have one, you are all set: Passhub uses it by default.
 
 ### Option 2
 
 Create or use a dedicated mail account on your company mail server. This case you need to install PHP PEAR/mail package on the Passhub server:
 
-  `sudo apt install php-mail`
+`sudo apt install php-mail`
 
- Now add the account data to the config.php file, for example
+Now add the account data to the config.php file, for example
 
 ```php
  define(
@@ -438,7 +457,7 @@ Create or use a dedicated mail account on your company mail server. This case yo
 
 Create a dedicated gmail account. Basically, it is a variant of **Option 2**. Install PHP PEAR/mail package:
 
-  `sudo apt install php-mail`
+`sudo apt install php-mail`
 
 Add account data to the config.php, for example
 
@@ -454,30 +473,30 @@ Add account data to the config.php, for example
 );
 ```
 
-You will need to tweak the security settings of the gmail account. In the account settings choose 'Security' and turn on **Less secure app access** switch
+For Gmail, tweak the security settings of the account. In the account settings choose 'Security' and turn on **Less secure app access** switch
 
 ## Step 8: Test PassHub
 
-Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with hardware WWPass Key under the QR code.
+Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with the hardware WWPass Key under the QR code.
 
 ## Step 9: Site administrator
 
-For corporate use, a PassHub administrator should be assigned. The administrator has rights to monitor user activities, delete users or grant PassHub administrator role to other users. PassHub administrator also controls the white list of email addresses of external users allowed to create an account.
+For corporate use, a PassHub administrator should be assigned. The administrator has the rights to monitor user activities, delete users or grant PassHub administrator role to other users. The PassHub administrator also controls the white list of email addresses of external users allowed to create an account.
 
-The first logged-in user who visits `/iam.php` page of the site:  `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
+The first logged-in user who visits `/iam.php` page of the site: `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
 ## Advanced: store your encrypted files in the cloud
 
 It is well possible to keep all your encrypted files in the Amazon S3 compatible object storage service. This way, you increase the availability of your data and simplify storage configuration for distributed deployments of PassHub.
 
-The good news is that Amason S3 API becomes a standard de-facto, and the same code works for many object storage providers, like Google Cloud Platform or Digital Ocean Spaces, Vultr and Linode.
+The good news is that Amason S3 API becomes a standard de-facto, and the same code works for many object storage providers, like Google Cloud Platform, Digital Ocean Spaces, Vultr, and Linode.
 
 With `s3fs` solution, available for Linux, it is also possible just to mount S3-compatible storage to the filesystem, as if it was an NFS external storage. This way you do not need to write a single line of code.
 
-PassHub supports S3-compatible storage. To configure this option, create an Object storage account in one of the cloud service providers and change the config file:  
+PassHub supports S3-compatible storage. To configure this option, create an Object storage account in one of the cloud service providers and change the config file:
 
 ```php
-// Comment out other storage methods 
+// Comment out other storage methods
 // define('FILE_DIR', '/var/lib/passhub');
 
 // Provide S3 account data, like that for example
@@ -500,48 +519,78 @@ define('S3_BUCKET', 'phub');
 
 ### Anonymous
 
-By default, when user logs into PassHub for the first time, a new accountis created. There are no any preconditions and no user information is gathered. Hence, when a safe owner shares a safe, there is no way to identify the recipient. The resulting process is three step: 
+By default, when a user logs into PassHub for the first time, a new account is created. There are no preconditions and no user information is gathered. Hence, when a safe owner shares a safe, there is no way to identify the recipient. The resulting process is three-step:
 
- 1. The owner gets a sharing code and sends it to the recipient by mail, or using any messendger
+1.  The owner gets a sharing code and sends it to the recipient by email, or using any messenger
 
- 2. The recipient fills in "Accept sharing" dialog with the sharing code and a safe name of their own choice
+2.  The recipient fills in the "Accept sharing" dialog with the sharing code and a safe name of their own choice
 
- 3. The safe owner confirms sharing
+3.  The safe owner confirms sharing
 
-The only optional parameter for this configuration in `config.php` file is `SHARING_CODE_TTL` which defaults to 48 hours
+The only optional parameter for this configuration in the `config.php` file is `SHARING_CODE_TTL` which defaults to 48 hours
 
-### Mail or mail domain
+### Mail or email domain
 
-If the parameter `MAIL_DOMAIN` is set in `config.php` file, new users are required to provide and verify their email address. Now, when sharing safes, the recipient is identified by the mail address thus reducing sharing procedure to the single step. The very parameter `MAIL_DOMAIN` defines initial limitations on acceptable mail addresses. In its basic form the parameter contains mail domain of the company, thus restricting possible PassHub users. For example, if the corporate mail address looks like `somebody@company,com`, set
+If the parameter `MAIL_DOMAIN` is set in the `config.php` file, new users are required to provide and verify their email address. Now, when sharing safes, the recipient is identified by the email address thus reducing sharing procedure to a single step. The very parameter `MAIL_DOMAIN` defines initial limitations on acceptable email addresses. In its basic form, the parameter contains the email domain of the company, thus restricting possible PassHub users. For example, if the corporate email address looks like `somebody@company.com`, set
 
-  MAIL_DOMAIN = "company.com"
+MAIL_DOMAIN = "company.com"
 
-Alrenatively, MAIL_DOMAIN may be set to a single predefined mail address
+Alternatively, MAIL_DOMAIN may be set to a single predefined email address
 
-  MAIL_DOMAIN = "adm@company.com"
+MAIL_DOMAIN = "adm@company.com"
 
-then only this person will be allowed to create a PassHub account. Typicaly this email address belongs to PassHub administrator, who can later on invite other users.  
+then only this person will be allowed to create a PassHub account. Typically this email address belongs to PassHub administrator, who can, later on, invite other users.
 
 Finally, the setting
 
 MAIL_DOMAIN = "any"
 
-implies no limitations on users email adress. New users still are requested to provide and verify their email.
+implies no limitations on users' email address. New users still are requested to provide and verify their email.
 
 ### LDAP
 
-PassHub may be connected to coroporate Active Directory. This time when users logs in for the first time, their Active Directory credentials, username (upn actually) and passwords are requested and verified against AD service.
+PassHub may be connected to the corporate Active Directory. This time when users logs in for the first time, their Active Directory credentials, username (upn actually) and passwords are requested and verified against AD service.
 
-Next, the user email, stored in Active Directory is obtained and the user membership in a predefined group is checked. The group membership means the user as allowed to access PassHub.
+Next, the user email, stored in Active Directory is obtained and the user membership in a predefined group is checked. The group membership means the user is allowed to access PassHub.
 Later, the group membership is checked every time the user logs in to PassHub.
 
-To configure PassHub connection to Active directory, fill the LDAP structure in the `config.php` file. When `LDAP` parameter is set, it takes precedense over `MAIL_DOMAIN` or Anonymous settings
-
+To configure PassHub connection to Active Directory, fill the LDAP structure in the `config.php` file. When `LDAP` parameter is set, it takes precedence over `MAIL_DOMAIN` or Anonymous settings
 
 For detailed LDAP parameters see the file `config-sample.php` in the distro and in the text above.
 
 NOTE: `php-ldap` module is required for LDAP connection.
 
+## Getting bigger
+
+### Speed up MongoDB
+
+When the database grows enough to slow down PassHub operations, collection indexing significatly improves PassHub responce times.
+
+With `mongo` shell console, create indexes as follows:
+
+```
+db.safe_items.createIndex({SafeID:-1})
+db.safe_folders.createIndex({SafeID:-1})
+```
+
+### php-fpm bottleneck
+
+The number of simultaneous php-fpm instances affects request processing.
+
+Check `php7.4-fpm.log` files for the following lines:
+
+```
+WARNING: [pool www] server reached pm.max_children setting (5), consider raising it
+```
+
+In this case increase settings in `/etc/php/7.4/fpm/pool.d/www.conf`
+
+```
+pm.max_children = 10
+pm.start_servers = 4
+pm.min_spare_servers = 2
+pm.max_spare_servers = 6
+```
 
 ## Feedback and Support
 

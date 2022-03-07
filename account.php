@@ -34,21 +34,43 @@ if (!isset($_SESSION['UserID'])) {
     exit();
 }
 
-$UserID = $_SESSION['UserID'];
 
-$user = new User($mng, $UserID);
+function account_proxy($mng) {
+    $UserID = $_SESSION['UserID'];
 
-if (isset($_POST['operation']) && ($_POST['operation'] == 'delete')) {
-    if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
-        Utils::err("bad csrf account 54");
-        return "Internal Error (54)";
+    $user = new User($mng, $UserID);
+    
+    
+    // axios: Takes raw data from the request
+    $json = file_get_contents('php://input');
+    
+    // Converts it into a PHP object
+    $req = json_decode($json);
+    
+
+    if(!Csrf::validCSRF($req)) {
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
     }
 
-    $result = delete_account($mng, $UserID);
-    session_destroy();
-} else {
-    $result = $user->account();
+    if (isset($req->operation)) {
+        /*if($req->operation === 'delete') {
+    
+            $result = delete_account($mng, $UserID);
+            session_destroy();
+            return 'Ok';
+        } else 
+        */
+        if($req->operation === 'setInactivityTimeout') {
+            $id = ($req->id) ? $req->id:"desktop_inactivity";
+            $value = $req->value;
+            $user->setInactivityTimeOut($id, $value);
+        }
+    }
+    return $user->account();
 }
+
+$result = account_proxy($mng);
 
 if (gettype($result) == "string") {
     $result = array("status" => $result);

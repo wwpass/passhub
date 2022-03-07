@@ -121,14 +121,6 @@ try {
                         );
                         exit();
                     }
-                    /*
-                    $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
-                    if ($status !== "Ok") {
-                        Utils::err("reg_code: " . $status);
-                        Utils::errorPage($status);
-                    }
-                    unset($_SESSION['reg_code']);
-                    */
                     Utils::err('Should not happen idx 129');
                 }
             }
@@ -181,11 +173,19 @@ try {
             exit($result['status']);//multiple PUID records;
         }
     }
+    if(defined('DISCOURSE_SECRET') && isset($_SESSION['sso'])) {
+        header("Location: " . $_SESSION['sso']);
+        unset($_SESSION['sso']);
+        exit();
+    }
 
     $UserID = $_SESSION['UserID'];
     $user = new User($mng, $UserID);
     $user->getProfile();
-    
+
+    if($user->disabled()) {
+        Utils::errorPage("The account is disabled. Please consult your system administrator");
+    }
 
     if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
         if ($user->profile->email == "") {
@@ -205,14 +205,6 @@ try {
                     );
                     exit();
                 }
-                /*
-                $status = process_reg_code($mng, $_SESSION['reg_code'], $_SESSION['PUID']);
-                if ($status !== "Ok") {
-                    Utils::err("reg_code: " . $status);
-                    Utils::errorPage($status);
-                }
-                $user = new User($mng, $UserID);
-                */
                 Utils::err('Should not happen idx 212');
             }
         } else if (isset($_SESSION['reg_code'])) {
@@ -225,11 +217,6 @@ try {
             );
         }
     }
-/*
-    if (isset($_REQUEST['vault'])) {
-        $user->setCurrentSafe($_REQUEST['vault']);
-    }
-*/
 
     // after get_current_safe we know if user is cse-type
     // TODO do we need jquery ui from https://ajax.googleapis.com? - see progress
@@ -302,15 +289,6 @@ if ($user->isSiteAdmin()) {
     $twig_args['isSiteAdmin'] = true;
 }
 
-if (isset($firstResponceAfterLogin) && ($firstResponceAfterLogin == true)) {
-    if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
-        if (Survey::showStatus($mng, $UserID)) {
-            $twig_args['surveyShow'] = true;
-            Survey::shown($mng, $UserID);
-        }
-    }
-}
-
 if (file_exists('config/server_name.php')) {
     $twig_args['server_name'] = file_get_contents('config/server_name.php');
 }
@@ -333,4 +311,5 @@ if ($searchClearButton) {
     $twig_args['search_clear_button'] = true;
 }
 
-echo Utils::render('index.html', $twig_args); 
+// echo Utils::render('index.html', $twig_args); 
+echo Utils::render_react('index.html', $twig_args); 

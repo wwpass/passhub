@@ -177,7 +177,12 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
         // do nothing
     } else {
         // clear all keys but req_code if present
-        $_SESSION = array_intersect_key($_SESSION, array('reg_code' => ""));
+        if(defined('DISCOURSE_SECRET')) {
+                $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "", 'sso' =>''));
+        } else {
+            $_SESSION = array_intersect_key($_SESSION, array('reg_code' => ""));
+        }
+
 
         $ticket = $_REQUEST['wwp_ticket'];
         try {
@@ -221,7 +226,6 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             exit();
 
         }  catch (Exception $e) {
-            # $err_msg = $e->getMessage() . ". Please try again";
             Utils::err("wwp exception: " . $e->getMessage());
         }
     }
