@@ -27,19 +27,28 @@
 
 ## Getting passhub.business archive
 
-You may either download the latest release of the PassHub archive [passhub.business.\*.tgz](https://github.com/wwpass/passhub/releases/download/v1.2.0/passhub.business.20191022.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/) page or build the tarball from source.
+You may either download the latest release of the PassHub archive [passhub.business.\*.tgz](https://github.com/wwpass/passhub/releases/download/v2.0/passhub.business.20220307.tgz) on [GitHub Releases](https://github.com/wwpass/passhub/releases/) page or build the tarball from source.
 
+## Build from source
+
+The project consistes of two github repositories: main, [wwpass/passhub](https://github.com/wwpass/passhub), and frontend, [wwpass/passhub-frontend](https://github.com/wwpass/passhub-frontend)  
 To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
 
-To compile the project from scratch, download the git repository and run
+To compile the project from scratch, download the git repository wwpass/passhub and run
 
 ```sh
 npm install
 npm run build
-publish_tarball_business.sh
 ```
 
-You get a tarball named as `passhub.business.YYYYMMDD.tgz`
+Now clone frontend code wwpass/passhub-frontend and do the same
+
+```sh
+npm install
+npm run build
+```
+
+Create `/frontend` directory in the main passhub project and copy wwpass/frontend build content in it.
 
 ## Service deployment
 
