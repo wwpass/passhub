@@ -24,7 +24,7 @@
 
           <div class="card-body">
             <div style="max-width:40em; margin: 0 auto">
-              <p style="margin:30px 0 20px;">
+              <p style="margin:30px 0 0;">
                   {% if de1 %}
                       Wir haben eine Bestätigung an <i><b>{{ email }}</b></i>  gesendet
                   {% else %}
@@ -41,11 +41,13 @@
               </style>
 
               <input type="text" id="fake_username1"><input type="password" id="fake_password1">
+              <div style="margin-bottom: 1em">
                   {% if change %}
                       Please enter the code to change your email:
                   {% else %}
                       Please enter the code to activate your account:
                   {% endif %}
+              </div>
 
               <style>
                   #code6 {
@@ -60,7 +62,7 @@
                   }
               </style>
 
-              <div style='margin-bottom:1.5em;'>
+              <div style='margin-bottom:1.5em; display:flex; align-items:center'>
                   <input type="text" placeholder="6-digit code" id="code6" class="form-control"
                   aria-label="6-digit code" aria-describedby="basic-addon2">
                   <button class=" btn btn-outline-primary disabled" id="button6" type="button">Verify</button>
