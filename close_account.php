@@ -20,47 +20,47 @@ use PassHub\Csrf;
 use PassHub\DB;
 use PassHub\User;
 
-require_once 'Mail.php';
-
 $mng = DB::Connection();
 
 session_start();
 
-if (!isset($_SESSION['PUID'])) {
-    header("Location: login.php?next=account.php");
-    exit();
-}
+function close_account_proxy($mng) {
+    if (!isset($_SESSION['UserID'])) {
+        return "login";
+    }
 
-if (!isset($_SESSION['UserID'])) {
-    header("Location: logout.php");
-    exit();
-}
+    // Takes raw data from the request
+    $json = file_get_contents('php://input');
 
-$phase = 1;
-if (isset($_POST['verifier1']) && ($_POST['verifier1'] == Csrf::isValid($_POST['verifier1']))) {
-    $phase = 2;
-} else if (isset($_POST['verifier2']) && ($_POST['verifier2'] ==  Csrf::isValid($_POST['verifier2']))) {
+    // Converts it into a PHP object
+    $req = json_decode($json);
+    
+    if (!isset($req->operation)) {
+        Utils::err("error del account 39");
+        return "Internal error 39";
+    }
+
+    if(!Csrf::validCSRF($req)) {
+        Utils::err("bad csrf");
+        return ['status' => "Bad Request (68)"];
+    }
     $UserID = $_SESSION['UserID'];
     $user = new User($mng, $UserID);
+
     $result = $user->deleteAccount();
-    if (gettype($result) == "string") {
-        $result = array("status" => $result);
-    }
     session_destroy();
-    $phase = 3;
+    return $result;
 }
 
-echo Utils::render(
-    'close_account.html', 
-    [
-        // layout
-        'narrow' => true, 
-        'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-        'hide_logout' => true,
+$result =  close_account_proxy($mng);
 
-        //content
-        // 'email' => $_SESSION['form_email'],
-        'verifier' => Csrf::get(),
-        'phase' => $phase,
-    ]
-);
+header('Content-type: application/json');
+header('Cache-Control: no-cache, must-revalidate');
+header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
+
+
+if (!is_array($result)) {
+    $result = array("status" => $result);
+}
+
+echo json_encode($result);
