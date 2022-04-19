@@ -262,9 +262,12 @@ class User
             $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
         }
         if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
+            $data['business'] = false;
             if (Survey::showStatus($this)) {
                 $data['takeSurvey'] = true;
             }
+        } else {
+            $data['business'] = true;
         }
 
         if (array_key_exists('folder', $_GET)) {
