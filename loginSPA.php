@@ -42,7 +42,6 @@ session_destroy();
 
 session_start();
 
-
 if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     $_SERVER['HTTP_USER_AGENT'] = "undefined";
     Utils::err("HTTP_USER_AGENT undefined (corrected)");
@@ -230,13 +229,32 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
 
             $result = $puid->getUserByPuid();
             if($result['status'] == "not found") {
-            } else if ($result['status'] == "Ok") {
+                $result = array("status" => "not found");
+                
+                header('Cache-Control: no-cache, must-revalidate');
+                header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
+                header('Content-type: application/json');
+                
+                echo json_encode($result);
+                exit();
+            }
+            if ($result['status'] == "Ok") {
                 $UserID = $result['UserID'];
                 $_SESSION["UserID"] = $UserID;
-            } else {
-                Utils::err('Hello20');
-                exit($result['status']);//multiple PUID records;
+                $result = array("status" => "Ok");
+                $csrf=Csrf::get();
+                
+                header('Cache-Control: no-cache, must-revalidate');
+                header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
+                header('Content-type: application/json');
+                header('X-CSRF-TOKEN: ' . $csrf);
+                echo json_encode($result);
+                exit();
+    
             }
+            Utils::err('Hello20');
+            exit($result['status']);//multiple PUID records;
+
             
             Utils::err(print_r($_SESSION, true));
 
