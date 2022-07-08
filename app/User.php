@@ -288,6 +288,14 @@ class User
         } else {
             $data['onkeyremoval'] = false;
         }
+
+        $data['websocket'] = false;
+        if (defined('WEBSOCKET')) {
+            if(WEBSOCKET) {
+                $data['websocket'] = true;
+            }
+        }
+
         $data['WWPASS_TICKET_TTL'] = WWPASS_TICKET_TTL;
         $data['idleTimeout'] = $this->profile->desktop_inactivity;
         $data['ticketAge'] =  (time() - $_SESSION['wwpass_ticket_creation_time']);
