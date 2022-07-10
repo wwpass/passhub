@@ -262,9 +262,12 @@ class User
             $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
         }
         if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
+            $data['business'] = false;
             if (Survey::showStatus($this)) {
                 $data['takeSurvey'] = true;
             }
+        } else {
+            $data['business'] = true;
         }
 
         if (array_key_exists('folder', $_GET)) {
@@ -285,6 +288,14 @@ class User
         } else {
             $data['onkeyremoval'] = false;
         }
+
+        $data['websocket'] = false;
+        if (defined('WEBSOCKET')) {
+            if(WEBSOCKET) {
+                $data['websocket'] = true;
+            }
+        }
+
         $data['WWPASS_TICKET_TTL'] = WWPASS_TICKET_TTL;
         $data['idleTimeout'] = $this->profile->desktop_inactivity;
         $data['ticketAge'] =  (time() - $_SESSION['wwpass_ticket_creation_time']);

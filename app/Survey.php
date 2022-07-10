@@ -31,7 +31,7 @@ class Survey
         $UserID = $user->UserID;
        
         if ((time() - self::userCreationTime($UserID)) < 60*60*24*30) {
-                Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
+                // Utils::err("survey: no show, new user " . (time() - self::userCreationTime($UserID)));
             return false;
         }
     
@@ -47,7 +47,7 @@ class Survey
                 Survey::shown($mng, $UserID);
                 return true;
             } else {
-                Utils::err('survey: too early');
+                // Utils::err('survey: too early');
             }
         }
         if ($result[0]['status'] == 'sent') {
@@ -55,7 +55,7 @@ class Survey
                 Survey::shown($mng, $UserID);
                 return true;
             } else {
-                Utils::err('survey: already received '  . (int)((time() - strtotime($result[0]['modified']))/60/60/24) . ' days ago');
+                // Utils::err('survey: already received '  . (int)((time() - strtotime($result[0]['modified']))/60/60/24) . ' days ago');
             }
         }
         return false;

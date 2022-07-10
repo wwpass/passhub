@@ -44,7 +44,47 @@ class Utils
         return $result ? ['status' => 'Ok'] : ['status' => 'fail'];
     }
 
+
+    private static function sendMailJet($to, $subject, $body, $contentType) {
+        Utils::err("Mailjet");
+        
+//        require 'vendor/autoload.php';
+//        use \Mailjet\Resources;
+            $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
+            $body = [
+            'Messages' => [
+                [
+                    'From' => [
+                        'Email' => SMTP_SERVER["from"]
+//                        'Name' => "Me"
+                    ],
+                    'To' => [
+                        [
+                            'Email' => $to,
+//                            'Name' => "You"
+                        ]
+                    ],
+                    'Subject' => $subject,
+                    // 'TextPart' => $body,
+                    'HTMLPart' => $body
+                ]
+            ]
+        ];
+        $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $body]);
+        Utils::err(print_r($response->getData(), true));
+
+        if($response->success()) {
+            return ['status' => 'Ok'];
+        }
+        return ['status' => 'fail'];
+    }
+
     private static function sendSMTP($to, $subject, $body, $contentType) {
+
+
+        if(isset(SMTP_SERVER["host"]) && stristr(SMTP_SERVER["host"],"in-v3.mailjet.com")) {
+            return self::sendMailJet($to, $subject, $body, $contentType);
+        }
         $from = '<' . SMTP_SERVER["username"] . '>';
         if(isset(SMTP_SERVER["from"])) {
             $from = '<' . SMTP_SERVER["from"] . '>';

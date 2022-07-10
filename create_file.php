@@ -72,6 +72,10 @@ function create_file_item_proxy($mng) {
     $file = $_POST['file'];
 
     $fileContent = file_get_contents($_FILES['blob']['tmp_name']);
+    if(!$fileContent) {
+        Utils::err("file upload error 76");
+        return(["status" => "Internal server error 76. Please try again later."]);
+    }
 
     if (!isset($_POST['meta']) || !isset($_POST['file'])) {
         Utils::err("error file create 83");

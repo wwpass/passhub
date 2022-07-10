@@ -42,7 +42,7 @@ if (isset($_GET['registration_action'])) {
         $close_action = '\'logout.php\'';
     }
     echo Utils::render(
-        'r-registration_action.html', 
+        'registration_action.html', 
         [
             // layout
             'narrow' => true, 
@@ -62,7 +62,7 @@ if (isset($_GET['registration_action'])) {
 
 if (isset($_GET['change_mail'])) {
     echo Utils::render(
-        'r-registration_action.html', 
+        'registration_action.html', 
         [
             // layout
             'narrow' => true, 

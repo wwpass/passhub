@@ -5,7 +5,8 @@
         "twig/twig": "^3.0",
         "wwpass/apiclient": "^4.0",
         "mongodb/mongodb": "^1.8",
-        "stripe/stripe-php": "^7.97"
+        "stripe/stripe-php": "^7.97",
+        "mailjet/mailjet-apiv3-php": "^1.5"
     },
     "autoload": {
         "psr-4": {

@@ -218,25 +218,6 @@ try {
         }
     }
 
-    // after get_current_safe we know if user is cse-type
-    // TODO do we need jquery ui from https://ajax.googleapis.com? - see progress
-    // header("Content-Security-Policy: default-src 'unsafe-inline' 'self' https://maxcdn.bootstrapcdn.com https://cdnjs.cloudflare.com  https://cdn.wwpass.com wss://spfews.wwpass.com https://ajax.googleapis.com https://fonts.gstatic.com ; style-src 'unsafe-inline' 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com");
-
-    if (!$user->isCSE()) {
-
-        $top_template = Template::factory('src/templates/top.html');
-        $top_template->add('narrow', true)
-            ->render();
-
-        Utils::log("Upgrade User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
-
-        $upgrade_user_template = Template::factory('src/templates/upsert_user.html');
-        $upgrade_user_template->add('ticket', $_SESSION['wwpass_ticket'])
-            ->add('upgrade', true)
-            ->render();
-        exit();
-    }
-
 } catch ( MongoDB\Driver\Exception\Exception $e) {
     $err_msg = 'Caught exception: ' . $e->getMessage();
     Utils::err(get_class($e));
