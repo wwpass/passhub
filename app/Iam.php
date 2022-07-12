@@ -135,7 +135,7 @@ class Iam
         return $cursor->toArray();
     }
 
-    public function getPageData($mng, $UserID) 
+    public static function getPageData($mng, $UserID) 
     {
         $user_array = self::getUserArray($mng, $UserID);
 
@@ -193,7 +193,7 @@ class Iam
         return ["stats" => $stats, "user_array" => $user_array];
     }
         
-    static function deleteUser($mng, $userToDelete) {
+    public static function deleteUser($mng, $userToDelete) {
 
         if(isset($userToDelete['id']) && $userToDelete['id']) {
             $user = new User($mng, $userToDelete['id']);
