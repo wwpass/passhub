@@ -106,15 +106,15 @@ class User
 
     public function setStatus($new_status) {
         if($new_status == 'admin') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, disabled => false]]);
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, 'disabled' => false]]);
             return ['status' => "Ok"];
         }
         if($new_status == 'active') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => false]]);
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => false]]);
             return ['status' => "Ok"];
         }
         if($new_status == 'disabled') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, disabled => true]]);
+            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => true]]);
             return ['status' => "Ok"];
         }
         Utils::err('usr err 107 operation ' . $operation);
@@ -167,22 +167,35 @@ class User
             if ($safe->isConfirmed()) {
                 $t0 = microtime(true);
 
-                $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id);
+/*                $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id); */
+
+                $cursor = $this->mng->safe_items->find(['SafeID' => $safe->id]);
+                $items =  $cursor->toArray();
+                foreach ($items as $item) {
+                    $item->_id= (string)$item->_id;
+                    if (property_exists($item, 'file')) {
+                        $storage_used += $item->file->size;
+                    }
+                }
 
                 $dt = number_format((microtime(true) - $t0), 3);
                 Utils::timingLog("safe items " . $dt);
 
-                foreach ($items as $record) {
-                    if (property_exists($record, 'file')) {
-                        $storage_used += $record->file->size;
-                    }
-                } 
                 $total_records += count($items);
 
                 $t0 = microtime(true);
-                $folders = Folder::get_folder_list_cse($this->mng, $this->UserID, $safe->id);
+//                $folders = Folder::get_folder_list_cse($this->mng, $this->UserID, $safe->id);
+
+
+                $cursor = $this->mng->safe_folders->find(['SafeID' => $safe->id]);
+                $folders = $cursor->toArray();
+                foreach ($folders as $folder) {
+                    $folder->_id= (string)$folder->_id;
+                }
+
                 $dt = number_format((microtime(true) - $t0), 3);
                 Utils::timingLog("safe folders " . $dt);
+
             } else {
                 $items = [];
                 $folders = [];
