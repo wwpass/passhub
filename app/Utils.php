@@ -81,7 +81,6 @@ class Utils
 
     private static function sendSMTP($to, $subject, $body, $contentType) {
 
-
         if(isset(SMTP_SERVER["host"]) && stristr(SMTP_SERVER["host"],"in-v3.mailjet.com")) {
             return self::sendMailJet($to, $subject, $body, $contentType);
         }
@@ -114,6 +113,14 @@ class Utils
     }
 
     public static function sendMail($to, $subject, $body, $contentType = 'text/html; charset=UTF-8') {
+
+        if(!Utils::valid_origin()) {
+            return ['status' => 'Ok'];
+        }
+        if(Utils::blacklisted()) {
+            return ['status' => 'Ok'];
+        }
+
 
         if (defined('SMTP_SERVER')) {
             return self::sendSMTP($to, $subject, $body, $contentType);
@@ -292,4 +299,24 @@ class Utils
         return $twig->render($template, $context);        
     }
 
+
+    public static function blacklisted() {
+        if (defined('IP_BLACKLIST') && is_array(IP_BLACKLIST)) {
+            if (in_array($_SERVER['REMOTE_ADDR'], IP_BLACKLIST)) {
+                Utils::err('blacklisted ' . $_SERVER['REMOTE_ADDR']);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public static function valid_origin() {
+        Utils::err('check origin: server name  ' .  $_SERVER['SERVER_NAME'] . ' origin ' . $_SERVER['HTTP_ORIGIN'] );
+
+        if(isset($_SERVER['HTTP_ORIGIN']) && is_string($_SERVER['HTTP_ORIGIN']) && (strlen(trim($_SERVER['HTTP_ORIGIN']) ) >0)) {
+            return true;
+        }
+        Utils::err('origin not valid');
+        return false;
+    }
 }
