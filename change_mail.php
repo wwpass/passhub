@@ -39,9 +39,8 @@ function change_mail_proxy($mng)
         return ['status' => "Bad Request (68)"];
     }
 
-
     $email = $req->email;
-    $url = strtolower($req->base_url);
+    // $url = strtolower($req->base_url);
 
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         Utils::err("Invalid email address " . $email);
