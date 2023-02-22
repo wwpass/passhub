@@ -40,7 +40,7 @@ if( defined('LDAP')
     && isset(LDAP['mail_registration']) 
     && (LDAP['mail_registration'] === true)) {
         // do nothing
-}  else if (!defined('MAIL_DOMAIN')) {
+}  else if (!defined('MAIL_DOMAIN')  && !defined('PUBLIC_SERVICE')) {
     Utils::err("mail domain not defined");
     Utils::errorPage("Internal error");
 }
