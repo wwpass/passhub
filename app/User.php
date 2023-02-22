@@ -371,6 +371,8 @@ class User
         return ($this->getUserRole($SafeID) == self::ROLE_ADMINISTRATOR);
     }
 
+
+    // not used?
     public function createSafe1($safe) {
         if ($safe['name'] == "") {
             return "Please fill in new safe name";
@@ -387,12 +389,48 @@ class User
         $this->setCurrentSafe($SafeID);
         return array("status" =>"Ok", "id" => $SafeID);
     }
+
+    static function eNameSanityCheck($eName) {
+        if(strlen($eName->data) > 1000) {
+            return "Safe name too  long";
+        }
+        if(strlen($eName->tag) > 1000) {
+            Utils::err('create safe 402');
+            return "Internal server error";
+        }
+        if(strlen($eName->iv) > 1000) {
+            Utils::err('create safe 406');
+            return "Internal server error";
+        }
+        return "Ok";
+    }
     
     public function createSafe($safe) {
 
-        if (($safe->name == "") && !property_exists($safe,"eName")) {
-            return "Please fill in new safe name";
+        if(property_exists($safe,"name")) {
+            if(strlen($safe->name) > 1000) {
+                return "Safe name too  long";
+            }
+            if(strlen(trim($safe->name)) == 0) {
+                return "Please fill in new safe name";
+            }
+        } else if(!property_exists($safe,"eName")) {
+            return "Internal server error";
         }
+
+        // sanity check 
+        if(property_exists($safe,"eName")) {
+            $sanityCheck = self::eNameSanityCheck($safe->eName);
+            if( $sanityCheck != "Ok") {
+                return $sanityCheck;
+            }
+        }
+       
+        if(!property_exists($safe,"aes_key") || (strlen($safe->aes_key) > 1000)) {
+            Utils::err('create safe 409');
+            return "Internal server error";
+        }
+
         $SafeID = (string)new \MongoDB\BSON\ObjectId();
         
         if($safe->version == 3) {
@@ -423,28 +461,17 @@ class User
 
     function changeSafeName($SafeID, $eName) {
 
-        /*
-        $filter = [ 'UserID' => $this->UserID, 'SafeName' => $newName ];
-        $mng_res = $this->mng->safe_users->find($filter);
-    
-
-        $res_array = $mng_res->ToArray();
-    
-        if (count($res_array)) {  // if user already has safe with this name
-            $row = $res_array[0];
-            if ($row->SafeID != $SafeID) {
-                return "Name <b>'$newName'</b> already used";
-            }
-            return "Ok";
+        // sanity check 
+        $sanityCheck = self::eNameSanityCheck($eName);
+        if( $sanityCheck != "Ok") {
+            return $sanityCheck;
         }
 
-*/
         $result = $this->mng->safe_users->updateMany(
             ['UserID' => $this->UserID, 'SafeID' => $SafeID], 
             ['$set' =>['eName' =>$eName, "version" => 3],
             '$unset' => ['SafeName'=>""]]
         );
-        Utils::err(print_r($result,true));
         if ($result->getModifiedCount() == 1) {
             Utils::log('user ' . $this->UserID . ' activity safe renamed');
             return "Ok";
@@ -1036,17 +1063,15 @@ class User
             $this->getProfile();
         }
         if (isset($this->profile->userprincipalname)) {
-            $ds=ldap_connect(LDAP['url']);
-            Utils::err('Url ' . LDAP['url']);
-            Utils::err(print_r($ds,true));
 
-            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-            ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
-            ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
+            $ds=Utils::ldapConnect();
+
+            if(!$ds) {
+                Utils::err(" error 1070 ldapConnect fail");
+                return false;
+            }
             
             $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
-            Utils::err('Bind to ' . LDAP['bind_dn'] . ' ' . LDAP['bind_pwd']);
-            Utils::err('bind result ' . print_r($r, true));
 
             if (!$r) {
                 $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
@@ -1076,7 +1101,7 @@ class User
 
             return false;
         }
-        Utils::err('LDAP: no userprincipalname n user profile');
+        Utils::err('LDAP: no userprincipalname in user profile');
         return "not bound";
     }
 }
