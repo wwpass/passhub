@@ -66,23 +66,40 @@ function doRestoreXML(text) {
         result[strings[s].Key] = strings[s].Value;
       }
     }
-    const cleartext = [
-      (typeof result.Title === 'string') ? result.Title : 'unnamed',
-      (typeof result.UserName === 'string') ? result.UserName : '',
-      (typeof result.Password === 'string') ? result.Password : '',
-      (typeof result.URL === 'string') ? result.URL : '',
-      (typeof result.Notes === 'string') ? result.Notes : '',
-    ];
-    if (typeof result.TOTP === 'string') {
-      cleartext.push(result.TOTP);
-    }
-
-    check_limits_on_import(cleartext); // raises exception
 
     const options = {};
-    if ((typeof result.Note === 'string') && (result.Note === '1')) {
-      options.note = 1;
+    let cleartext;
+
+    if('card_num' in result) { // version 5 as of today  
+      cleartext = [
+        "card",
+        (typeof result.Title === 'string') ? result.Title : 'unnamed',
+        (typeof result.Notes === 'string') ? result.Notes : '',
+        (typeof result.card_num === 'string') ? result.card_num : '',
+        (typeof result.card_name === 'string') ? result.card_name : '',
+        (typeof result.exp_month === 'string') ? result.exp_month : '',
+        (typeof result.exp_year === 'string') ? result.exp_year : '',
+        (typeof result.card_code === 'string') ? result.card_code : '',
+      ];
+      options.version = 5;
+    } else {
+      cleartext = [
+        (typeof result.Title === 'string') ? result.Title : 'unnamed',
+        (typeof result.UserName === 'string') ? result.UserName : '',
+        (typeof result.Password === 'string') ? result.Password : '',
+        (typeof result.URL === 'string') ? result.URL : '',
+        (typeof result.Notes === 'string') ? result.Notes : '',
+      ];
+      if (typeof result.TOTP === 'string') {
+        cleartext.push(result.TOTP);
+      }
+      if ((typeof result.Note === 'string') && (result.Note === '1')) {
+        options.note = 1;
+      }
     }
+
+//    check_limits_on_import(cleartext, options); // raises exception
+
     if (entry.hasOwnProperty('Times') && entry.Times.hasOwnProperty('LastModificationTime')) {
       options.lastModified = entry.Times.LastModificationTime;
     }
@@ -134,6 +151,8 @@ function doRestoreXML(text) {
   throw new Error('not a KeePass or Passhub XML file');
 }
 
+/*
+
 function check_limits_on_import(entry) {
   if (entry[0].length > 100) {
     throw new Error(`Too long title: ${entry[0]}`);
@@ -151,6 +170,9 @@ function check_limits_on_import(entry) {
     throw new Error(`{Too long notes: ${entry[4]}`);
   }
 }
+
+*/
+
 
 function doRestoreCSV(text) {
   // folders - array of folders at current level; path  - at the same level
@@ -185,7 +207,7 @@ function doRestoreCSV(text) {
 
   function addRecord(safes, r) {
     const path = r.shift().split('/');
-    check_limits_on_import(r); // raises exception
+//    check_limits_on_import(r); // raises exception
     for (let s = 0; s < safes.length; s++) {
       if (safes[s].name == path[0]) {
         path.shift();
@@ -329,13 +351,38 @@ function encrypt_folder(folder, aes_key) {
 // {          name'':, entries:[], folders[] } to
 // { key: '', name'':, entries:[], folders[] }
 
+
+function encryptSafeName(newName, aesKey) {
+  const iv = forge.random.getBytesSync(12);
+  const cipher = forge.cipher.createCipher('AES-GCM', aesKey);
+  cipher.start({ iv });
+  cipher.update(forge.util.createBuffer(newName, 'utf8')); // already joined by encode_item (
+  const result = cipher.finish(); // check 'result' for true/false
+  const eName = {
+    iv: btoa(iv),
+    data: btoa(cipher.output.data),
+    tag: btoa(cipher.mode.tag.data),
+  };
+  console.log(eName);
+  return eName;
+}
+
+
 function createSafeFromFolder(folder, publicKey) {
   const aes_key = forge.random.getBytesSync(32);
   const encrypted_aes_key = publicKey.encrypt(aes_key, 'RSA-OAEP');
   const hex_encrypted_aes_key = forge.util.bytesToHex(encrypted_aes_key);
   const result = {};
   result.key = hex_encrypted_aes_key;
-  result.name = folder.name;
+  
+  // result.name = folder.name;
+
+//
+    result.eName = encryptSafeName(folder.name, aes_key);
+    result.version = 3;
+
+//
+
   result.entries = [];
   for (let e = 0; e < folder.entries.length; e++) {
     result.entries.push(passhubCrypto.encryptItem(folder.entries[e].cleartext, aes_key, folder.entries[e].options));
