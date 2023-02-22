@@ -187,7 +187,8 @@ try {
         Utils::errorPage("The account is disabled. Please consult your system administrator");
     }
 
-    if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
+    if (!defined('LDAP') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {
+//        if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
         if ($user->profile->email == "") {
             if (!$puid->isValidated()) {
                 if (!isset($_SESSION['reg_code'])) {
@@ -198,7 +199,7 @@ try {
                         [
                             // layout
                             'narrow' => true, 
-                            'PUBLIC_SERVICE' => PUBLIC_SERVICE, 
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
                             'existing_account' => true,
                             'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
                         ]
@@ -242,6 +243,7 @@ if (isset($_SESSION['expired'])) {
     exit();
 }
 
+/*
 $twig_args = [
     // layout
     //'narrow' => true, 
@@ -292,5 +294,14 @@ if ($searchClearButton) {
     $twig_args['search_clear_button'] = true;
 }
 
+
+$twig_args = [
+    'verifier' => Csrf::get(),
+];
+
+
 // echo Utils::render('index.html', $twig_args); 
-echo Utils::render_react('index.html', $twig_args); 
+*/
+
+
+echo Utils::render_react('index.html', ['verifier' => Csrf::get()]); 
