@@ -22,6 +22,22 @@ class Iam
         return ["status" =>"Ok", 'mail_array' => $mail_array];
     }
 
+    static function sendInvitationMail($email) {
+        $invitation_mail_subject = file_get_contents('config/invitation_mail_subject.txt');
+        $invitation_mail = file_get_contents('config/invitation_mail.txt');
+        
+        if (strlen($invitation_mail_subject) == 0) {
+            Utils::err("config/invitation_mail_subject.txt absent or empty");
+            return;
+        }
+        if (strlen($invitation_mail) == 0) {
+            Utils::err("config/invitation_mail.txt absent or empty");
+            return;
+        }
+        
+        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
+    }
+
     public static function addWhiteMailList($mng, $email) 
     {
         $cursor = $mng->mail_invitations->find(['email' => $email]);
@@ -36,6 +52,7 @@ class Iam
         } 
 
         $mng->mail_invitations->insertOne(['email' => $email]);
+        self::sendInvitationMail($email);
         return self::whiteMailList($mng);
     }
 
@@ -47,6 +64,9 @@ class Iam
         
     public static function isMailAuthorized($mng, $email) {
 
+        if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+            return true;
+        }
         if( defined('LDAP')  
             && isset(LDAP['mail_registration']) 
             && (LDAP['mail_registration'] == true)) {
@@ -172,7 +192,6 @@ class Iam
         
         $stats .= "MAIL DOMAINS: " . MAIL_DOMAIN . "\n";
         
-        
         foreach ($user_array as $user) {
             if(isset($user->_id)) {
                 $user->_id = (string)$user->_id;
@@ -190,9 +209,14 @@ class Iam
             }
         }
 
-        return ["stats" => $stats, "user_array" => $user_array];
+        $result = ["stats" => $stats, "users" => $user_array];
+
+        if(defined('LICENSED_USERS')) {
+            $result['LICENSED_USERS'] = LICENSED_USERS;
+        }
+        return $result;
     }
-        
+
     public static function deleteUser($mng, $userToDelete) {
 
         if(isset($userToDelete['id']) && $userToDelete['id']) {
