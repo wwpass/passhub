@@ -22,6 +22,17 @@ use PassHub\DB;
 
 require_once 'Mail.php';
 
+
+function is_email_blacklisted($email) {
+    if (defined('EMAIL_BLACKLIST') && is_array(EMAIL_BLACKLIST)) {
+        if (in_array($email, EMAIL_BLACKLIST)) {
+            Utils::err('blacklisted ' . $email);
+            return true;
+        }
+    }
+    return false;
+}
+
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
     define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');
 }
@@ -48,8 +59,14 @@ if (array_key_exists('UserID', $_SESSION)) {
 } else {
     $message = $message . "<br>user not logged in";
 }
+$message = $message . "<br>Server name " . $_SERVER['SERVER_NAME'];
+$message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
 
-$result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
+if(is_email_blacklisted($email)) {
+    $result = ['status' => 'Ok'];
+} else {
+    $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
+}
 
 if ($result['status'] !== 'Ok') {
     Utils::err("error sending message '$message'");
