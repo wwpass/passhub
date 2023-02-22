@@ -42,12 +42,7 @@ function contact_us_proxy() {
         Utils::err("bad csrf");
         return ['status' => "Bad Request (68)"];
     }
-/*
-    if (!isset($req->verifier) || !Csrf::isValid($req->verifier)) {
-        Utils::err("bad csrf");
-        return "Bad Request (46)";
-    }
-*/    
+
     $name = $req->name;
     $email = $req->email;
     
@@ -60,6 +55,8 @@ function contact_us_proxy() {
     } else {
         $message = $message . "<br>user not logged in";
     }
+    $message = $message . "<br>Server name " . $_SERVER['SERVER_NAME'];
+    $message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
     
     $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
     
