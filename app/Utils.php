@@ -319,4 +319,19 @@ class Utils
         Utils::err('origin not valid');
         return false;
     }
+
+    public static function ldapConnect() {
+        if(isset(LDAP['LDAP_OPT_X_TLS_REQUIRE_CERT'])) {
+            ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP['LDAP_OPT_X_TLS_REQUIRE_CERT']);
+        }
+        $ds=ldap_connect(LDAP['url']);
+        if(!$ds) {
+            return false;
+        }
+    
+        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+        ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
+        ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);
+        return $ds;
+    }
 }
