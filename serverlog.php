@@ -22,13 +22,26 @@ use PassHub\DB;
 $mng = DB::Connection();
 
 session_start();
-if (isset($_POST['msg'])) {
-    Utils::err($_POST['msg']);
-} else {
+
+$json = file_get_contents('php://input');
+
+$req = json_decode($json);
+
+if(!Csrf::validCSRF($req)) {
+    Utils::err("error 32 bad csrf");
+    return ['status' => "Bad Request (68)"];
+}
+
+if(isset($req->msg) ) {
+    Utils::err($req->msg);
+}
+/* ???
+else {
     if (strpos($_SERVER['REQUEST_URI'], "serverlog.php?learnmore") != -1) {
         Utils::err('Serverlog: learnmore ');
     }
 }
+*/
 
 header('Content-type: application/json');
 header('Cache-Control: no-cache, must-revalidate');

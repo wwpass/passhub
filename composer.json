@@ -1,11 +1,11 @@
 {
     "require": {
-        "google/apiclient": "^2.2",
-        "aws/aws-sdk-php": "^3.112",
-        "twig/twig": "^3.0",
+        "google/apiclient": "^2.13",
+        "aws/aws-sdk-php": "^3.255",
+        "twig/twig": "^3.4",
         "wwpass/apiclient": "^4.0",
-        "mongodb/mongodb": "^1.8",
-        "stripe/stripe-php": "^7.97",
+        "mongodb/mongodb": "^1.13",
+        "stripe/stripe-php": "^10.2",
         "mailjet/mailjet-apiv3-php": "^1.5"
     },
     "autoload": {
@@ -13,5 +13,4 @@
             "PassHub\\": "app/"
         }
     }
-
 }

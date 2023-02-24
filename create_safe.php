@@ -31,10 +31,7 @@ function create_safe_proxy($mng) {
         return "login";
     }
 
-    // Takes raw data from the request
     $json = file_get_contents('php://input');
-
-    // Converts it into a PHP object
     $req = json_decode($json);
     
 
@@ -42,12 +39,6 @@ function create_safe_proxy($mng) {
         Utils::err("bad csrf");
         return ['status' => "Bad Request (68)"];
     }
-/*
-    if (!isset($req->verifier) || !Csrf::isValid($req->verifier)) {
-        Utils::err("bad csrf");
-        return "Bad Request (46)";
-    }
-*/    
     $user = new User($mng, $_SESSION['UserID']);
     return $user->createSafe($req->safe);
 }
@@ -61,5 +52,4 @@ if (gettype($result) == "string") {
     $result = array("status" => $result);
 }
 
-// Send the data.
 echo json_encode($result);
