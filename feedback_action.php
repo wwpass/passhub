@@ -62,6 +62,20 @@ if (array_key_exists('UserID', $_SESSION)) {
 $message = $message . "<br>Server name " . $_SERVER['SERVER_NAME'];
 $message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
 
+if(isset($_POST['recap'])) {
+    $message = $message . "<br>JS time spent " . $_POST['recap'];
+} else {
+    $message = $message . "<br>no time spent info";
+}
+
+if(isset($_SESSION['feedback start'])) {
+    $exposure = time() - $_SESSION['feedback start'];
+    $message = $message . "<br>php time spent " . $exposure;
+} else {
+    $message = $message . "<br>no php time spent info";
+}
+
+
 if(is_email_blacklisted($email)) {
     $result = ['status' => 'Ok'];
 } else {
