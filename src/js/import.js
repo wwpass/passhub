@@ -1,7 +1,7 @@
-import $ from 'jquery';
+// import $ from 'jquery';
 import forge from 'node-forge';
 import passhubCrypto from './crypto';
-import passhub from './passhub';
+// import passhub from './passhub';
 
 function doRestoreXML(text) {
   // see https://gist.github.com/chinchang/8106a82c56ad007e27b1
@@ -174,156 +174,10 @@ function check_limits_on_import(entry) {
 */
 
 
-function doRestoreCSV(text) {
-  // folders - array of folders at current level; path  - at the same level
-  function findFolder(folders, path) {
-    for (let f = 0; f < folders.length; f++) {
-      if (folders[f].name == path[0]) {
-        if (path.length === 1) {
-          return folders[f];
-        }
-        path.shift();
-        return findFolder(folders[f].folders, path);
-      }
-    }
-    // not found
-    const folder = { name: path[0], folders: [], entries: [] };
-    folders.push(folder);
-    if (path.length === 1) {
-      return folder;
-    }
-    path.shift();
-    return findFolder(folder.folders, path);
-  }
-
-  function addRecordToSafe(safe, record, path) {
-    if (path.length === 0) {
-      safe.entries.push(record);
-      return;
-    }
-    const folder = findFolder(safe.folders, path);
-    folder.entries.push(record);
-  }
-
-  function addRecord(safes, r) {
-    const path = r.shift().split('/');
-//    check_limits_on_import(r); // raises exception
-    for (let s = 0; s < safes.length; s++) {
-      if (safes[s].name == path[0]) {
-        path.shift();
-        addRecordToSafe(safes[s], { cleartext: r, options: {} }, path);
-        return;
-      }
-    }
-    // no such safe
-    const safe = { name: path[0], folders: [], entries: [] };
-    safes.push(safe);
-    path.shift();
-    addRecordToSafe(safe, { cleartext: r, options: {} }, path);
-  }
-  let data;
-  try {
-    data = $.csv.toArrays(text);
-  } catch (err) {
-    throw new Error(`Corrupted or not a CSV file. ${err}`);
-  }
-  if (data.length < 2) {
-    throw new Error('Bad file format: too short');
-  }
 
 
-  const safes = [];
 
-  const titles = data.shift();
 
-  if (titles.length === 1) { // dashline?
-    const t = data.shift();
-    data.unshift(t);
-    if (t.length === 7) {
-      data.forEach((e) => {
-        if (e.length === 7) {
-          const e1 = [titles[0], e[0], e[2], e[5], e[1], e[6]];
-          addRecord(safes, e1);
-        }
-      });
-      return safes;
-    }
-  }
-
-  // url,username,password,extra,name,grouping,fav -- lastpass
-  if ((titles.length === 7)
-    && (titles[0] === 'url')
-    && (titles[1] === 'username')
-    && (titles[2] === 'password')
-    && (titles[3] === 'extra')
-    && (titles[4] === 'name')
-    && (titles[5] === 'grouping')
-    && (titles[6] === 'fav')) {
-
-    data.forEach((e) => {
-      addRecord(safes, ['lastpass', e[4], e[1], e[2], e[0], e[3]]);
-    });
-    return safes;
-  }
-
-  if ((titles.length === 4) // chrome
-    && (titles[0] === 'name')
-    && (titles[1] === 'url')
-    && (titles[2] === 'username')
-    && (titles[3] === 'password')) {
-    // chrome
-    data.forEach((e) => {
-      const e1 = ['chrome', e[0], e[2], e[3], e[1], ''];
-      addRecord(safes, e1);
-    });
-    return safes;
-  }
-
-  if ((titles.length === 9) // firefox
-    && (titles[0] === 'url')
-    && (titles[1] === 'username')
-    && (titles[2] === 'password')
-    && (titles[3] === 'httpRealm')
-    && (titles[4] === 'formActionOrigin')
-    && (titles[5] === 'guid')
-    && (titles[6] === 'timeCreated')
-    && (titles[7] === 'timeLastUsed')
-    && (titles[8] === 'timePasswordChanged')
-    ) {
-    // firefox
-    data.forEach((e) => {
-      const url = new URL(e[0]);
-      const hostname = url.hostname;
-      const e1 = ['firefox', hostname, e[1], e[2], e[0], ''];
-      addRecord(safes, e1);
-    });
-    return safes;
-  }
-  
-    if (titles.length !== 6) {
-    throw new Error('Unknown file format');
-  }
-  // KeePassX
-  data.forEach((e) => {
-    addRecord(safes, e);
-  });
-  return safes;
-}
-
-/*
-function encrypt_safes(safes, aes_key) {
-  const safes_encrypted = [];
-  for (let s = 0; s < safes.length; s++) {
-    const safe_enc = { name: encode_folder_name_GCM(safes[s].name, aes_key), entries: [] };
-    for (let i = 0; i < safes[s].entries.length; i++) {
-      safe_enc.entries.push(encode_item(safes[s].entries[i], aes_key));
-    }
-    safe_enc.folders = encrypt_safes(safes[s].folders, aes_key);
-    safes_encrypted.push(safe_enc);
-  }
-  return safes_encrypted;
-}
-*/
 //----------------------------------------------------------
 
 // import/restore functions
@@ -638,36 +492,8 @@ function encryptAdditions(safeAdditions, aesKey) {
   return { id: safeAdditions.id, entries: result.items, folders: result.folders };
 }
 
-function importMerge(importedFolders, flatSafeArray, publicKey) {
-  return passhub.decryptSafes(flatSafeArray)
-    .then(() => {
-      const restoreDiff = [];
-      const encryptionPromises = [];
-      for (let f = 0; f < importedFolders.length; f++) {
-        const siteSafe = findSafeByName(flatSafeArray, importedFolders[f].name);
-        if (!siteSafe) {
-          restoreDiff.push(createSafeFromFolder(importedFolders[f], publicKey));
-          continue;
-        }
-        const safeAdditions = mergeSafe(makeTree(siteSafe), importedFolders[f]);
-        if (!safeAdditions) {
-          continue;
-        }
-        encryptionPromises.push(
-          passhubCrypto.decryptAesKey(siteSafe.key)
-            .then((pKey) => {
-              const eSafe = encryptAdditions(safeAdditions, pKey);
-              return restoreDiff.push(eSafe);
-            }),
-        );
-      }
-      if (encryptionPromises.length) {
-        return Promise.all(encryptionPromises)
-          .then(() => restoreDiff);
-      }
-      return restoreDiff;
-    });
-}
+
+
 
 function importTemplate(templateFolders, publicKey) {
   const result = [];
@@ -679,9 +505,9 @@ function importTemplate(templateFolders, publicKey) {
 
 export {
   doRestoreXML,
-  doRestoreCSV,
-  createSafeFromFolder,
-  importMerge,
+  // doRestoreCSV,
+  // createSafeFromFolder,
+  // importMerge,
   importTemplate,
 };
 
@@ -752,3 +578,190 @@ function impex_decodeAndMakeTree(flatSafe) {
 }
 */
 
+
+/*
+
+function doRestoreCSV(text) {
+  // folders - array of folders at current level; path  - at the same level
+  function findFolder(folders, path) {
+    for (let f = 0; f < folders.length; f++) {
+      if (folders[f].name == path[0]) {
+        if (path.length === 1) {
+          return folders[f];
+        }
+        path.shift();
+        return findFolder(folders[f].folders, path);
+      }
+    }
+    // not found
+    const folder = { name: path[0], folders: [], entries: [] };
+    folders.push(folder);
+    if (path.length === 1) {
+      return folder;
+    }
+    path.shift();
+    return findFolder(folder.folders, path);
+  }
+
+  function addRecordToSafe(safe, record, path) {
+    if (path.length === 0) {
+      safe.entries.push(record);
+      return;
+    }
+    const folder = findFolder(safe.folders, path);
+    folder.entries.push(record);
+  }
+
+
+  function addRecord(safes, r) {
+    const path = r.shift().split('/');
+//    check_limits_on_import(r); // raises exception
+    for (let s = 0; s < safes.length; s++) {
+      if (safes[s].name == path[0]) {
+        path.shift();
+        addRecordToSafe(safes[s], { cleartext: r, options: {} }, path);
+        return;
+      }
+    }
+    // no such safe
+    const safe = { name: path[0], folders: [], entries: [] };
+    safes.push(safe);
+    path.shift();
+    addRecordToSafe(safe, { cleartext: r, options: {} }, path);
+  }
+  let data;
+  try {
+    data = $.csv.toArrays(text);
+  } catch (err) {
+    throw new Error(`Corrupted or not a CSV file. ${err}`);
+  }
+  if (data.length < 2) {
+    throw new Error('Bad file format: too short');
+  }
+
+
+  const safes = [];
+
+  const titles = data.shift();
+
+  if (titles.length === 1) { // dashline?
+    const t = data.shift();
+    data.unshift(t);
+    if (t.length === 7) {
+      data.forEach((e) => {
+        if (e.length === 7) {
+          const e1 = [titles[0], e[0], e[2], e[5], e[1], e[6]];
+          addRecord(safes, e1);
+        }
+      });
+      return safes;
+    }
+  }
+
+  // url,username,password,extra,name,grouping,fav -- lastpass
+  if ((titles.length === 7)
+    && (titles[0] === 'url')
+    && (titles[1] === 'username')
+    && (titles[2] === 'password')
+    && (titles[3] === 'extra')
+    && (titles[4] === 'name')
+    && (titles[5] === 'grouping')
+    && (titles[6] === 'fav')) {
+
+    data.forEach((e) => {
+      addRecord(safes, ['lastpass', e[4], e[1], e[2], e[0], e[3]]);
+    });
+    return safes;
+  }
+
+  if ((titles.length === 4) // chrome
+    && (titles[0] === 'name')
+    && (titles[1] === 'url')
+    && (titles[2] === 'username')
+    && (titles[3] === 'password')) {
+    // chrome
+    data.forEach((e) => {
+      const e1 = ['chrome', e[0], e[2], e[3], e[1], ''];
+      addRecord(safes, e1);
+    });
+    return safes;
+  }
+
+  if ((titles.length === 9) // firefox
+    && (titles[0] === 'url')
+    && (titles[1] === 'username')
+    && (titles[2] === 'password')
+    && (titles[3] === 'httpRealm')
+    && (titles[4] === 'formActionOrigin')
+    && (titles[5] === 'guid')
+    && (titles[6] === 'timeCreated')
+    && (titles[7] === 'timeLastUsed')
+    && (titles[8] === 'timePasswordChanged')
+    ) {
+    // firefox
+    data.forEach((e) => {
+      const url = new URL(e[0]);
+      const hostname = url.hostname;
+      const e1 = ['firefox', hostname, e[1], e[2], e[0], ''];
+      addRecord(safes, e1);
+    });
+    return safes;
+  }
+  
+    if (titles.length !== 6) {
+    throw new Error('Unknown file format');
+  }
+  // KeePassX
+  data.forEach((e) => {
+    addRecord(safes, e);
+  });
+  return safes;
+}
+*/
+/*
+function encrypt_safes(safes, aes_key) {
+  const safes_encrypted = [];
+  for (let s = 0; s < safes.length; s++) {
+    const safe_enc = { name: encode_folder_name_GCM(safes[s].name, aes_key), entries: [] };
+    for (let i = 0; i < safes[s].entries.length; i++) {
+      safe_enc.entries.push(encode_item(safes[s].entries[i], aes_key));
+    }
+    safe_enc.folders = encrypt_safes(safes[s].folders, aes_key);
+    safes_encrypted.push(safe_enc);
+  }
+  return safes_encrypted;
+}
+*/
+
+/*
+function importMerge(importedFolders, flatSafeArray, publicKey) {
+  return passhub.decryptSafes(flatSafeArray)
+    .then(() => {
+      const restoreDiff = [];
+      const encryptionPromises = [];
+      for (let f = 0; f < importedFolders.length; f++) {
+        const siteSafe = findSafeByName(flatSafeArray, importedFolders[f].name);
+        if (!siteSafe) {
+          restoreDiff.push(createSafeFromFolder(importedFolders[f], publicKey));
+          continue;
+        }
+        const safeAdditions = mergeSafe(makeTree(siteSafe), importedFolders[f]);
+        if (!safeAdditions) {
+          continue;
+        }
+        encryptionPromises.push(
+          passhubCrypto.decryptAesKey(siteSafe.key)
+            .then((pKey) => {
+              const eSafe = encryptAdditions(safeAdditions, pKey);
+              return restoreDiff.push(eSafe);
+            }),
+        );
+      }
+      if (encryptionPromises.length) {
+        return Promise.all(encryptionPromises)
+          .then(() => restoreDiff);
+      }
+      return restoreDiff;
+    });
+}
+*/

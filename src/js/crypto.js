@@ -13,6 +13,34 @@ function createSafe(publicKeyTxt, name, items, folders) {
   return { name, aes_key: hexEncryptedAesKey };
 };
 
+function encryptSafeName(newName, aesKey) {
+  const iv = forge.random.getBytesSync(12);
+  const cipher = forge.cipher.createCipher('AES-GCM', aesKey);
+  cipher.start({ iv });
+  cipher.update(forge.util.createBuffer(newName, 'utf8')); // already joined by encode_item (
+  const result = cipher.finish(); // check 'result' for true/false
+  const eName = {
+    iv: btoa(iv),
+    data: btoa(cipher.output.data),
+    tag: btoa(cipher.mode.tag.data),
+  };
+  console.log(eName);
+  return eName;
+}
+
+/*
+function createSafe1(publicKeyTxt, name) {
+  const aesKey = forge.random.getBytesSync(32);
+  const publicKey = forge.pki.publicKeyFromPem(publicKeyTxt);
+  const encryptedAesKey = publicKey.encrypt(pAesKey, 'RSA-OAEP');
+  const hexEncryptedAesKey = forge.util.bytesToHex(encryptedAesKey);
+  const eName = encryptSafeName(name, aesKey);
+
+  return { // name,  
+    eName, aes_key: hexEncryptedAesKey, version:3 };
+};
+*/
+
 function encodeItemGCM(cleartextItem, aesKey, options) {
   const cleartextData = cleartextItem.join('\0');
   const cipher = forge.cipher.createCipher('AES-GCM', aesKey);
@@ -27,9 +55,13 @@ function encodeItemGCM(cleartextItem, aesKey, options) {
     tag: btoa(cipher.mode.tag.data),
     version: 3,
   };
-  if (cleartextItem.length === 6) {
+
+  if(options.version) {
+    obj.version = options.version;
+  } else if (cleartextItem.length === 6) {
     obj.version = 4;
   }
+
   if (typeof options !== 'undefined') {
     // Object.assign "polifill"
     for (let prop1 in options) {
