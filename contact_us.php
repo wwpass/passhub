@@ -23,7 +23,7 @@ use PassHub\DB;
 require_once 'Mail.php';
 
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
-    define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');
+    define('SUPPORT_MAIL_ADDRESS', 'passhub@wwpass.com');
 }
 
 $mng = DB::Connection();

@@ -34,7 +34,7 @@ function is_email_blacklisted($email) {
 }
 
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
-    define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');
+    define('SUPPORT_MAIL_ADDRESS', 'passhub@wwpass.com');
 }
 
 $mng = DB::Connection();
@@ -50,8 +50,6 @@ if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
 $name = $_POST['name'];
 $email = $_POST['email'];
 
-$subject = "passhub report";
-
 $message = "From: '$email' (name '$name')" . "<br><br>" . $_POST['message'];
 $message = $message . "<br><br>" .  $_SERVER['HTTP_USER_AGENT'] . "<br>" . $_SERVER['REMOTE_ADDR'] ;
 if (array_key_exists('UserID', $_SESSION)) {
@@ -62,19 +60,26 @@ if (array_key_exists('UserID', $_SESSION)) {
 $message = $message . "<br>Server name " . $_SERVER['SERVER_NAME'];
 $message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
 
+$star = '';
+
 if(isset($_POST['recap'])) {
     $message = $message . "<br>JS time spent " . $_POST['recap'];
 } else {
     $message = $message . "<br>no time spent info";
+    $star = '* ';
 }
 
 if(isset($_SESSION['feedback start'])) {
     $exposure = time() - $_SESSION['feedback start'];
     $message = $message . "<br>php time spent " . $exposure;
+    if($exposure <= 2) {
+        $star = '* ';
+    }
 } else {
     $message = $message . "<br>no php time spent info";
 }
 
+$subject = $star . "passhub report";
 
 if(is_email_blacklisted($email)) {
     $result = ['status' => 'Ok'];
