@@ -20,6 +20,7 @@ use PassHub\Item;
 use PassHub\DB;
 use PassHub\User;
 use PassHub\Csrf;
+use PassHub\Folder;
 
 $mng = DB::Connection();
 
@@ -31,15 +32,19 @@ function move_record_proxy($mng) {
         return "login";
     }
 
-    // Takes raw data from the request
-    $json = file_get_contents('php://input');
+    $UserID = trim($_SESSION['UserID']);
 
-    // Converts it into a PHP object
+    $json = file_get_contents('php://input');
     $req = json_decode($json);
 
     if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
         return ['status' => "Bad Request (68)"];
+    }
+
+    if( isset($req->folder) && isset($req->dstSafe) && isset($req->dstFolder)) {
+        // move folder
+        return Folder::move($mng, $UserID, $req);
     }
 
     if (!isset($req->id) || ($req->id == "")) {
@@ -67,7 +72,6 @@ function move_record_proxy($mng) {
 
     $entryID = $req->id;
 
-    $UserID = trim($_SESSION['UserID']);
     $SafeID = trim($req->src_safe);
     $TargetSafeID = trim($req->dst_safe);
 
