@@ -46,10 +46,7 @@ class Utils
 
 
     private static function sendMailJet($to, $subject, $body, $contentType) {
-        Utils::err("Mailjet");
         
-//        require 'vendor/autoload.php';
-//        use \Mailjet\Resources;
             $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
             $body = [
             'Messages' => [
@@ -61,7 +58,6 @@ class Utils
                     'To' => [
                         [
                             'Email' => $to,
-//                            'Name' => "You"
                         ]
                     ],
                     'Subject' => $subject,
@@ -70,8 +66,23 @@ class Utils
                 ]
             ]
         ];
+
         $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $body]);
-        Utils::err(print_r($response->getData(), true));
+
+        $data = $response->getData();
+
+        if($data['Messages'][0]['Status'] == 'success') {
+           $to = $data['Messages'][0]['To'][0];
+           Utils::err( "Mailjet");
+           Utils::err([
+            'To' => $to['Email'],
+            'MessageID' => $to['MessageID']
+
+           ]);
+        } else {
+            Utils::err('MailJet');
+            Utils::err($data);
+        }
 
         if($response->success()) {
             return ['status' => 'Ok'];
@@ -114,13 +125,14 @@ class Utils
 
     public static function sendMail($to, $subject, $body, $contentType = 'text/html; charset=UTF-8') {
 
-        if(!Utils::valid_origin()) {
-            return ['status' => 'Ok'];
+        if ($subject != "passhub PREMIUM paid") {
+            if (!Utils::valid_origin()) {
+                return ['status' => 'Ok'];
+            }
         }
         if(Utils::blacklisted()) {
             return ['status' => 'Ok'];
         }
-
 
         if (defined('SMTP_SERVER')) {
             return self::sendSMTP($to, $subject, $body, $contentType);
@@ -141,9 +153,16 @@ class Utils
         return $twig->render($template, $context);        
     }
 
-    public static function log($message) {
+    public static function log($message, $logname = "passhub", $logext = "log") {
+
+        if(is_array($message)) {
+            $message = print_r($message, true);
+        } else if(is_object($message)) {
+            $message = print_r($message, true);
+        }
+
         if (defined('LOG_DIR') && ($message != "")) {
-            $fname = LOG_DIR . '/passhub-' . date("ymd") . ".log";
+            $fname = LOG_DIR . '/' . $logname . '-' . date("ymd") . "." . $logext;
             if ($fh = fopen($fname, 'a')) {
                 fwrite($fh, date("c") . " " . $message . "\n");
                 fclose($fh);
@@ -152,6 +171,12 @@ class Utils
             }
         }
         if (defined('SYSLOG') && SYSLOG) {
+            if($logext == "err") {
+                openlog("passhub", LOG_PID | LOG_PERROR, LOG_LOCAL0);
+                syslog(LOG_ERR, $message);
+                closelog();
+                return;
+            }
             openlog("passhub", LOG_NDELAY, LOG_USER);
             syslog(LOG_INFO, $message);
             closelog();
@@ -159,6 +184,18 @@ class Utils
     }
 
     public static function err($message) {
+        self::log($message, "passhub", "err");
+    }
+/*
+    public static function err1($message) {
+        if(is_array($message)) {
+            $message = print_r($message, true);
+            self::err('warning: attempt to log an array');
+        } else if(is_object($message)) {
+            $message = print_r($message, true);
+            self::err('warning: attempt to log an object');
+        }
+
         if (defined('LOG_DIR') && ($message != "")) {
             $fname = LOG_DIR . '/passhub-' . date("ymd") . ".err";
             if ($fh = fopen($fname, 'a')) {
@@ -174,6 +211,7 @@ class Utils
             closelog();
         }
     }
+*/
 
     public static function timingLog($message) {
         if (defined('LOG_DIR') && ($message != "")) {
