@@ -117,9 +117,12 @@ class Puid
                     $email = $puids[0]->email;
 
                     $mail_domains = preg_split("/[\s,]+/", strtolower(MAIL_DOMAIN));
-                    if ($mail_domains[0] === strtolower($email)) {
-                        $record['site_admin'] = true;
-                    }
+
+                    for($i = 0; $i < count($mail_domains); $i++) { 
+                        if ($mail_domains[$i] === strtolower($email)) {
+                            $record['site_admin'] = true;
+                        }
+                    }    
                 }
             }
         }
@@ -133,7 +136,7 @@ class Puid
         }
   
         if (defined('PREMIUM')  && defined('PUBLIC_SERVICE')) {
-            $record['plan'] = 'FREE';
+            $record['plan'] = FREE[0]['NAME'];
         }
   
         try {

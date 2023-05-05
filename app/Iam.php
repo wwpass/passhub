@@ -78,9 +78,14 @@ class Iam
         if ($mail_domains[0] === "any") {
             return true;
         }
-        if ($mail_domains[0] === strtolower($email)) {
-            return true;
-        }
+
+        for($i = 0; $i < count($mail_domains); $i++) { 
+            if ($mail_domains[$i] === strtolower($email)) {
+                return true;
+            }
+        }        
+
+        // or it is a domain part of the email, e.g. mycompany.com. (hardly usable)
         $parts = explode("@", $email);
         if (in_array(strtolower($parts[1]), $mail_domains)) {
             return true;
