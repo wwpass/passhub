@@ -167,8 +167,8 @@ echo Utils::render(
         'hide_logout' => true,
 
         //content
-        'email' => $_SESSION['form_email'],
-        'success' => true,
+//        'email' => $_SESSION['form_email'],
+//        'success' => true,
         'error_msg' => $error_msg,
         'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
     ]
