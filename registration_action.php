@@ -74,7 +74,6 @@ if (isset($req->code6) && isset($req->purpose)) {
     }
     */
     
-    Utils::err('Session[PUID] ' . $_SESSION['PUID']);
     $puid = new Puid($mng, $_SESSION['PUID']);
     $result = $puid->processCode6($req->code6, $req->purpose);
     Utils::err(print_r($result, true));
