@@ -8,19 +8,115 @@
  * @category  Password_Manager
  * @package   PassHub
  * @author    Mikhail Vysogorets <m.vysogorets@wwpass.com>
- * @copyright 2016-2018 WWPass
+ * @copyright 2016-2023 WWPass
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
 
 namespace PassHub;
 
+function getPremiumDetails($mng, $UserID) {
+
+    $result = [];
+    $subscriptions = $mng->subscriptions->find([ 'UserID' => $UserID]);
+
+
+    $current_period_end = 0;
+    $active_subscription = true;
+
+    // we want only one subscription for user
+
+    $found = false;
+
+    foreach($subscriptions as $subscription) {
+        if($subscription->current_period_end > time()) {
+            $found = true;
+            $current_period_end = $subscription->current_period_end;
+
+            if($subscription->status == "active") {
+                $result['autorenew'] = true;
+            }
+//            Utils::err("susbscription:");
+//            Utils::err(print_r($subscription, true));
+
+            if(property_exists($subscription, 'charge')) {
+//                Utils::err("retrieving charge " . $subscription->charge);
+
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $charge = $stripe->charges->retrieve($subscription->charge, []);
+//                Utils::err("charge:");
+//                Utils::err(print_r($charge, true));
+                $result['receipt_url'] = $charge->receipt_url;
+            } else if(property_exists($subscription, 'latest_invoice')) {
+                Utils::log("scenario 2", "payment");
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $invoice = $stripe->invoices->retrieve($subscription->latest_invoice, []);
+                if($invoice->charge) {
+                    $charge = $stripe->charges->retrieve($invoice->charge, []);
+                    $result['receipt_url'] = $charge->receipt_url;
+
+                    $mng->subscriptions->updateOne(["subscription" => $subscription->subscription], ['$set'=>[
+                        "charge" => $invoice->charge,
+                    ]]);
+
+                }
+            } else {
+                Utils::log("scenario 3", "payment");
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $s = $stripe->subscriptions->retrieve($subscription->subscription); // subscription ID actually
+                $invoice = $stripe->invoices->retrieve($s->latest_invoice, []);
+                $charge = $stripe->charges->retrieve($invoice->charge, []);
+                if($charge) {
+                    $result['receipt_url'] = $charge->receipt_url;
+                }
+
+                $mng->subscriptions->updateOne(["subscription" => $subscription->subscription], ['$set'=>[
+                    "latest_invoice" => $s->latest_invoice,
+                    "charge" => $invoice->charge,
+                ]]);
+            }
+            $result['expires'] = $current_period_end;  
+        }
+    }
+     if($found) {
+        return $result;
+    }
+
+    $user = new User($mng, $UserID);
+    $profile = $user->getProfile();
+    if(isset($profile['payment_id'])) {
+        $cursor = $mng->payments->find(["csID" => $profile['payment_id']]);
+        $payments = $cursor->ToArray();
+        if(count($payments) == 1) {
+            if(isset($payments[0]['subscription'])) {
+                Utils::err($payments[0]['subscription']);
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $object = $stripe->subscriptions->retrieve($payments[0]['subscription']);
+                Utils::err('got subscription');
+                $r = $mng->subscriptions->insertOne(
+                        [
+                          'UserID' => $payments[0]->UserID,
+                          'subscription' => $object->id,
+                          'customer' => $object->customer,
+                          'current_period_end' => $object->current_period_end,
+                          'status' => $object->status,
+                          'latest_invoice' => $object->latest_invoice, 
+                        ]
+                    );
+                if($object['current_period_end']  > time()) {
+                    return getPremiumDetails($mng, $UserID);
+                }
+            }
+        } 
+    }
+    return [];
+}
+
 class User
 {
     public const ROLE_READONLY = 'readonly';   
     public const ROLE_EDITOR = 'editor';   
     public const ROLE_ADMINISTRATOR = 'administrator';   
-
     public $profile;
 
     function __construct($mng, $UserID) {
@@ -69,6 +165,7 @@ class User
             }
         }
         $this->profile = $profile;
+        return $profile;
     }
 
     public function getPublicKey() {
@@ -252,10 +349,14 @@ class User
 
 //            'safes' => $this->getSafes(),
             'ticket' => $_SESSION['wwpass_ticket'],
-            'plan' => $this->profile->plan
+//            'plan' => $this->profile->plan
         ];
 
+        $data = array_merge($data, $this->getPlanDetails());
+
+/*        
         if($this->profile->plan == 'FREE') {
+
             $data['MAX_RECORDS'] = FREE_ACCOUNT_MAX_RECORDS;
             $data['MAX_STORAGE'] = FREE_ACCOUNT_MAX_STORAGE;
             if(defined('FREE_MAX_FILE_SIZE')) {
@@ -263,17 +364,17 @@ class User
             } else {
                 $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
             }
-            /*
-            $goPremium = new GoPremium($this);
-            if ($goPremium->showStatus()) {
-                $data['goPremium'] = true;       
-            }
-            */
+
         } else {
             $data['MAX_RECORDS'] = 'unlimited';
             $data['MAX_STORAGE'] = MAX_STORAGE_PER_USER;
             $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
         }
+
+*/
+
+
+        
         if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
             $data['business'] = false;
             if (Survey::showStatus($this)) {
@@ -495,8 +596,8 @@ class User
                     return "access vioaltion or safe does not exist";
                 }
 
-                if (isset($safe->entries) && (count($safe->entries) >0)) {
-                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
+                if (isset($safe->items) && (count($safe->items) >0)) {
+                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->items, 0);
                 }
                 if (isset($safe->folders)) {
                     foreach ($safe->folders as $folder) {
@@ -526,8 +627,8 @@ class User
             }
             $SafeID = $result['id'];
 
-            if (isset($safe->entries) && (count($safe->entries) > 0)) {
-                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
+            if (isset($safe->items) && (count($safe->items) > 0)) {
+                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->items, 0);
             }
             if (isset($safe->folders)) {
                 foreach ($safe->folders as $folder) {
@@ -598,37 +699,83 @@ class User
     
         return "Internal error";
     }
+
+    function getPlanDetails() {
+
+        $result = [];
     
-    public function account() {
+        if(!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) {
+            $result['maxStorage'] = MAX_STORAGE_PER_USER;
+            $result['maxRecords'] = MAX_RECORDS_PER_USER;
+            $result['maxFileSize'] = MAX_FILE_SIZE;
+            return $result;
+        }
+    
+        if (property_exists($this->profile, 'plan')) {
+            if ($this->profile->plan == 'Premium') {
+                $result = getPremiumDetails($this->mng, $this->UserID);
+                $result['maxRecords'] = MAX_RECORDS_PER_USER;
+                $result['maxStorage'] = MAX_STORAGE_PER_USER;
+                $result['maxFileSize'] = MAX_FILE_SIZE;
+                $result['plan'] = 'PREMIUM';
+                return $result;
+            }
+            
+            for($i = 0; $i < count(FREE); $i++) {
+                if(!strcasecmp($this->profile->plan, FREE[$i]['NAME'])) {
+                    $result['maxRecords'] = FREE[$i]['MAX_RECORDS'];
+                    $result['maxStorage'] = FREE[$i]['MAX_STORAGE'];
+                    $result['maxFileSize'] = FREE[$i]['MAX_FILE_SIZE'];
+                    $result['upgrade'] = [
+                        'maxStorage' => MAX_STORAGE_PER_USER,
+                        'maxRecords' => MAX_RECORDS_PER_USER,
+                        'maxFileSize' => MAX_FILE_SIZE,
+                        'price' => PREMIUM[0]['PRICE']
+                    ];
+                    $result['plan'] = 'FREE';
+                    return $result;
+                }
+            }
+        }
+        
+        $result['plan'] = 'PREMIUM';
+        $result['maxStorage'] = MAX_STORAGE_PER_USER;
+        $result['maxRecords'] = MAX_RECORDS_PER_USER;
+        $result['maxFileSize'] = MAX_FILE_SIZE;
+        return $result;
+    }
+    
+    public function account($req = null) {
         if (!isset($this->profile)) {
             $this->getProfile();
         }
 
+        if ($req && isset($req->operation)) {
+            if($req->operation === 'setInactivityTimeout') {
+                $id = ($req->id) ? $req->id:"desktop_inactivity";
+                $value = $req->value;
+                $this->setInactivityTimeOut($id, $value);
+            } else if($req->operation === 'cancelSubscription') {
+                Utils::err("account operation  = 'cancelSubscription'");
+                $this->mng->subscriptions->updateMany(
+                    [ 'UserID' => $this->UserID, "status" => "active"], 
+                    ['$set' => ["status" => "cancel_request"]]
+                );
+                $this->cancel_subscriptions();
+            }
+        }
+    
         $total_records = 0;
         $total_storage = 0;
         $total_safes = 0;
 
-        $result = [];
+
+        $result = $this->getPlanDetails($this->mng, $this->profile);
+        
         $result['email'] = $this->profile->email; 
         $result['desktop_inactivity'] = 
-            $result['mobile_inactivity'] = $this->profile->desktop_inactivity;
+        $result['mobile_inactivity'] = $this->profile->desktop_inactivity;
 
-        if (property_exists($this->profile, 'plan')) {
-            $result['plan'] = $this->profile->plan;
-            if ($this->profile->plan == 'Premium') {
-                $result['expires'] = $this->profile->expires;
-            }
-            if ($this->profile->plan == 'FREE') {
-                $result['upgrade_button'] = true;
-            }
-        } else if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-            $result['plan'] = 'Premium';
-            if (property_exists($this->profile, 'expires')) {
-                $result['expires'] = $this->profile->expires->__toString();
-            } else {
-                $result['expires'] = 'never';
-            }
-        }
         
         $safes = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
         foreach ($safes as $safe) {
@@ -645,27 +792,12 @@ class User
         $result['used'] = $total_storage;
         $result['safes'] = $total_safes;
     
-        if (defined('MAX_RECORDS_PER_USER')  
-            && (!isset($result['plan']) || ($result['plan'] != 'Premium'))) {
-            $result['maxRecords'] = MAX_RECORDS_PER_USER;
-        } 
-    
-        if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_RECORDS')) {
-            $result['maxRecords'] = FREE_ACCOUNT_MAX_RECORDS;
-        }
-    
-        if (defined('MAX_STORAGE_PER_USER')) {
-            $result['maxStorage'] = MAX_STORAGE_PER_USER;
-        } 
-        if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_STORAGE')) {
-            $result['maxStorage'] = FREE_ACCOUNT_MAX_STORAGE;
-        }
-        if($this->isSiteAdmin()) {
-            $result['site_admin'] = true;
-        }
         if (!defined('PUBLIC_SERVICE')) {
             $result['business'] = true;
         } 
+        if($this->isSiteAdmin()) {
+            $result['site_admin'] = true;
+        }
     
         $result['status'] = 'Ok';
         return $result;
@@ -698,8 +830,40 @@ class User
              'payment_id' => $transaction_id]
             ]
         );
+        $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  "passhub PREMIUM paid", "see logs for details");
     }
     
+    public function cancel_subscriptions() {
+        
+        if( defined('STRIPE') && isset(STRIPE['key'])) {
+            \Stripe\Stripe::setApiKey(STRIPE['key']);
+
+            $cursor = $this->mng->subscriptions->find(["UserID" => $this->UserID]);
+
+            foreach($cursor as $s) {
+                Utils::err("s->status1 " . $s->status);
+                if($s->status != "canceled") {
+                    try {
+                        Utils::err('cancel subscription ' . $s->subscription);
+                        $subscription = \Stripe\Subscription::retrieve($s->subscription);
+                        Utils::err("s->status2 " . $subscription->status);
+                        if($subscription->status != "canceled") {
+                            $subscription->cancel();
+                        }
+                    } catch(\Stripe\Exception\CardException $e) {
+                        Utils::err("A payment error occurred: {$e->getError()->message}");
+                    } catch (\Stripe\Exception\InvalidRequestException $e) {
+                        Utils::err("An invalid request occurred.");
+                    } catch (\Throwable $e) { // For PHP 7
+                        Utils::err($e->getMessage());
+                    } catch (\Exception $e) {
+                        Utils::err("Another problem occurred, maybe unrelated to Stripe.");
+                    }
+                }
+            }
+        }
+    }
+
     public function deleteAccount() {
 
         $this->getProfile();
@@ -723,10 +887,17 @@ class User
                 return "Internal error 111";
             }
         }
+
         $result = $this->mng->reg_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->change_mail_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->users->deleteMany(['_id' => $this->_id]);
-        Utils::log("user " . $this->UserID . " account deleted, mail " . $this->email);
+        $this->cancel_subscriptions();
+
+        $m = ' - ';
+        if(isset($this->email)) {
+            $m = $this->email;
+        }
+        Utils::log("user " . $this->UserID . " account deleted, mail " . $m);
         return ['status' => "Ok", "access" => $removed_safe_user_records];
     }
     
