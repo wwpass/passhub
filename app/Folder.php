@@ -213,6 +213,7 @@ class Folder
                 if ($r->getInsertedCount() == 1) {
                     $folder_id = $r->getInsertedId();
                     Utils::log('user ' . $UserID . ' activity folder ' . $data->operation);
+                    $user->setCurrentSafe($folder_id);
                     return ["status" => "Ok", "id" => (string)$folder_id];
                 }
             } else {

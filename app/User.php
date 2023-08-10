@@ -114,6 +114,7 @@ function getPremiumDetails($mng, $UserID) {
 
 class User
 {
+    public const ROLE_LIMITED_READONLY = 'limited view';   
     public const ROLE_READONLY = 'readonly';   
     public const ROLE_EDITOR = 'editor';   
     public const ROLE_ADMINISTRATOR = 'administrator';   
@@ -307,14 +308,15 @@ class User
                 "items" => $items,
                 "folders" => $folders,
                 "users" => $safe->user_count,
+                "user_role" => $safe->user_role
             ];
+
             if(property_exists($safe,"version")) {
                 $safe_entry["version"] = $safe->version; 
                 $safe_entry["eName"] = $safe->eName; 
                 $safe_entry["name"] = "error";
             }
 
-            // $response[$safe->id] = $safe_entry;
             array_push($response, $safe_entry);
         }
         $_SESSION['STORAGE_USED'] = $storage_used;
@@ -402,6 +404,10 @@ class User
         } else {
             $data['onkeyremoval'] = false;
         }
+
+        if($this->isSiteAdmin()) {
+            $data['site_admin'] = true;
+        }        
 
         $data['websocket'] = false;
         if (defined('WEBSOCKET')) {
@@ -751,6 +757,15 @@ class User
         }
 
         if ($req && isset($req->operation)) {
+            if($req->operation === 'generator') {
+                $result = $this->mng->users->updateMany(
+                    ['_id' => $this->_id], 
+                    ['$set' => ['generator' => $req->value]]
+                );
+                return "Ok";
+            }
+
+
             if($req->operation === 'setInactivityTimeout') {
                 $id = ($req->id) ? $req->id:"desktop_inactivity";
                 $value = $req->value;
@@ -830,7 +845,10 @@ class User
              'payment_id' => $transaction_id]
             ]
         );
-        $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  "passhub PREMIUM paid", "see logs for details");
+        $message = "see logs for details";
+        $message = $message . "<br>Server name " . $_SERVER['SERVER_NAME']; 
+        $message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
+        $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  "passhub PREMIUM paid", $message);
     }
     
     public function cancel_subscriptions() {
@@ -1042,7 +1060,8 @@ class User
     
                 if (isset($req->role) && in_array(
                     $req->role,
-                    [self::ROLE_READONLY, 
+                    [self::ROLE_LIMITED_READONLY, 
+                    self::ROLE_READONLY, 
                     self::ROLE_ADMINISTRATOR, 
                     self::ROLE_EDITOR]
                 )
@@ -1119,6 +1138,8 @@ class User
                     $role = self::ROLE_EDITOR;
                 } else if ($role == 'readonly') {
                     $role = self::ROLE_READONLY;
+                } else if ($role == 'limited view') {
+                    $role = self::ROLE_LIMITED_READONLY;
                 } else {
                     return "Internal error acl 315";
                 }
