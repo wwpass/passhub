@@ -98,6 +98,28 @@ class Iam
         return false;
     }
 
+    private static function getGroupSafes($mng, $GroupID) {
+        $cursor = $mng->safe_groups->find(["GroupID" => $GroupID], ["projection" => ["_id"=> false, "SafeID" => true, "role" => true]]);
+        $safes = $cursor->toArray();
+        return $safes;
+    }
+
+    private static function getGroupUsers($mng, $GroupID) {
+        $cursor = $mng->group_users->find(["GroupID" => $GroupID], ["projection" => ["_id"=> false, "UserID" => true, "role" => true]]);
+        $users = $cursor->toArray();
+        return $users;
+    }
+
+    private static function getGroups($mng, $UserID) {
+        $cursor = $mng->group_users->find(["UserID" => $UserID]);
+        $groups = $cursor->toArray();
+        foreach($groups as $group ) {
+            $group->users = self::getGroupUsers($mng, $group->GroupID);
+            $group->safes = self::getGroupSafes($mng, $group->GroupID);
+        }
+        return $groups;
+    }
+
     private static function getUserArray($mng, $UserID) 
     {
         $cursor = $mng->users->find([], ['projection' => [
@@ -213,8 +235,8 @@ class Iam
                 }
             }
         }
-
-        $result = ["stats" => $stats, "users" => $user_array];
+        $groups = self::getGroups($mng, $UserID);
+        $result = ["stats" => $stats, "users" => $user_array, "groups" => $groups];
 
         if(defined('LICENSED_USERS')) {
             $result['LICENSED_USERS'] = LICENSED_USERS;

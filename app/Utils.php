@@ -372,4 +372,39 @@ class Utils
         ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);
         return $ds;
     }
+
+    public static function eNameSanityCheck($eName) {
+        if(strlen($eName->data) > 1000) {
+            return "name too  long";
+        }
+        if(strlen($eName->tag) > 100) {
+            Utils::err('error name 381');
+            return "Internal server error";
+        }
+        if(strlen($eName->iv) > 100) {
+            Utils::err('error name 385');
+            return "Internal server error";
+        }
+        return "Ok";
+    }    
+
+    public static function getUserByMail($mng, $email) {
+
+
+        $pregEmail = preg_quote($email);
+        $a = (
+            $mng->users->find(
+                ['email' => new \MongoDB\BSON\Regex('^' . $pregEmail . '$', 'i')]
+            )
+        )->toArray();
+        
+        if (count($a) > 1) {
+            Utils::err("error acl 300");
+            return "error acl 300";
+        }
+        if (count($a) == 1) {
+            return $a[0];
+        }
+        return null;
+    } 
 }

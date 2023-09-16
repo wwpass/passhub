@@ -44,8 +44,8 @@ function getPremiumDetails($mng, $UserID) {
 
                 $stripe = new \Stripe\StripeClient(STRIPE['key']);
                 $charge = $stripe->charges->retrieve($subscription->charge, []);
-//                Utils::err("charge:");
-//                Utils::err(print_r($charge, true));
+                Utils::err("charge:");
+                Utils::err($charge);
                 $result['receipt_url'] = $charge->receipt_url;
             } else if(property_exists($subscription, 'latest_invoice')) {
                 Utils::log("scenario 2", "payment");
@@ -162,7 +162,7 @@ class User
             if(defined('IDLE_TIMEOUT')) {
                 $profile->desktop_inactivity = IDLE_TIMEOUT;
             } else {
-                $profile->desktop_inactivity = 10 * 60;
+                $profile->desktop_inactivity = 4 * 60 * 60;
             }
         }
         $this->profile = $profile;
@@ -242,19 +242,62 @@ class User
         return true;
     }
 
+    public function getGroups() {
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+        return $mng_res->toArray();
+    }
+
     public function getSafes() {
 
         $t0 = microtime(true);
         $mng_res = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
 
         $this->safe_array = array();
+
         foreach ($mng_res as $row) {
             $id = $row->SafeID;
             $this->safe_array[$id] = new Safe($row);
         
             $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
             $this->safe_array[$id]->user_count = count($safe_users);
+
+            Utils::err('normal safe ', $id);
+            Utils::err($this->safe_array[$id]);
+            Utils::err('-----------------------------------');
+
+
         } 
+
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+
+        foreach ($mng_res as $group) {
+            $group_safes = $this->mng->safe_groups->find([ 'GroupID' => $group->GroupID])->toArray(); 
+
+            Utils::err('group ' . $group->GroupID . ' safes');
+            Utils::err($group_safes);
+
+
+            foreach($group_safes as $s) {
+                $safe = (object)[
+                        'id' => $s->SafeID, 
+                        'group' => $s->GroupID,
+                        'encrypted_key_CSE' => $s->encrypted_key,
+                        'eName' => $s->eName,
+                        'user_role' =>'readonly',
+                        "version" => $s->version,
+                        "name" => "error"
+                    ];
+                Utils::err('safe ' . $s->SafeID);
+                Utils::err($safe);
+                if(!isset($this->safe_array[$s->SafeID])) {
+                    Utils::err('to be inserted');
+                    $this->safe_array[$s->SafeID] = $safe;
+                } else {
+                    Utils::err('direct access');
+                }
+            }
+        } 
+
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("safe_users " . $dt);
 
@@ -262,7 +305,9 @@ class User
         $storage_used = 0;
         $total_records = 0;
         foreach ($this->safe_array as $safe) {
-            if ($safe->isConfirmed()) {
+//            if ($safe->isConfirmed()) {
+            if(true) {
+
                 $t0 = microtime(true);
 
 /*                $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id); */
@@ -303,7 +348,8 @@ class User
                 "user_name" => $safe->user_name,
                 "id" => $safe->id,
                 'confirm_req' => $safe->confirm_req,
-                'confirmed' => $safe->isConfirmed(),
+//                'confirmed' => $safe->isConfirmed(),
+                'confirmed' => true,
                 "key" => $safe->encrypted_key_CSE,
                 "items" => $items,
                 "folders" => $folders,
@@ -315,6 +361,9 @@ class User
                 $safe_entry["version"] = $safe->version; 
                 $safe_entry["eName"] = $safe->eName; 
                 $safe_entry["name"] = "error";
+            }
+            if(property_exists($safe,"group")) {
+                $safe_entry["group"] = $safe->group;
             }
 
             array_push($response, $safe_entry);
@@ -335,6 +384,7 @@ class User
         
         $t0 = microtime(true);
 
+
         $safes=$this->getSafes();
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("getSafes " . $dt);
@@ -353,6 +403,11 @@ class User
             'ticket' => $_SESSION['wwpass_ticket'],
 //            'plan' => $this->profile->plan
         ];
+
+        $groups  = $this->getGroups();
+        if(count($groups)) {
+            $data['groups'] = $groups;
+        }
 
         $data = array_merge($data, $this->getPlanDetails());
 
@@ -384,6 +439,9 @@ class User
             }
         } else {
             $data['business'] = true;
+            if (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED) {
+               $data['HIDDEN_PASSWORDS_ENABLED'] = true; 
+            }
         }
 
         if (array_key_exists('folder', $_GET)) {
@@ -418,6 +476,7 @@ class User
 
         $data['WWPASS_TICKET_TTL'] = WWPASS_TICKET_TTL;
         $data['idleTimeout'] = $this->profile->desktop_inactivity;
+        $data['desktop_inactivity'] = $this->profile->desktop_inactivity;
         $data['ticketAge'] =  (time() - $_SESSION['wwpass_ticket_creation_time']);
 
         return ['status' => 'Ok', 'data' => $data];
@@ -765,11 +824,12 @@ class User
                 return "Ok";
             }
 
-
             if($req->operation === 'setInactivityTimeout') {
                 $id = ($req->id) ? $req->id:"desktop_inactivity";
                 $value = $req->value;
                 $this->setInactivityTimeOut($id, $value);
+                $this->getProfile(); // update return array
+
             } else if($req->operation === 'cancelSubscription') {
                 Utils::err("account operation  = 'cancelSubscription'");
                 $this->mng->subscriptions->updateMany(
@@ -1232,7 +1292,12 @@ class User
         foreach ($UserList as $key => $value) {
             $UserListOut[] = $value;  
         }
-        return ['status' => "Ok", 'UserList' => $UserListOut, 'update_page_req' => $update_page_req];
+        return [
+            'status' => "Ok",
+            'UserList' => $UserListOut, 
+            'update_page_req' => $update_page_req,
+            'HIDDEN_PASSWORDS_ENABLED' => (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED)
+        ];
     }
 
     public function ldapBindExistingUser($email, $userprincipalname) {
