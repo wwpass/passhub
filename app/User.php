@@ -748,6 +748,8 @@ class User
     
             $result = $this->mng->safe_items->deleteMany(['SafeID' => $SafeID]);
             $deleted['items'] += $result->getDeletedCount();
+
+            $result = $this->mng->safe_groups->deleteMany(['SafeID' => $SafeID]);
     
             $result = $this->mng->safe_users->deleteMany(['SafeID' => $SafeID]);
             if ($result->getDeletedCount() != 1) {

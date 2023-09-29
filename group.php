@@ -74,6 +74,17 @@ function create_group_proxy($mng) {
         return Group::removeSafe($mng, $req);
     }
 
+    if($req->operation == "role") {
+        return Group::setSafeRole($mng, $req);
+    }
+
+    if($req->operation == "rename") {
+        return Group::rename($mng, $req);
+    }
+
+    if($req->operation == "delete") {
+        return Group::delete($mng, $req);
+    }
 
     if($req->operation == "create") {
         return Group::create($mng, $req->group, $UserID);

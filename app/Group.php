@@ -60,6 +60,11 @@ class Group
     }
 
     static public function removeUser($mng, $groupId, $id, $UserID) {
+
+        if($id == $UserID) {
+            return "You (group admin) cannot leave the group";
+        }
+
         $filter = ['GroupID' => $groupId, 'UserID' => $id];
 
         $result = $mng->group_users->deleteOne(
@@ -95,14 +100,25 @@ class Group
         return ['status' => 'Ok'];
     }
 
+
+    static public function rename($mng, $req) {
+        $mng->group_users->updateMany(
+            ['GroupID' => $req->groupId],
+            [ '$set' => [ 'eName' => $req->eName]]
+        );        
+        return ['status' => 'Ok'];
+    }
+
     static public function addSafe($mng, $req) {
         Utils::err('req');
         Utils::err($req);
+        $role = isset($req->role) ? $req->role :  "can view";
         $mng->safe_groups->insertOne(
             [
             'SafeID' => $req->SafeID, 
             'GroupID' => $req->groupId,
             'eName' => $req->eName,
+            'role' => $role,
             'version' => $req->version,
             'encrypted_key' => $req->encrypted_key]
         );
@@ -123,7 +139,30 @@ class Group
         return ['status' => 'Ok'];
     }
 
+    static public function delete($mng, $req) {
+        $mng->safe_groups->deleteMany(
+            [
+                'GroupID' => $req->groupId,
+            ]
+        );
+        $mng->group_users->deleteMany(
+            [
+                'GroupID' => $req->groupId,
+            ]
+        );
+        return ['status' => 'Ok'];
+    }
 
+    static public function setSafeRole($mng, $req) {
+        $mng->safe_groups->updateOne(
+            [
+                'SafeID' => $req->safeId, 
+                'GroupID' => $req->groupId,
+            ],
+            [ '$set' => [ 'role' => $req->role]]
+        );
+        return ['status' => 'Ok'];
+    }
 
     static public function create($mng, $group, $UserID) {
 
