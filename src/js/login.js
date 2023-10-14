@@ -176,11 +176,49 @@ document.addEventListener('DOMContentLoaded', () => {
       // qrtext.innerText = 'Tap the QR code or ';
       qrtext.innerHTML = 'Download <b>WWPass&nbsp;Key&nbsp;App</b> and scan&nbsp;or&nbsp;tap the QR&nbsp;code';
     } else {
-      qrtext.innerText = 'Scan the QR code with WWPass™ Key App';
+      qrtext.innerHTML = 'Scan the QR code with WWPass™ Key App';
       // qrtext.classList.add('text--qrcode');
     }
     qrtext.style.display = 'block';
   }
+
+
+
+
+  
+/*
+
+  let universal = true;
+  let universal_value = 4;  
+  if(window.location.href.includes("wwpass")) {
+    universal = false;
+  } else if(universal_value == 0) {
+      universal = false;
+  } else if(universal_value == 1) {
+      universal = true;
+  } else {
+    let d = new Date();
+
+    d = d.getMilliseconds();
+
+    console.log('d', d, 'd % universal_value', d % universal_value);
+
+    if( d % universal_value != 0) {
+      universal = false;
+    }
+  }
+  let uni_div = document.getElementById("universal");
+  if(uni_div) {
+    if(uni_div.getAttribute("data-universal") != "1") {
+      universal = false;
+    }
+  };
+
+  console.log('universal', universal);
+
+
+  */
+
 
   WWPass.authInit({
     qrcode: '#qrcode',
@@ -188,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ticketURL: `${urlBase}getticket.php`,
     callbackURL: `${urlBase}login.php`,
     uiCallback,
-    forcePasskeyButton: false
+    forcePasskeyButton: false,
+    universal: true,
+    fastForward: true,
   });
-    
 });

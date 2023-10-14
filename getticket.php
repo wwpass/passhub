@@ -22,6 +22,9 @@ try {
     $version4 = WWPass\Connection::VERSION == '4.0';
 
     $pin_required = defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false;
+    if(isset($_SESSION['NOP'])) {
+        $pin_required = false;
+    }
     
     if ($version4) {
         $wwc = new WWPass\Connection(
