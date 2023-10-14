@@ -242,6 +242,26 @@ class User
         return true;
     }
 
+    // find which group has  higher access rights
+    public function isBetterGroup($the_group, $outher_group) { 
+
+        if($the_group->role == 'can edit') {  // highest possible group role
+            return true;
+        }
+
+        if($other_group->role == 'can edit') {
+            return false;
+        }
+        if($the_group->role == 'can view') {
+            return true;
+        }
+        
+        if($other_group->role == 'can view') {
+            return false;
+        }
+        return true;
+    }
+
     public function getGroups() {
         $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
         return $mng_res->toArray();
@@ -252,20 +272,18 @@ class User
         $t0 = microtime(true);
         $mng_res = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
 
-        $this->safe_array = array();
+        $safe_array = array();
 
         foreach ($mng_res as $row) {
             $id = $row->SafeID;
-            $this->safe_array[$id] = new Safe($row);
+            $safe_array[$id] = new Safe($row);
         
             $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
-            $this->safe_array[$id]->user_count = count($safe_users);
+            $safe_array[$id]->user_count = count($safe_users);
 
             Utils::err('normal safe ', $id);
-            Utils::err($this->safe_array[$id]);
+            Utils::err($safe_array[$id]);
             Utils::err('-----------------------------------');
-
-
         } 
 
         $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
@@ -281,19 +299,25 @@ class User
                 $safe = (object)[
                         'id' => $s->SafeID, 
                         'group' => $s->GroupID,
+                        'group_role' => $s->role,
+                        'user_role' => $s->role,
                         'encrypted_key_CSE' => $s->encrypted_key,
                         'eName' => $s->eName,
-                        'user_role' =>'readonly',
                         "version" => $s->version,
                         "name" => "error"
                     ];
                 Utils::err('safe ' . $s->SafeID);
                 Utils::err($safe);
-                if(!isset($this->safe_array[$s->SafeID])) {
+                if(!isset($safe_array[$s->SafeID])) {
                     Utils::err('to be inserted');
-                    $this->safe_array[$s->SafeID] = $safe;
+                    $safe_array[$s->SafeID] = $safe;
                 } else {
-                    Utils::err('direct access');
+                    Utils::err('direct access'); // or other group
+                    if(isset($safe_array[$s->SafeID]->group)) {
+                        if(isBetterGroup($group, $safe_array[$s->SafeID]->group)) {
+                            $safe_array[$s->SafeID]->group = $group;
+                        } 
+                    }
                 }
             }
         } 
@@ -304,7 +328,7 @@ class User
         $response = array();
         $storage_used = 0;
         $total_records = 0;
-        foreach ($this->safe_array as $safe) {
+        foreach ($safe_array as $safe) {
 //            if ($safe->isConfirmed()) {
             if(true) {
 
@@ -1014,7 +1038,48 @@ class User
         if (!ctype_xdigit($SafeID)) {
             return "Bad arguments";
         }
-    
+
+        # search the safe in my groups
+
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+
+        $group_role = "";
+        foreach ($mng_res as $group) {
+            $group_safes = $this->mng->safe_groups->find([ 'GroupID' => $group->GroupID])->toArray(); 
+
+            Utils::err('group ' . $group->GroupID . ' safes');
+            Utils::err($group_safes);
+
+
+            foreach($group_safes as $s) {
+                if( $s->SafeID = $SafeID ) {
+                    // found 
+                    if($s->role == "owner") {
+                        $group_role = "owner";
+                    } else if($group_role != "owner") {
+                        if($s->role == "can edit") {
+                               $group_role = "can edit";
+                        } else if ($s->role != "can edit") {
+                            if($s->role == "can view") {
+                                $group_role = "can view";
+                            } else {
+                                $group_role = "limited_view";
+                            }
+                         }
+                    }
+                }
+
+
+            }
+        }
+
+        if($group_role != "") {
+            return [
+                'status' => "Ok",
+                'group_role' => $group_role
+            ];
+        }
+
         $myrole = $this->getUserRole($SafeID);
         if (!$myrole) {
             return "error 275";
