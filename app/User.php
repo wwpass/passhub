@@ -428,10 +428,15 @@ class User
 //            'plan' => $this->profile->plan
         ];
 
+        if($this->profile->theme) {
+            $data['theme'] = $this->profile->theme;
+        }
+
         $groups  = $this->getGroups();
         if(count($groups)) {
             $data['groups'] = $groups;
         }
+
 
         $data = array_merge($data, $this->getPlanDetails());
 
@@ -547,8 +552,27 @@ class User
     public function canWrite($SafeID)
     {
         $role = $this->getUserRole($SafeID);
-        return (($role == self::ROLE_ADMINISTRATOR) 
-                || ($role == self::ROLE_EDITOR));
+        if(($role == self::ROLE_ADMINISTRATOR)  || ($role == self::ROLE_EDITOR)) {
+            return true;
+        }
+
+        // TODO: check if a user is a group member
+
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        foreach($mng_rows as $group) {
+            Utils::err("group ");
+            Utils::err($group);
+
+            // TODO: editor => self::ROLE_EDITOR
+
+            if($group->role == "can edit") {
+                Utils::err("can write returns true");
+                return true;
+            }
+        }
+        Utils::err("can write returns false");
+        return false;
     }
     
     public function canRead($SafeID)
@@ -651,6 +675,16 @@ class User
 
     function changeSafeName($SafeID, $eName) {
 
+
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
+            }
+//            return "group safe, siteadmin";
+        }
+
         // sanity check 
         $sanityCheck = self::eNameSanityCheck($eName);
         if( $sanityCheck != "Ok") {
@@ -662,6 +696,8 @@ class User
             ['$set' =>['eName' =>$eName, "version" => 3],
             '$unset' => ['SafeName'=>""]]
         );
+
+
         if ($result->getModifiedCount() == 1) {
             Utils::log('user ' . $this->UserID . ' activity safe renamed');
             return "Ok";
@@ -741,6 +777,15 @@ class User
             return "Cannot delete the last safe";
         }
     
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
+            }
+            return "group safe, siteadmin";
+        }
+        
         if (!$this->isAdmin($SafeID)) {
             return "unsubscribe";
         }
@@ -846,6 +891,13 @@ class User
                 $result = $this->mng->users->updateMany(
                     ['_id' => $this->_id], 
                     ['$set' => ['generator' => $req->value]]
+                );
+                return "Ok";
+            }
+            if($req->operation === 'theme') {
+                $result = $this->mng->users->updateMany(
+                    ['_id' => $this->_id], 
+                    ['$set' => ['theme' => $req->value]]
                 );
                 return "Ok";
             }
@@ -1039,6 +1091,20 @@ class User
             return "Bad arguments";
         }
 
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
+            }
+            return "group safe, siteadmin";
+        }
+
+//        if (!$this->isAdmin($SafeID)) {
+//            return "unsubscribe";
+//        }
+
+/*
         # search the safe in my groups
 
         $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
@@ -1068,8 +1134,6 @@ class User
                          }
                     }
                 }
-
-
             }
         }
 
@@ -1079,6 +1143,7 @@ class User
                 'group_role' => $group_role
             ];
         }
+*/
 
         $myrole = $this->getUserRole($SafeID);
         if (!$myrole) {
