@@ -222,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   WWPass.authInit({
     qrcode: '#qrcode',
+    mobileLoginExtraButtons: document.querySelectorAll(".signin-mobile"),
     passkey: document.querySelector('#button--login'),
     ticketURL: `${urlBase}getticket.php`,
     callbackURL: `${urlBase}login.php`,
