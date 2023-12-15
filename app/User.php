@@ -427,8 +427,9 @@ class User
             'ticket' => $_SESSION['wwpass_ticket'],
 //            'plan' => $this->profile->plan
         ];
-
-        if($this->profile->theme) {
+        if (defined('THEME') ) {
+            $data['theme'] = "disabled";
+        } else if($this->profile->theme) {
             $data['theme'] = $this->profile->theme;
         }
 
@@ -897,7 +898,7 @@ class User
             if($req->operation === 'theme') {
                 $result = $this->mng->users->updateMany(
                     ['_id' => $this->_id], 
-                    ['$set' => ['theme' => $req->value]]
+                    ['$set' => ['theme' => $req->theme]]
                 );
                 return "Ok";
             }
