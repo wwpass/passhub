@@ -16,13 +16,13 @@
 
 ## Server Requirements
 
-- PHP 7.4+
+- PHP 7.4+ (8.2 preferred)
 - PHP composer
-- MongoDB 4.4+
+- MongoDB 4.4+ (6.0+ preferred)
 
 ## Preferred run-time environment
 
-- Ubuntu 20.04
+- Ubuntu 22.04
 - NGINX Web server
 
 ## Getting passhub.business archive
@@ -31,7 +31,13 @@ You may either download the latest release of the PassHub archive [passhub.busin
 
 ## Build from source
 
-The project consistes of two github repositories: main, [wwpass/passhub](https://github.com/wwpass/passhub), and frontend, [wwpass/passhub-frontend](https://github.com/wwpass/passhub-frontend)  
+
+The project consistes of two github repositories: main, [wwpass/passhub](https://github.com/wwpass/passhub), and frontend, [wwpass/passhub-frontend-v2](https://github.com/wwpass/passhub-frontend-v2)  
+
+[!NOTE]
+The first project of PassHub client-side is no more supported, please use version2: [wwpass/passhub-frontend-v2](https://github.com/wwpass/passhub-frontend-v2)  
+
+
 To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
 
 To compile the project from scratch, download the git repository wwpass/passhub and run
@@ -41,7 +47,7 @@ npm install
 npm run build
 ```
 
-Now clone frontend code wwpass/passhub-frontend and do the same
+Now clone frontend code wwpass/passhub-frontend-v2 and do the same
 
 ```sh
 npm install
@@ -59,3 +65,62 @@ Follow the [Installation manual](https://github.com/wwpass/passhub/blob/master/I
 ## Feedback and Support
 
 Should you experience any difficulties during the installation of PassHub, please feel free to contact our support team at support@wwpass.com.
+
+
+
+Config variables
+
+SUPPORT_MAIL_ADDRESS', 'passhub@wwpass.com'
+MAX_STORAGE_PER_USER
+FREE_ACCOUNT_MAX_STORAGE ( if defined and if plan FREE)
+MAX_FILE_SIZE =  1024 * 1024
+PUBLIC_SERVICE = flase
+EMAIL_BLACKLIST = []
+SHARING_CODE_TTL - 48*60*60
+
+WWPASS_PIN_REQUIRED
+WWPASS_KEY_FILE
+WWPASS_CERT_FILE
+WWPASS_CA_FILE
+WWPASS_TICKET_TTL
+
+IDLE_TIMEOUT', 540
+
+FILE_DIR
+GOOGLE_CREDS
+LDAP
+
+DISCOURSE_SECRET
+MAIL_DOMAIN
+
+// index twig args, not used?
+MAX_SAFENAME_LENGTH, 20
+MAX_FILENAME_LENGTH, 40
+MAX_NOTES_SIZE, 2048
+MAX_URL_LENGTH, 2500
+
+FREE_ACCOUNT_MAX_RECORDS
+LOGIN_PAGE
+
+PREMIUM
+
+WEBSOCKET false
+
+MAX_RECORDS_PER_USER
+FREE_ACCOUNT_MAX_RECORDS
+
+SENDMAIL_FROM
+SMTP_SERVER
+LOG_DIR
+SYSLOG
+
+IP_BLACKLIST
+FILE_DIR
+GOOGLE_CREDS
+S3_CONFIG
+MAX_FILE_SIZE
+
+
+
+
+
