@@ -63,7 +63,7 @@ function privateKeyEncrypted(encryptedPrivateKey) {
 }
 
 function cryptoapi_catch(err) {
-
+  console.log(err);
   // alert('X ' + err);
   window.location.href = `error_page.php?js=387&error=${err}`;
 }
@@ -84,8 +84,6 @@ function pkcs82pem(pkcs8_ab) {
 
 function privateKeyExported_pkcs8(exportedPrivateKey) {
   const pem = pkcs82pem(exportedPrivateKey);
-
-  // wwpassCrypto.encryptString(pem).then(privateKeyEncrypted).catch(cryptoapi_catch);
 
   passhubCrypto.encryptPrivateKey(pem, page_args.wwpassTicket)
     .then(privateKeyEncrypted).catch(cryptoapi_catch);

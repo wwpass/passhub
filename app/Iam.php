@@ -22,6 +22,22 @@ class Iam
         return ["status" =>"Ok", 'mail_array' => $mail_array];
     }
 
+    static function sendInvitationMail($email) {
+        $invitation_mail_subject = file_get_contents('config/invitation_mail_subject.txt');
+        $invitation_mail = file_get_contents('config/invitation_mail.txt');
+        
+        if (strlen($invitation_mail_subject) == 0) {
+            Utils::err("config/invitation_mail_subject.txt absent or empty");
+            return;
+        }
+        if (strlen($invitation_mail) == 0) {
+            Utils::err("config/invitation_mail.txt absent or empty");
+            return;
+        }
+        
+        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
+    }
+
     public static function addWhiteMailList($mng, $email) 
     {
         $cursor = $mng->mail_invitations->find(['email' => $email]);
@@ -36,6 +52,7 @@ class Iam
         } 
 
         $mng->mail_invitations->insertOne(['email' => $email]);
+        self::sendInvitationMail($email);
         return self::whiteMailList($mng);
     }
 
@@ -47,6 +64,9 @@ class Iam
         
     public static function isMailAuthorized($mng, $email) {
 
+        if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
+            return true;
+        }
         if( defined('LDAP')  
             && isset(LDAP['mail_registration']) 
             && (LDAP['mail_registration'] == true)) {
@@ -58,9 +78,14 @@ class Iam
         if ($mail_domains[0] === "any") {
             return true;
         }
-        if ($mail_domains[0] === strtolower($email)) {
-            return true;
-        }
+
+        for($i = 0; $i < count($mail_domains); $i++) { 
+            if ($mail_domains[$i] === strtolower($email)) {
+                return true;
+            }
+        }        
+
+        // or it is a domain part of the email, e.g. mycompany.com. (hardly usable)
         $parts = explode("@", $email);
         if (in_array(strtolower($parts[1]), $mail_domains)) {
             return true;
@@ -71,6 +96,28 @@ class Iam
             return true;
         }
         return false;
+    }
+
+    private static function getGroupSafes($mng, $GroupID) {
+        $cursor = $mng->safe_groups->find(["GroupID" => $GroupID], ["projection" => ["_id"=> false, "SafeID" => true, "role" => true]]);
+        $safes = $cursor->toArray();
+        return $safes;
+    }
+
+    private static function getGroupUsers($mng, $GroupID) {
+        $cursor = $mng->group_users->find(["GroupID" => $GroupID], ["projection" => ["_id"=> false, "UserID" => true, "role" => true]]);
+        $users = $cursor->toArray();
+        return $users;
+    }
+
+    private static function getGroups($mng, $UserID) {
+        $cursor = $mng->group_users->find(["UserID" => $UserID]);
+        $groups = $cursor->toArray();
+        foreach($groups as $group ) {
+            $group->users = self::getGroupUsers($mng, $group->GroupID);
+            $group->safes = self::getGroupSafes($mng, $group->GroupID);
+        }
+        return $groups;
     }
 
     private static function getUserArray($mng, $UserID) 
@@ -172,7 +219,6 @@ class Iam
         
         $stats .= "MAIL DOMAINS: " . MAIL_DOMAIN . "\n";
         
-        
         foreach ($user_array as $user) {
             if(isset($user->_id)) {
                 $user->_id = (string)$user->_id;
@@ -189,10 +235,15 @@ class Iam
                 }
             }
         }
+        $groups = self::getGroups($mng, $UserID);
+        $result = ["stats" => $stats, "users" => $user_array, "groups" => $groups];
 
-        return ["stats" => $stats, "user_array" => $user_array];
+        if(defined('LICENSED_USERS')) {
+            $result['LICENSED_USERS'] = LICENSED_USERS;
+        }
+        return $result;
     }
-        
+
     public static function deleteUser($mng, $userToDelete) {
 
         if(isset($userToDelete['id']) && $userToDelete['id']) {

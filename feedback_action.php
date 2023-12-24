@@ -22,8 +22,19 @@ use PassHub\DB;
 
 require_once 'Mail.php';
 
+
+function is_email_blacklisted($email) {
+    if (defined('EMAIL_BLACKLIST') && is_array(EMAIL_BLACKLIST)) {
+        if (in_array($email, EMAIL_BLACKLIST)) {
+            Utils::err('blacklisted ' . $email);
+            return true;
+        }
+    }
+    return false;
+}
+
 if (!defined('SUPPORT_MAIL_ADDRESS')) {
-    define('SUPPORT_MAIL_ADDRESS', 'support@wwpass.com');
+    define('SUPPORT_MAIL_ADDRESS', 'passhub@wwpass.com');
 }
 
 $mng = DB::Connection();
@@ -39,8 +50,6 @@ if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
 $name = $_POST['name'];
 $email = $_POST['email'];
 
-$subject = "passhub report";
-
 $message = "From: '$email' (name '$name')" . "<br><br>" . $_POST['message'];
 $message = $message . "<br><br>" .  $_SERVER['HTTP_USER_AGENT'] . "<br>" . $_SERVER['REMOTE_ADDR'] ;
 if (array_key_exists('UserID', $_SESSION)) {
@@ -48,8 +57,35 @@ if (array_key_exists('UserID', $_SESSION)) {
 } else {
     $message = $message . "<br>user not logged in";
 }
+$message = $message . "<br>Server name " . $_SERVER['SERVER_NAME'];
+$message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
 
-$result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
+$star = '';
+
+if(isset($_POST['recap'])) {
+    $message = $message . "<br>JS time spent " . $_POST['recap'];
+} else {
+    $message = $message . "<br>no time spent info";
+    $star = '* ';
+}
+
+if(isset($_SESSION['feedback start'])) {
+    $exposure = time() - $_SESSION['feedback start'];
+    $message = $message . "<br>php time spent " . $exposure;
+    if($exposure <= 2) {
+        $star = '* ';
+    }
+} else {
+    $message = $message . "<br>no php time spent info";
+}
+
+$subject = $star . "passhub report";
+
+if(is_email_blacklisted($email)) {
+    $result = ['status' => 'Ok'];
+} else {
+    $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  $subject, $message);
+}
 
 if ($result['status'] !== 'Ok') {
     Utils::err("error sending message '$message'");

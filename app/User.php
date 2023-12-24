@@ -8,19 +8,116 @@
  * @category  Password_Manager
  * @package   PassHub
  * @author    Mikhail Vysogorets <m.vysogorets@wwpass.com>
- * @copyright 2016-2018 WWPass
+ * @copyright 2016-2023 WWPass
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
 
 namespace PassHub;
 
+function getPremiumDetails($mng, $UserID) {
+
+    $result = [];
+    $subscriptions = $mng->subscriptions->find([ 'UserID' => $UserID]);
+
+
+    $current_period_end = 0;
+    $active_subscription = true;
+
+    // we want only one subscription for user
+
+    $found = false;
+
+    foreach($subscriptions as $subscription) {
+        if($subscription->current_period_end > time()) {
+            $found = true;
+            $current_period_end = $subscription->current_period_end;
+
+            if($subscription->status == "active") {
+                $result['autorenew'] = true;
+            }
+//            Utils::err("susbscription:");
+//            Utils::err(print_r($subscription, true));
+
+            if(property_exists($subscription, 'charge')) {
+//                Utils::err("retrieving charge " . $subscription->charge);
+
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $charge = $stripe->charges->retrieve($subscription->charge, []);
+                Utils::err("charge:");
+                Utils::err($charge);
+                $result['receipt_url'] = $charge->receipt_url;
+            } else if(property_exists($subscription, 'latest_invoice')) {
+                Utils::log("scenario 2", "payment");
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $invoice = $stripe->invoices->retrieve($subscription->latest_invoice, []);
+                if($invoice->charge) {
+                    $charge = $stripe->charges->retrieve($invoice->charge, []);
+                    $result['receipt_url'] = $charge->receipt_url;
+
+                    $mng->subscriptions->updateOne(["subscription" => $subscription->subscription], ['$set'=>[
+                        "charge" => $invoice->charge,
+                    ]]);
+
+                }
+            } else {
+                Utils::log("scenario 3", "payment");
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $s = $stripe->subscriptions->retrieve($subscription->subscription); // subscription ID actually
+                $invoice = $stripe->invoices->retrieve($s->latest_invoice, []);
+                $charge = $stripe->charges->retrieve($invoice->charge, []);
+                if($charge) {
+                    $result['receipt_url'] = $charge->receipt_url;
+                }
+
+                $mng->subscriptions->updateOne(["subscription" => $subscription->subscription], ['$set'=>[
+                    "latest_invoice" => $s->latest_invoice,
+                    "charge" => $invoice->charge,
+                ]]);
+            }
+            $result['expires'] = $current_period_end;  
+        }
+    }
+     if($found) {
+        return $result;
+    }
+
+    $user = new User($mng, $UserID);
+    $profile = $user->getProfile();
+    if(isset($profile['payment_id'])) {
+        $cursor = $mng->payments->find(["csID" => $profile['payment_id']]);
+        $payments = $cursor->ToArray();
+        if(count($payments) == 1) {
+            if(isset($payments[0]['subscription'])) {
+                Utils::err($payments[0]['subscription']);
+                $stripe = new \Stripe\StripeClient(STRIPE['key']);
+                $object = $stripe->subscriptions->retrieve($payments[0]['subscription']);
+                Utils::err('got subscription');
+                $r = $mng->subscriptions->insertOne(
+                        [
+                          'UserID' => $payments[0]->UserID,
+                          'subscription' => $object->id,
+                          'customer' => $object->customer,
+                          'current_period_end' => $object->current_period_end,
+                          'status' => $object->status,
+                          'latest_invoice' => $object->latest_invoice, 
+                        ]
+                    );
+                if($object['current_period_end']  > time()) {
+                    return getPremiumDetails($mng, $UserID);
+                }
+            }
+        } 
+    }
+    return [];
+}
+
 class User
 {
+    public const ROLE_LIMITED_READONLY = 'limited view';   
     public const ROLE_READONLY = 'readonly';   
     public const ROLE_EDITOR = 'editor';   
     public const ROLE_ADMINISTRATOR = 'administrator';   
-
     public $profile;
 
     function __construct($mng, $UserID) {
@@ -65,10 +162,11 @@ class User
             if(defined('IDLE_TIMEOUT')) {
                 $profile->desktop_inactivity = IDLE_TIMEOUT;
             } else {
-                $profile->desktop_inactivity = 10 * 60;
+                $profile->desktop_inactivity = 4 * 60 * 60;
             }
         }
         $this->profile = $profile;
+        return $profile;
     }
 
     public function getPublicKey() {
@@ -144,27 +242,96 @@ class User
         return true;
     }
 
+    // find which group has  higher access rights
+    public function isBetterGroup($the_group, $outher_group) { 
+
+        if($the_group->role == 'can edit') {  // highest possible group role
+            return true;
+        }
+
+        if($other_group->role == 'can edit') {
+            return false;
+        }
+        if($the_group->role == 'can view') {
+            return true;
+        }
+        
+        if($other_group->role == 'can view') {
+            return false;
+        }
+        return true;
+    }
+
+    public function getGroups() {
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+        return $mng_res->toArray();
+    }
+
     public function getSafes() {
 
         $t0 = microtime(true);
         $mng_res = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
 
-        $this->safe_array = array();
+        $safe_array = array();
+
         foreach ($mng_res as $row) {
             $id = $row->SafeID;
-            $this->safe_array[$id] = new Safe($row);
+            $safe_array[$id] = new Safe($row);
         
             $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
-            $this->safe_array[$id]->user_count = count($safe_users);
+            $safe_array[$id]->user_count = count($safe_users);
+
+            Utils::err('normal safe ', $id);
+            Utils::err($safe_array[$id]);
+            Utils::err('-----------------------------------');
         } 
+
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+
+        foreach ($mng_res as $group) {
+            $group_safes = $this->mng->safe_groups->find([ 'GroupID' => $group->GroupID])->toArray(); 
+
+            Utils::err('group ' . $group->GroupID . ' safes');
+            Utils::err($group_safes);
+
+
+            foreach($group_safes as $s) {
+                $safe = (object)[
+                        'id' => $s->SafeID, 
+                        'group' => $s->GroupID,
+                        'group_role' => $s->role,
+                        'user_role' => $s->role,
+                        'encrypted_key_CSE' => $s->encrypted_key,
+                        'eName' => $s->eName,
+                        "version" => $s->version,
+                        "name" => "error"
+                    ];
+                Utils::err('safe ' . $s->SafeID);
+                Utils::err($safe);
+                if(!isset($safe_array[$s->SafeID])) {
+                    Utils::err('to be inserted');
+                    $safe_array[$s->SafeID] = $safe;
+                } else {
+                    Utils::err('direct access'); // or other group
+                    if(isset($safe_array[$s->SafeID]->group)) {
+                        if(isBetterGroup($group, $safe_array[$s->SafeID]->group)) {
+                            $safe_array[$s->SafeID]->group = $group;
+                        } 
+                    }
+                }
+            }
+        } 
+
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("safe_users " . $dt);
 
         $response = array();
         $storage_used = 0;
         $total_records = 0;
-        foreach ($this->safe_array as $safe) {
-            if ($safe->isConfirmed()) {
+        foreach ($safe_array as $safe) {
+//            if ($safe->isConfirmed()) {
+            if(true) {
+
                 $t0 = microtime(true);
 
 /*                $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id); */
@@ -205,19 +372,24 @@ class User
                 "user_name" => $safe->user_name,
                 "id" => $safe->id,
                 'confirm_req' => $safe->confirm_req,
-                'confirmed' => $safe->isConfirmed(),
+//                'confirmed' => $safe->isConfirmed(),
+                'confirmed' => true,
                 "key" => $safe->encrypted_key_CSE,
                 "items" => $items,
                 "folders" => $folders,
                 "users" => $safe->user_count,
+                "user_role" => $safe->user_role
             ];
+
             if(property_exists($safe,"version")) {
                 $safe_entry["version"] = $safe->version; 
                 $safe_entry["eName"] = $safe->eName; 
                 $safe_entry["name"] = "error";
             }
+            if(property_exists($safe,"group")) {
+                $safe_entry["group"] = $safe->group;
+            }
 
-            // $response[$safe->id] = $safe_entry;
             array_push($response, $safe_entry);
         }
         $_SESSION['STORAGE_USED'] = $storage_used;
@@ -236,6 +408,7 @@ class User
         
         $t0 = microtime(true);
 
+
         $safes=$this->getSafes();
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("getSafes " . $dt);
@@ -252,10 +425,25 @@ class User
 
 //            'safes' => $this->getSafes(),
             'ticket' => $_SESSION['wwpass_ticket'],
-            'plan' => $this->profile->plan
+//            'plan' => $this->profile->plan
         ];
+        if (defined('THEME') ) {
+            $data['theme'] = "disabled";
+        } else if($this->profile->theme) {
+            $data['theme'] = $this->profile->theme;
+        }
 
+        $groups  = $this->getGroups();
+        if(count($groups)) {
+            $data['groups'] = $groups;
+        }
+
+
+        $data = array_merge($data, $this->getPlanDetails());
+
+/*        
         if($this->profile->plan == 'FREE') {
+
             $data['MAX_RECORDS'] = FREE_ACCOUNT_MAX_RECORDS;
             $data['MAX_STORAGE'] = FREE_ACCOUNT_MAX_STORAGE;
             if(defined('FREE_MAX_FILE_SIZE')) {
@@ -263,17 +451,17 @@ class User
             } else {
                 $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
             }
-            /*
-            $goPremium = new GoPremium($this);
-            if ($goPremium->showStatus()) {
-                $data['goPremium'] = true;       
-            }
-            */
+
         } else {
             $data['MAX_RECORDS'] = 'unlimited';
             $data['MAX_STORAGE'] = MAX_STORAGE_PER_USER;
             $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
         }
+
+*/
+
+
+        
         if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
             $data['business'] = false;
             if (Survey::showStatus($this)) {
@@ -281,6 +469,9 @@ class User
             }
         } else {
             $data['business'] = true;
+            if (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED) {
+               $data['HIDDEN_PASSWORDS_ENABLED'] = true; 
+            }
         }
 
         if (array_key_exists('folder', $_GET)) {
@@ -302,6 +493,10 @@ class User
             $data['onkeyremoval'] = false;
         }
 
+        if($this->isSiteAdmin()) {
+            $data['site_admin'] = true;
+        }        
+
         $data['websocket'] = false;
         if (defined('WEBSOCKET')) {
             if(WEBSOCKET) {
@@ -311,6 +506,7 @@ class User
 
         $data['WWPASS_TICKET_TTL'] = WWPASS_TICKET_TTL;
         $data['idleTimeout'] = $this->profile->desktop_inactivity;
+        $data['desktop_inactivity'] = $this->profile->desktop_inactivity;
         $data['ticketAge'] =  (time() - $_SESSION['wwpass_ticket_creation_time']);
 
         return ['status' => 'Ok', 'data' => $data];
@@ -357,8 +553,27 @@ class User
     public function canWrite($SafeID)
     {
         $role = $this->getUserRole($SafeID);
-        return (($role == self::ROLE_ADMINISTRATOR) 
-                || ($role == self::ROLE_EDITOR));
+        if(($role == self::ROLE_ADMINISTRATOR)  || ($role == self::ROLE_EDITOR)) {
+            return true;
+        }
+
+        // TODO: check if a user is a group member
+
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        foreach($mng_rows as $group) {
+            Utils::err("group ");
+            Utils::err($group);
+
+            // TODO: editor => self::ROLE_EDITOR
+
+            if($group->role == "can edit") {
+                Utils::err("can write returns true");
+                return true;
+            }
+        }
+        Utils::err("can write returns false");
+        return false;
     }
     
     public function canRead($SafeID)
@@ -371,6 +586,8 @@ class User
         return ($this->getUserRole($SafeID) == self::ROLE_ADMINISTRATOR);
     }
 
+
+    // not used?
     public function createSafe1($safe) {
         if ($safe['name'] == "") {
             return "Please fill in new safe name";
@@ -387,12 +604,48 @@ class User
         $this->setCurrentSafe($SafeID);
         return array("status" =>"Ok", "id" => $SafeID);
     }
+
+    static function eNameSanityCheck($eName) {
+        if(strlen($eName->data) > 1000) {
+            return "Safe name too  long";
+        }
+        if(strlen($eName->tag) > 1000) {
+            Utils::err('create safe 402');
+            return "Internal server error";
+        }
+        if(strlen($eName->iv) > 1000) {
+            Utils::err('create safe 406');
+            return "Internal server error";
+        }
+        return "Ok";
+    }
     
     public function createSafe($safe) {
 
-        if (($safe->name == "") && !property_exists($safe,"eName")) {
-            return "Please fill in new safe name";
+        if(property_exists($safe,"name")) {
+            if(strlen($safe->name) > 1000) {
+                return "Safe name too  long";
+            }
+            if(strlen(trim($safe->name)) == 0) {
+                return "Please fill in new safe name";
+            }
+        } else if(!property_exists($safe,"eName")) {
+            return "Internal server error";
         }
+
+        // sanity check 
+        if(property_exists($safe,"eName")) {
+            $sanityCheck = self::eNameSanityCheck($safe->eName);
+            if( $sanityCheck != "Ok") {
+                return $sanityCheck;
+            }
+        }
+       
+        if(!property_exists($safe,"aes_key") || (strlen($safe->aes_key) > 1000)) {
+            Utils::err('create safe 409');
+            return "Internal server error";
+        }
+
         $SafeID = (string)new \MongoDB\BSON\ObjectId();
         
         if($safe->version == 3) {
@@ -423,28 +676,29 @@ class User
 
     function changeSafeName($SafeID, $eName) {
 
-        /*
-        $filter = [ 'UserID' => $this->UserID, 'SafeName' => $newName ];
-        $mng_res = $this->mng->safe_users->find($filter);
-    
 
-        $res_array = $mng_res->ToArray();
-    
-        if (count($res_array)) {  // if user already has safe with this name
-            $row = $res_array[0];
-            if ($row->SafeID != $SafeID) {
-                return "Name <b>'$newName'</b> already used";
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
             }
-            return "Ok";
+//            return "group safe, siteadmin";
         }
 
-*/
+        // sanity check 
+        $sanityCheck = self::eNameSanityCheck($eName);
+        if( $sanityCheck != "Ok") {
+            return $sanityCheck;
+        }
+
         $result = $this->mng->safe_users->updateMany(
             ['UserID' => $this->UserID, 'SafeID' => $SafeID], 
             ['$set' =>['eName' =>$eName, "version" => 3],
             '$unset' => ['SafeName'=>""]]
         );
-        Utils::err(print_r($result,true));
+
+
         if ($result->getModifiedCount() == 1) {
             Utils::log('user ' . $this->UserID . ' activity safe renamed');
             return "Ok";
@@ -468,8 +722,8 @@ class User
                     return "access vioaltion or safe does not exist";
                 }
 
-                if (isset($safe->entries) && (count($safe->entries) >0)) {
-                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
+                if (isset($safe->items) && (count($safe->items) >0)) {
+                    Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->items, 0);
                 }
                 if (isset($safe->folders)) {
                     foreach ($safe->folders as $folder) {
@@ -499,8 +753,8 @@ class User
             }
             $SafeID = $result['id'];
 
-            if (isset($safe->entries) && (count($safe->entries) > 0)) {
-                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->entries, 0);
+            if (isset($safe->items) && (count($safe->items) > 0)) {
+                Item::create_items_cse($this->mng, $this->UserID, $SafeID, $safe->items, 0);
             }
             if (isset($safe->folders)) {
                 foreach ($safe->folders as $folder) {
@@ -524,6 +778,15 @@ class User
             return "Cannot delete the last safe";
         }
     
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
+            }
+            return "group safe, siteadmin";
+        }
+        
         if (!$this->isAdmin($SafeID)) {
             return "unsubscribe";
         }
@@ -555,6 +818,8 @@ class User
     
             $result = $this->mng->safe_items->deleteMany(['SafeID' => $SafeID]);
             $deleted['items'] += $result->getDeletedCount();
+
+            $result = $this->mng->safe_groups->deleteMany(['SafeID' => $SafeID]);
     
             $result = $this->mng->safe_users->deleteMany(['SafeID' => $SafeID]);
             if ($result->getDeletedCount() != 1) {
@@ -571,37 +836,100 @@ class User
     
         return "Internal error";
     }
+
+    function getPlanDetails() {
+
+        $result = [];
     
-    public function account() {
+        if(!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) {
+            $result['maxStorage'] = MAX_STORAGE_PER_USER;
+            $result['maxRecords'] = MAX_RECORDS_PER_USER;
+            $result['maxFileSize'] = MAX_FILE_SIZE;
+            return $result;
+        }
+    
+        if (property_exists($this->profile, 'plan')) {
+            if ($this->profile->plan == 'Premium') {
+                $result = getPremiumDetails($this->mng, $this->UserID);
+                $result['maxRecords'] = MAX_RECORDS_PER_USER;
+                $result['maxStorage'] = MAX_STORAGE_PER_USER;
+                $result['maxFileSize'] = MAX_FILE_SIZE;
+                $result['plan'] = 'PREMIUM';
+                return $result;
+            }
+            
+            for($i = 0; $i < count(FREE); $i++) {
+                if(!strcasecmp($this->profile->plan, FREE[$i]['NAME'])) {
+                    $result['maxRecords'] = FREE[$i]['MAX_RECORDS'];
+                    $result['maxStorage'] = FREE[$i]['MAX_STORAGE'];
+                    $result['maxFileSize'] = FREE[$i]['MAX_FILE_SIZE'];
+                    $result['upgrade'] = [
+                        'maxStorage' => MAX_STORAGE_PER_USER,
+                        'maxRecords' => MAX_RECORDS_PER_USER,
+                        'maxFileSize' => MAX_FILE_SIZE,
+                        'price' => PREMIUM[0]['PRICE']
+                    ];
+                    $result['plan'] = 'FREE';
+                    return $result;
+                }
+            }
+        }
+        
+        $result['plan'] = 'PREMIUM';
+        $result['maxStorage'] = MAX_STORAGE_PER_USER;
+        $result['maxRecords'] = MAX_RECORDS_PER_USER;
+        $result['maxFileSize'] = MAX_FILE_SIZE;
+        return $result;
+    }
+    
+    public function account($req = null) {
         if (!isset($this->profile)) {
             $this->getProfile();
         }
 
+        if ($req && isset($req->operation)) {
+            if($req->operation === 'generator') {
+                $result = $this->mng->users->updateMany(
+                    ['_id' => $this->_id], 
+                    ['$set' => ['generator' => $req->value]]
+                );
+                return "Ok";
+            }
+            if($req->operation === 'theme') {
+                $result = $this->mng->users->updateMany(
+                    ['_id' => $this->_id], 
+                    ['$set' => ['theme' => $req->theme]]
+                );
+                return "Ok";
+            }
+
+            if($req->operation === 'setInactivityTimeout') {
+                $id = ($req->id) ? $req->id:"desktop_inactivity";
+                $value = $req->value;
+                $this->setInactivityTimeOut($id, $value);
+                $this->getProfile(); // update return array
+
+            } else if($req->operation === 'cancelSubscription') {
+                Utils::err("account operation  = 'cancelSubscription'");
+                $this->mng->subscriptions->updateMany(
+                    [ 'UserID' => $this->UserID, "status" => "active"], 
+                    ['$set' => ["status" => "cancel_request"]]
+                );
+                $this->cancel_subscriptions();
+            }
+        }
+    
         $total_records = 0;
         $total_storage = 0;
         $total_safes = 0;
 
-        $result = [];
+
+        $result = $this->getPlanDetails($this->mng, $this->profile);
+        
         $result['email'] = $this->profile->email; 
         $result['desktop_inactivity'] = 
-            $result['mobile_inactivity'] = $this->profile->desktop_inactivity;
+        $result['mobile_inactivity'] = $this->profile->desktop_inactivity;
 
-        if (property_exists($this->profile, 'plan')) {
-            $result['plan'] = $this->profile->plan;
-            if ($this->profile->plan == 'Premium') {
-                $result['expires'] = $this->profile->expires;
-            }
-            if ($this->profile->plan == 'FREE') {
-                $result['upgrade_button'] = true;
-            }
-        } else if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
-            $result['plan'] = 'Premium';
-            if (property_exists($this->profile, 'expires')) {
-                $result['expires'] = $this->profile->expires->__toString();
-            } else {
-                $result['expires'] = 'never';
-            }
-        }
         
         $safes = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
         foreach ($safes as $safe) {
@@ -618,27 +946,12 @@ class User
         $result['used'] = $total_storage;
         $result['safes'] = $total_safes;
     
-        if (defined('MAX_RECORDS_PER_USER')  
-            && (!isset($result['plan']) || ($result['plan'] != 'Premium'))) {
-            $result['maxRecords'] = MAX_RECORDS_PER_USER;
-        } 
-    
-        if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_RECORDS')) {
-            $result['maxRecords'] = FREE_ACCOUNT_MAX_RECORDS;
-        }
-    
-        if (defined('MAX_STORAGE_PER_USER')) {
-            $result['maxStorage'] = MAX_STORAGE_PER_USER;
-        } 
-        if (isset($result['plan'])  && ($result['plan'] == "FREE") && defined('FREE_ACCOUNT_MAX_STORAGE')) {
-            $result['maxStorage'] = FREE_ACCOUNT_MAX_STORAGE;
-        }
-        if($this->isSiteAdmin()) {
-            $result['site_admin'] = true;
-        }
         if (!defined('PUBLIC_SERVICE')) {
             $result['business'] = true;
         } 
+        if($this->isSiteAdmin()) {
+            $result['site_admin'] = true;
+        }
     
         $result['status'] = 'Ok';
         return $result;
@@ -671,8 +984,43 @@ class User
              'payment_id' => $transaction_id]
             ]
         );
+        $message = "see logs for details";
+        $message = $message . "<br>Server name " . $_SERVER['SERVER_NAME']; 
+        $message = $message . "<br>Server IP " . $_SERVER['SERVER_ADDR'];
+        $result = Utils::sendMail(SUPPORT_MAIL_ADDRESS,  "passhub PREMIUM paid", $message);
     }
     
+    public function cancel_subscriptions() {
+        
+        if( defined('STRIPE') && isset(STRIPE['key'])) {
+            \Stripe\Stripe::setApiKey(STRIPE['key']);
+
+            $cursor = $this->mng->subscriptions->find(["UserID" => $this->UserID]);
+
+            foreach($cursor as $s) {
+                Utils::err("s->status1 " . $s->status);
+                if($s->status != "canceled") {
+                    try {
+                        Utils::err('cancel subscription ' . $s->subscription);
+                        $subscription = \Stripe\Subscription::retrieve($s->subscription);
+                        Utils::err("s->status2 " . $subscription->status);
+                        if($subscription->status != "canceled") {
+                            $subscription->cancel();
+                        }
+                    } catch(\Stripe\Exception\CardException $e) {
+                        Utils::err("A payment error occurred: {$e->getError()->message}");
+                    } catch (\Stripe\Exception\InvalidRequestException $e) {
+                        Utils::err("An invalid request occurred.");
+                    } catch (\Throwable $e) { // For PHP 7
+                        Utils::err($e->getMessage());
+                    } catch (\Exception $e) {
+                        Utils::err("Another problem occurred, maybe unrelated to Stripe.");
+                    }
+                }
+            }
+        }
+    }
+
     public function deleteAccount() {
 
         $this->getProfile();
@@ -696,10 +1044,17 @@ class User
                 return "Internal error 111";
             }
         }
+
         $result = $this->mng->reg_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->change_mail_codes->deleteMany(['PUID' => $this->PUID]);
         $result = $this->mng->users->deleteMany(['_id' => $this->_id]);
-        Utils::log("user " . $this->UserID . " account deleted, mail " . $this->email);
+        $this->cancel_subscriptions();
+
+        $m = ' - ';
+        if(isset($this->email)) {
+            $m = $this->email;
+        }
+        Utils::log("user " . $this->UserID . " account deleted, mail " . $m);
         return ['status' => "Ok", "access" => $removed_safe_user_records];
     }
     
@@ -736,7 +1091,61 @@ class User
         if (!ctype_xdigit($SafeID)) {
             return "Bad arguments";
         }
-    
+
+        $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
+        $mng_rows = $mng_res->toArray();
+        if (count($mng_rows) >0) {
+            if(!$this->isSiteAdmin()) {
+                return "group safe";
+            }
+            return "group safe, siteadmin";
+        }
+
+//        if (!$this->isAdmin($SafeID)) {
+//            return "unsubscribe";
+//        }
+
+/*
+        # search the safe in my groups
+
+        $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
+
+        $group_role = "";
+        foreach ($mng_res as $group) {
+            $group_safes = $this->mng->safe_groups->find([ 'GroupID' => $group->GroupID])->toArray(); 
+
+            Utils::err('group ' . $group->GroupID . ' safes');
+            Utils::err($group_safes);
+
+
+            foreach($group_safes as $s) {
+                if( $s->SafeID = $SafeID ) {
+                    // found 
+                    if($s->role == "owner") {
+                        $group_role = "owner";
+                    } else if($group_role != "owner") {
+                        if($s->role == "can edit") {
+                               $group_role = "can edit";
+                        } else if ($s->role != "can edit") {
+                            if($s->role == "can view") {
+                                $group_role = "can view";
+                            } else {
+                                $group_role = "limited_view";
+                            }
+                         }
+                    }
+                }
+            }
+        }
+
+        if($group_role != "") {
+            return [
+                'status' => "Ok",
+                'group_role' => $group_role
+            ];
+        }
+*/
+
         $myrole = $this->getUserRole($SafeID);
         if (!$myrole) {
             return "error 275";
@@ -844,7 +1253,8 @@ class User
     
                 if (isset($req->role) && in_array(
                     $req->role,
-                    [self::ROLE_READONLY, 
+                    [self::ROLE_LIMITED_READONLY, 
+                    self::ROLE_READONLY, 
                     self::ROLE_ADMINISTRATOR, 
                     self::ROLE_EDITOR]
                 )
@@ -921,6 +1331,8 @@ class User
                     $role = self::ROLE_EDITOR;
                 } else if ($role == 'readonly') {
                     $role = self::ROLE_READONLY;
+                } else if ($role == 'limited view') {
+                    $role = self::ROLE_LIMITED_READONLY;
                 } else {
                     return "Internal error acl 315";
                 }
@@ -1013,7 +1425,12 @@ class User
         foreach ($UserList as $key => $value) {
             $UserListOut[] = $value;  
         }
-        return ['status' => "Ok", 'UserList' => $UserListOut, 'update_page_req' => $update_page_req];
+        return [
+            'status' => "Ok",
+            'UserList' => $UserListOut, 
+            'update_page_req' => $update_page_req,
+            'HIDDEN_PASSWORDS_ENABLED' => (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED)
+        ];
     }
 
     public function ldapBindExistingUser($email, $userprincipalname) {
@@ -1036,17 +1453,15 @@ class User
             $this->getProfile();
         }
         if (isset($this->profile->userprincipalname)) {
-            $ds=ldap_connect(LDAP['url']);
-            Utils::err('Url ' . LDAP['url']);
-            Utils::err(print_r($ds,true));
 
-            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-            ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
-            ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
+            $ds=Utils::ldapConnect();
+
+            if(!$ds) {
+                Utils::err(" error 1070 ldapConnect fail");
+                return false;
+            }
             
             $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
-            Utils::err('Bind to ' . LDAP['bind_dn'] . ' ' . LDAP['bind_pwd']);
-            Utils::err('bind result ' . print_r($r, true));
 
             if (!$r) {
                 $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
@@ -1076,7 +1491,7 @@ class User
 
             return false;
         }
-        Utils::err('LDAP: no userprincipalname n user profile');
+        Utils::err('LDAP: no userprincipalname in user profile');
         return "not bound";
     }
 }

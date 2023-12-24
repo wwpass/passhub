@@ -47,27 +47,11 @@ function account_proxy($mng) {
     // Converts it into a PHP object
     $req = json_decode($json);
     
-
     if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
         return ['status' => "Bad Request (68)"];
     }
-
-    if (isset($req->operation)) {
-        /*if($req->operation === 'delete') {
-    
-            $result = delete_account($mng, $UserID);
-            session_destroy();
-            return 'Ok';
-        } else 
-        */
-        if($req->operation === 'setInactivityTimeout') {
-            $id = ($req->id) ? $req->id:"desktop_inactivity";
-            $value = $req->value;
-            $user->setInactivityTimeOut($id, $value);
-        }
-    }
-    return $user->account();
+    return $user->account($req);
 }
 
 $result = account_proxy($mng);

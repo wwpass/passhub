@@ -116,6 +116,34 @@ NOTE: data can only be shared on a per-safe basis, as opposed to individual fold
             </Group>
             <Group>
                 <Name>Personal</Name>
+                <Entry>
+                    <Times>
+                        <LastModificationTime>2023-02-21T22:14:37+00:00</LastModificationTime>
+                    </Times>
+                    <String>
+                        <Key>Notes</Key>
+                        <Value>This is an example credit card record. Browser extension detects payment pages and fills in the card data on your request. See docs to learn more.</Value>
+                    </String>
+                    <String>
+                        <Key>Title</Key>
+                        <Value>Example Visa card - 3456</Value>
+                    </String>
+                    <String>
+                        <Key>card_code</Key>                        <Value>123</Value>
+                    </String>
+                    <String>
+                        <Key>card_name</Key>                        <Value>owner name</Value>
+                    </String>
+                    <String>
+                        <Key>card_num</Key>                        <Value>4210 1234 5678 3456</Value>
+                    </String>
+                    <String>
+                        <Key>exp_month</Key>                        <Value>03</Value>
+                    </String>
+                    <String>
+                        <Key>exp_year</Key>                        <Value>2027</Value>
+                    </String>
+                </Entry>
             </Group>
             <Group>
                 <Name>Work</Name>

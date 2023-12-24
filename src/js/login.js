@@ -4,8 +4,6 @@ import * as WWPass from 'wwpass-frontend';
 let urlBase = window.location.href;
 urlBase = `${urlBase.substring(0, urlBase.lastIndexOf('/'))}/`;
 
-// $('.passhub_url').text(urlBase);
-
 function supportsHtml5Storage() {
   try {
     return 'localStorage' in window && window.localStorage !== null;
@@ -31,10 +29,9 @@ function compatibleBrowser() {
 }
 
 const isIOS = navigator.userAgent.match(/iPhone|iPod|iPad/i)
-|| (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // crazy ios13 on iPad..
+  || (navigator.userAgent.match(/Intel Mac OS X/i) && navigator.maxTouchPoints > 1); // crazy ios13 on iPad..
 
 const mobileDevice = isIOS || navigator.userAgent.match(/Android/i);
-
 
 function isSafariPrivateMode() {
   const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
@@ -78,46 +75,84 @@ if (!navigator.userAgent.match(/electron/)) {
 }
 
 function uiCallback(ev) {
-  if(!ev) {
+  if (!ev) {
     return;
   }
-  const event = JSON.stringify(ev);
+  // only for legacy design, buth passhub.net and business  
+  if (!document.querySelector("#qrtext")) { // new passhub.net design
+    return;
+  }
+
+  // const event = JSON.stringify(ev);
   const heading_public = document.querySelector('.heading--margin-top-big');
 
   if (heading_public) { // passhub.net
+
     if ('button' in ev) {
-      $('#qrtext').hide();
-      $('.qrblock__code').addClass('qrblock__codeExt');
-      $('.qrblock').addClass('qrblockExt');
-      $('.heading--white-mobile').addClass('heading--white-mobileExt');
-      $('.page-content__background').removeClass('page-content__background--qrcode');
+      document.querySelector("#qrtext").style.display = "none";
+      document.querySelector('.qrblock__code').classList.add('qrblock__codeExt');
+      document.querySelector('.qrblock').classList.add('qrblockExt');
+      document.querySelector('.heading--white-mobile').classList.add('heading--white-mobileExt');
+      document.querySelector('.page-content__background').classList.remove('page-content__background--qrcode');
+
+      /*      
+            $('#qrtext').hide();
+            $('.qrblock__code').addClass('qrblock__codeExt');
+            $('.qrblock').addClass('qrblockExt');
+            $('.heading--white-mobile').addClass('heading--white-mobileExt');
+            $('.page-content__background').removeClass('page-content__background--qrcode');
+      */
       document.querySelector('.heading--margin-top-big').style.marginTop = '0';
     } else if ('qrcode' in ev) {
-      $('#qrtext').show();
-      $('.qrblock__code').removeClass('qrblock__codeExt');
-      $('.qrblock').removeClass('qrblockExt');
-      $('.page-content__background').addClass('page-content__background--qrcode');
-      $('.heading--white-mobile').removeClass('heading--white-mobileExt');
+
+      document.querySelector("#qrtext").style.display = "block";
+      document.querySelector('.qrblock__code').classList.remove('qrblock__codeExt');
+      document.querySelector('.qrblock').classList.remove('qrblockExt');
+      document.querySelector('.heading--white-mobile').classList.remove('heading--white-mobileExt');
+      document.querySelector('.page-content__background').classList.add('page-content__background--qrcode');
+
+      /*      
+            $('#qrtext').show();
+            $('.qrblock__code').removeClass('qrblock__codeExt');
+            $('.qrblock').removeClass('qrblockExt');
+            $('.heading--white-mobile').removeClass('heading--white-mobileExt');
+            $('.page-content__background').addClass('page-content__background--qrcode');
+      */
       document.querySelector('.heading--margin-top-big').style.marginTop = '50px';
     }
   } else { // self-hosted
     if ('button' in ev) {
+      document.querySelector("#qrtext").style.display = "none";
+      document.querySelector(".landingContent__codeHeading").style.display = "none";
+      document.querySelector(".landingContent__code-qr").classList.add('qrblockExt');
+      document.querySelector(".landingContent__code-container").classList.add('landingContent__code-containerExt');
+      document.querySelector(".landingContent__text").style.display = "none";
+      document.querySelector('.landingContent__text').style.display = "none";
 
-      $('#qrtext').hide();
-      $(".landingContent__codeHeading").hide();
-      $('.landingContent__code-qr').addClass('qrblockExt');
-      $('.landingContent__code-container').addClass('landingContent__code-containerExt');
 
-      $('.landingContent__text').hide();
-
+      /*
+            $('#qrtext').hide();
+            $(".landingContent__codeHeading").hide();
+            $('.landingContent__code-qr').addClass('qrblockExt');
+            $('.landingContent__code-container').addClass('landingContent__code-containerExt');
+      
+            $('.landingContent__text').hide();
+      */
     } else if ('qrcode' in ev) {
-      $('#qrtext').show();
-      $(".landingContent__codeHeading").show();
-      $('.landingContent__code-container').removeClass('landingContent__code-containerExt');
-      $('.landingContent__code-qr').removeClass('qrblockExt');
+      document.querySelector("#qrtext").style.display = "block";
+      document.querySelector(".landingContent__codeHeading").style.display = "flex";
+      document.querySelector(".landingContent__code-qr").classList.remove('qrblockExt');
+      document.querySelector(".landingContent__code-container").classList.remove('landingContent__code-containerExt');
+      document.querySelector(".landingContent__text").style.display = "block";
 
-      $('.landingContent__text').show();
-
+      /*
+            $('#qrtext').show();
+            $(".landingContent__codeHeading").show();
+            $('.landingContent__code-container').removeClass('landingContent__code-containerExt');
+            $('.landingContent__code-qr').removeClass('qrblockExt');
+      
+            $('.landingContent__text').show();
+      */
     }
   }
 }
@@ -131,39 +166,41 @@ if (mobileDevice) {
     document.querySelector('.qr_code_instruction').innerHTML = 'Tap the QR code or scan it with <b>WWPass&nbsp;Key&nbsp;app</b> to open your PAssHub vault';
   }
 } else {
-  $(document).ready(() => {
-    function checkPlugin() {
-      if (WWPass.pluginPresent()) {
-        // pre-2019 login (legacy)
-        let hardwarePassKeySet = document.querySelectorAll('.hardware');
-        if (hardwarePassKeySet.length) {
-          [].forEach.call(hardwarePassKeySet, (it) => {
-            it.classList.remove('hardware');
-          });
-          const infoShare = document.querySelector('.landingContent__infoShare');
-          infoShare.classList.add('landingContent__infoShare--hardToken');
-          return;
-        }
-        // biz login
-        hardwarePassKeySet = document.querySelectorAll('.landingContent__hardToken');
-        if (hardwarePassKeySet.length) {
-          [].forEach.call(hardwarePassKeySet, (it) => {
-            it.classList.remove('landingContent__hardToken');
-          });
-          return;
-        }
-        // login 2019
-        /*
-        const loginBtn = document.querySelector('#button--login');
-        loginBtn.classList.remove('embedded--hide');
-        $('#button--login > button').hide();
+  //  $(document).ready(() => {
+  function checkPlugin() {
+    if (WWPass.pluginPresent()) {
+      // pre-2019 login (legacy)
+      let hardwarePassKeySet = document.querySelectorAll('.hardware');
+      if (hardwarePassKeySet.length) {
+        [].forEach.call(hardwarePassKeySet, (it) => {
+          it.classList.remove('hardware');
+        });
+        const infoShare = document.querySelector('.landingContent__infoShare');
+        infoShare.classList.add('landingContent__infoShare--hardToken');
         return;
-        */
       }
-      setTimeout(checkPlugin, 100);
+      // biz login
+      hardwarePassKeySet = document.querySelectorAll('.landingContent__hardToken');
+      if (hardwarePassKeySet.length) {
+        [].forEach.call(hardwarePassKeySet, (it) => {
+          it.classList.remove('landingContent__hardToken');
+        });
+        return;
+      }
+      // login 2019
+      /*
+      const loginBtn = document.querySelector('#button--login');
+      loginBtn.classList.remove('embedded--hide');
+      $('#button--login > button').hide();
+      return;
+      */
     }
     setTimeout(checkPlugin, 100);
-  });
+  }
+  setTimeout(checkPlugin, 100);
+  //  });
+
+
 }
 
 
@@ -176,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // qrtext.innerText = 'Tap the QR code or ';
       qrtext.innerHTML = 'Download <b>WWPass&nbsp;Key&nbsp;App</b> and scan&nbsp;or&nbsp;tap the QR&nbsp;code';
     } else {
-      qrtext.innerText = 'Scan the QR code with WWPass™ Key App';
+      qrtext.innerHTML = 'Scan the QR code with WWPass™ Key App';
       // qrtext.classList.add('text--qrcode');
     }
     qrtext.style.display = 'block';
@@ -184,11 +221,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   WWPass.authInit({
     qrcode: '#qrcode',
+    mobileLoginExtraButtons: document.querySelectorAll(".signin-mobile"),
     passkey: document.querySelector('#button--login'),
     ticketURL: `${urlBase}getticket.php`,
     callbackURL: `${urlBase}login.php`,
     uiCallback,
-    forcePasskeyButton: false
+    forcePasskeyButton: false,
+    universal: true,
+    fastForward: true,
   });
-    
 });

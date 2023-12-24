@@ -40,7 +40,7 @@ if( defined('LDAP')
     && isset(LDAP['mail_registration']) 
     && (LDAP['mail_registration'] === true)) {
         // do nothing
-}  else if (!defined('MAIL_DOMAIN')) {
+}  else if (!defined('MAIL_DOMAIN')  && !defined('PUBLIC_SERVICE')) {
     Utils::err("mail domain not defined");
     Utils::errorPage("Internal error");
 }
@@ -74,7 +74,6 @@ if (isset($req->code6) && isset($req->purpose)) {
     }
     */
     
-    Utils::err('Session[PUID] ' . $_SESSION['PUID']);
     $puid = new Puid($mng, $_SESSION['PUID']);
     $result = $puid->processCode6($req->code6, $req->purpose);
     Utils::err(print_r($result, true));
@@ -167,8 +166,8 @@ echo Utils::render(
         'hide_logout' => true,
 
         //content
-        'email' => $_SESSION['form_email'],
-        'success' => true,
+//        'email' => $_SESSION['form_email'],
+//        'success' => true,
         'error_msg' => $error_msg,
         'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
     ]

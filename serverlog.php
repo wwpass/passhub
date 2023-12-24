@@ -33,7 +33,7 @@ if(!Csrf::validCSRF($req)) {
 }
 
 if(isset($req->msg) ) {
-    Utils::err($req->msg);
+    Utils::err($_SERVER['REMOTE_ADDR'] . " "  . $req->msg);
 }
 /* ???
 else {

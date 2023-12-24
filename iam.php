@@ -86,6 +86,12 @@ function iam_ops_proxy($mng, $UserID) {
     if ($operation == 'users') {
         $data = Iam::getPageData($mng, $UserID);
         Utils::err('Operation users');
+	
+	$data['me'] = $UserID;
+	$data['status'] = 'Ok';
+	return $data;
+
+/*
         return [
             "status" => "Ok", 
             "stats" => $data["stats"], 
@@ -93,6 +99,8 @@ function iam_ops_proxy($mng, $UserID) {
             "me" => $UserID
             // "mail_array" => $data["mail_array"]
         ];
+*/
+
     }
 
     if($operation == 'delete') {

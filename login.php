@@ -101,24 +101,6 @@ if ($incompatible_browser) {
     exit();
 }
 
-/*
-if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
-    Utils::err("session clean2");
-    $_SESSION = [];
-    $_SESSION['reg_code'] = $_GET['reg_code'];
-    Utils::err("login rc " . print_r($_SESSION, true));
-    echo Utils::render(
-        'login_reg.html',
-        [
-            'narrow' => true,
-            'hide_logout' => true,
-            'PUBLIC_SERVICE'=> defined('PUBLIC_SERVICE')
-        ]
-    );
-    exit();
-}
-*/
-
 if (defined('MAIL_DOMAIN') && isset($_GET['reg_code'])) {
     $_SESSION = [];
     $status = Puid::processRegCode1($mng, $_GET['reg_code']);
@@ -166,6 +148,11 @@ if (!isset($_GET['wwp_status'])) {
     unset($_SESSION['reg_code']);
 }
 
+$pin_required = defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false;    
+if(isset($_SESSION['NOP'])) {
+    $pin_required = false;
+}
+
 if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 200)) {
     $_SESSION = [];
     Utils::err("wwp_status: " . print_r($_REQUEST, true));
@@ -183,8 +170,8 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             $_SESSION = array_intersect_key($_SESSION, array('reg_code' => ""));
         }
 
-
         $ticket = $_REQUEST['wwp_ticket'];
+
         try {
             $test4 = WWPass\Connection::VERSION == '4.0';
 
@@ -196,7 +183,7 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
                 );
                 $new_ticket = $wwc->putTicket(
                     ['ticket' => $ticket,
-                    'pin' =>  defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false,
+                    'pin' =>  $pin_required,
                     'client_key' => true,
                     'ttl' => WWPASS_TICKET_TTL]
                 );
@@ -207,7 +194,7 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
                 $puid = $puid['puid']; 
             } else { // version 3
                 $wwc = new WWPass\Connection(WWPASS_KEY_FILE, WWPASS_CERT_FILE, WWPASS_CA_FILE);
-                $new_ticket = $wwc->putTicket($ticket, WWPASS_TICKET_TTL, WWPASS_PIN_REQUIRED?'pc':'c');
+                $new_ticket = $wwc->putTicket($ticket, WWPASS_TICKET_TTL, $pin_required ? 'pc' : 'c');
                 $_SESSION['wwpass_ticket'] = $new_ticket;
                 $_SESSION['wwpass_ticket_renewal_time'] = time() + WWPASS_TICKET_TTL/2;
                 $puid = $wwc->getPUID($ticket);
@@ -226,11 +213,10 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             exit();
 
         }  catch (Exception $e) {
-            Utils::err("wwp exception: " . $e->getMessage());
+            Utils::err(" 216 wwp exception: " . $e->getMessage());
         }
     }
 }
-
 
 if (defined('PUBLIC_SERVICE')) {
     require_once 'src/localized-template.php';

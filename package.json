@@ -1,43 +1,22 @@
 {
   "name": "passhub",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "PassHub Password Manager",
   "scripts": {
-    "test": "./node_modules/.bin/nightwatch",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack  --mode=production",
     "builddev": "webpack --mode=development"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/wwpass/passhub.git"
-  },
-  "keywords": [],
   "author": "WWPass",
-  "license": "agpl-3.0",
+  "license": "MIT",
   "devDependencies": {
-    "@babel/cli": "^7.10.5",
-    "@babel/core": "^7.10.5",
-    "@babel/plugin-transform-runtime": "^7.10.5",
-    "@babel/preset-env": "^7.10.4",
-    "babel-loader": "^8.1.0",
-    "chromedriver": "^2.46.0",
-    "eslint": "^8.10.0",
-    "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.22.0",
-    "webpack": "^5.73.0",
-    "webpack-cli": "^4.9.2"
+    "babel-loader": "^9.1.2",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "@babel/runtime": "^7.10.5",
-    "@vanillaes/csv": "^2.1.9",
-    "axios": "^0.21.1",
-    "bs-custom-file-input": "^1.3.4",
-    "file-saver": "^2.0.2",
-    "hi-base32": "^0.5.0",
-    "install": "^0.12.2",
-    "jquery-contextmenu": "^2.9.2",
+    "axios": "^1.4.0",
     "node-forge": "^1.3.1",
-    "npm": "^8.13.2",
-    "wwpass-frontend": "^3.1.2"
+    "wwpass-frontend": "file:../wwpass-frontend"
   }
 }

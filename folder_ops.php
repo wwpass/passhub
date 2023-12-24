@@ -19,6 +19,7 @@ use PassHub\Utils;
 use PassHub\Folder;
 use PassHub\Csrf;
 use PassHub\DB;
+use PassHub\User;
 
 $mng = DB::Connection();
 
@@ -37,6 +38,11 @@ function folder_ops_proxy($mng) {
     if(!Csrf::validCSRF($req)) {
         Utils::err("bad csrf");
         return ['status' => "Bad Request (68)"];
+    }
+    if($req->operation == "current_safe") {
+        $user = new User($mng, $_SESSION['UserID']);
+        $user->setCurrentSafe(trim($req->id));
+        return "Ok";
     }
     return Folder::operation($mng, $_SESSION['UserID'],  $req);
 }

@@ -33,12 +33,13 @@ function ldap() {
     $bind_rdn = $username;
     $bind_pwd = $_POST['password'];
   
-  
-    $ds=ldap_connect(LDAP['url']);
+    $ds=Utils::ldapConnect();
 
-    ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-    ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
-    ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);    
+    if(!$ds) {
+        Utils::err(" error 1070 ldapConnect fail");
+        return "LDAP Connect fail, consult system administrator";
+    }    
+    
     for ( $i = 0; $i < 3; $i++) {
         $r=ldap_bind($ds, $bind_rdn, $bind_pwd);
 
@@ -115,4 +116,3 @@ echo Utils::render(
         'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
     ]
 );
-

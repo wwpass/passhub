@@ -44,6 +44,60 @@ class Folder
         return $deleted;
     }
 
+    static function eNameSanityCheck($eName) {
+        if(strlen($eName->data) > 1000) {
+            return "folder name too  long";
+        }
+        if(strlen($eName->tag) > 1000) {
+            Utils::err('folder name 402');
+            return "Internal server error";
+        }
+        if(strlen($eName->iv) > 1000) {
+            Utils::err('folder name 406');
+            return "Internal server error";
+        }
+        return "Ok";
+    }
+
+    public static function get_parent_safe($mng, $folderID) {
+        $filter = ['_id' => new \MongoDB\BSON\ObjectID($folderID)];
+        $cursor = $mng->safe_folders->find($filter);
+        $records = $cursor->ToArray();
+        if (count($records) != 1) {        
+            return "folder error 66";
+        }
+        Utils::err("safe_folder record");
+        Utils::err($records[0]);
+        return $records[0]['SafeID'];
+    }
+
+    public static function move($mng, $UserID, $req) {
+        
+        // isset($req->folder) && isset($req->dstSafe) && isset($req->dstFolder)
+        // get user edit rights for dstSafe 
+
+        $user = new User($mng, $UserID);
+        if (!$user->canWrite($req->dstSafe)) {
+            return "no dst write";
+        }
+        $srcSafeID = self::get_parent_safe($mng, $req->folder->_id);
+
+        if (!$user->canWrite($srcSafeID)) {
+            return "no src write";
+        }
+
+        $result = self::import($mng, $UserID, $req->dstSafe, $req->dstFolder, $req->folder);
+        Utils::err("import result");
+        Utils::err($result);
+        if($result['status'] == "Ok") {
+             $result = self::deleteNotEmpty($mng, $srcSafeID, $req->folder->_id);
+             Utils::err("deleteNotEmpty result");
+             Utils::err($result);
+             return ['status' => 'Ok'];
+        }
+        return $result;
+    }
+
     // TODO add Utils::err
     public static function operation($mng, $UserID, $data) {
 
@@ -141,6 +195,11 @@ class Folder
                 return "internal error";
             }
 
+            $sanityCheck = self::eNameSanityCheck($js);
+            if( $sanityCheck != "Ok") {
+                return $sanityCheck;
+            }
+
             if ($data->operation == 'create') {
                 $r = $mng->safe_folders->insertOne(
                     ['SafeID' => $SafeID, 
@@ -154,6 +213,7 @@ class Folder
                 if ($r->getInsertedCount() == 1) {
                     $folder_id = $r->getInsertedId();
                     Utils::log('user ' . $UserID . ' activity folder ' . $data->operation);
+                    $user->setCurrentSafe($folder_id);
                     return ["status" => "Ok", "id" => (string)$folder_id];
                 }
             } else {
@@ -182,13 +242,11 @@ class Folder
     }
 
     public static function import($mng, $UserID, $SafeID, $parent, $folder) {
-
-
         $result = self::operation($mng, $UserID, (object)['SafeID' => $SafeID, 'folderID' => $parent, 'operation' => 'create', 'name' => $folder->name]);
         if ($result['status'] == 'Ok') {
             $id = $result['id'];
-            if (isset($folder->entries) && (count($folder->entries) > 0)) {
-                Item::create_items_cse($mng, $UserID, $SafeID, $folder->entries, $id);
+            if (isset($folder->items) && (count($folder->items) > 0)) {
+                Item::create_items_cse($mng, $UserID, $SafeID, $folder->items, $id);
             }
             if (isset($folder->folders)) {
                 foreach ($folder->folders as $child) {
@@ -206,9 +264,9 @@ class Folder
         Utils::err('Hello1');
         Utils::err(print_r($folder, true));
 
-        if (isset($folder->entries) && (count($folder->entries) > 0)) {
+        if (isset($folder->items) && (count($folder->items) > 0)) {
             Utils::err('Hello2');
-            Item::create_items_cse($mng, $UserID, $SafeID, $folder->entries, $folder->_id);
+            Item::create_items_cse($mng, $UserID, $SafeID, $folder->items, $folder->_id);
         }
         if (isset($folder->folders)) {
             foreach ($folder->folders as $child) {
