@@ -34,8 +34,8 @@ You may either download the latest release of the PassHub archive [passhub.busin
 
 The project consistes of two github repositories: main, [wwpass/passhub](https://github.com/wwpass/passhub), and frontend, [wwpass/passhub-frontend-v2](https://github.com/wwpass/passhub-frontend-v2)  
 
-[!NOTE]
-The first project of PassHub client-side is no more supported, please use version2: [wwpass/passhub-frontend-v2](https://github.com/wwpass/passhub-frontend-v2)  
+
+**Note** The first project of PassHub client-side is no more supported, please use version2: [wwpass/passhub-frontend-v2](https://github.com/wwpass/passhub-frontend-v2)  
 
 
 To build the tarball, install `nodejs` package on your development computer (nmp version **6.9+**)
