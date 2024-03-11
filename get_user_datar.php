@@ -29,6 +29,26 @@ session_start();
 
 function getUserDataProxy($mng)
 {
+    if (!isset($_SESSION['PUID'])) {
+        Utils::err("get_user_data 66");
+        return "Internal error  66";
+    }
+
+    if(defined('CREATE_USER') && !isset($_SESSION['UserID']) && isset($_SESSION['CREATE_USER']) )   {
+        Utils::log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
+
+        $template_safes = file_get_contents('config/template.xml');
+        
+        if (strlen($template_safes) == 0) {
+            Utils::err("template.xml absent or empty");
+            Utils::errorPage("Internal error. Please come back later.");
+        }
+        return [
+            'status' => "create user", 
+            'ticket' => $_SESSION['wwpass_ticket'],
+            'template_safes' => json_encode($template_safes)
+        ];
+    }
 
     $t0 = microtime(true);
     if (!isset($_SESSION['UserID'])) {

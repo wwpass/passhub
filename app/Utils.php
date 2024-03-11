@@ -47,27 +47,47 @@ class Utils
 
     private static function sendMailJet($to, $subject, $body, $contentType) {
         
-            $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
-            $body = [
-            'Messages' => [
-                [
-                    'From' => [
-                        'Email' => SMTP_SERVER["from"]
-//                        'Name' => "Me"
-                    ],
-                    'To' => [
-                        [
-                            'Email' => $to,
-                        ]
-                    ],
-                    'Subject' => $subject,
-                    // 'TextPart' => $body,
-                    'HTMLPart' => $body
-                ]
-            ]
-        ];
+        $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
 
-        $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $body]);
+        if($contentType == 'text/plain; charset="UTF-8"') {
+            $messages = [
+                'Messages' => [
+                    [
+                        'From' => [
+                            'Email' => SMTP_SERVER["from"]
+                        ],
+                        'To' => [
+                            [
+                                'Email' => $to,
+                            ]
+                        ],
+                        'Subject' => $subject,
+                        'TextPart' => $body,
+                    ]
+                ]
+            ];
+    
+        } else {
+            $messages = [
+                'Messages' => [
+                    [
+                        'From' => [
+                            'Email' => SMTP_SERVER["from"]
+                        ],
+                        'To' => [
+                            [
+                                'Email' => $to,
+                            ]
+                        ],
+                        'Subject' => $subject,
+                        'HTMLPart' => $body
+                    ]
+                ]
+            ];
+        }
+
+
+        $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $messages]);
 
         $data = $response->getData();
 
