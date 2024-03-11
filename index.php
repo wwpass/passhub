@@ -38,11 +38,13 @@ $mng = DB::Connection();
 
 session_start();
 
+/*
 if (isset($_GET["show"])) {
     $_SESSION["show"] = $_GET["show"];
     header("Location: index.php");
     exit();
 }
+*/
 
 if (!defined('IDLE_TIMEOUT')) {
     define('IDLE_TIMEOUT', 540);
@@ -125,6 +127,11 @@ try {
                 }
             }
 
+            if(defined('CREATE_USER')) {
+                $_SESSION['CREATE_USER'] = true;
+                echo Utils::render_react('index.html', ['verifier' => Csrf::get()]); 
+                exit();
+            } 
             Utils::showCreateUserPage();
             exit();
         } else if ($result['status'] == "Ok") {

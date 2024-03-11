@@ -31,7 +31,10 @@ function compatibleBrowser() {
 const isIOS = navigator.userAgent.match(/iPhone|iPod|iPad/i)
   || (navigator.userAgent.match(/Intel Mac OS X/i) && navigator.maxTouchPoints > 1); // crazy ios13 on iPad..
 
-const mobileDevice = isIOS || navigator.userAgent.match(/Android/i);
+const isAndroid = navigator.userAgent.match(/Android/i) ||
+  (navigator.userAgent.match(/Samsung/i) && navigator.userAgent.match(/Linux/i));
+
+const mobileDevice = isIOS || isAndroid;
 
 function isSafariPrivateMode() {
   const isSafari = navigator.userAgent.match(/Version\/([0-9\._]+).*Safari/);
@@ -63,7 +66,11 @@ function isSafariPrivateMode() {
 }
 
 if (isSafariPrivateMode()) {
-  window.location.href = 'error_page.php?js=SafariPrivateMode';
+  if (window.location.href.includes("debug")) {
+    alert('Safari private mode detected')
+  } else {
+    window.location.href = 'error_page.php?js=SafariPrivateMode';
+  }
 }
 
 if (!navigator.userAgent.match(/electron/)) {

@@ -280,20 +280,12 @@ class User
         
             $safe_users = $this->mng->safe_users->find([ 'SafeID' => $row->SafeID])->toArray(); 
             $safe_array[$id]->user_count = count($safe_users);
-
-            Utils::err('normal safe ', $id);
-            Utils::err($safe_array[$id]);
-            Utils::err('-----------------------------------');
         } 
 
         $mng_res = $this->mng->group_users->find([ 'UserID' => $this->UserID]);
 
         foreach ($mng_res as $group) {
             $group_safes = $this->mng->safe_groups->find([ 'GroupID' => $group->GroupID])->toArray(); 
-
-            Utils::err('group ' . $group->GroupID . ' safes');
-            Utils::err($group_safes);
-
 
             foreach($group_safes as $s) {
                 $safe = (object)[
@@ -306,13 +298,13 @@ class User
                         "version" => $s->version,
                         "name" => "error"
                     ];
-                Utils::err('safe ' . $s->SafeID);
-                Utils::err($safe);
+#                Utils::err('safe ' . $s->SafeID);
+#                Utils::err($safe);
                 if(!isset($safe_array[$s->SafeID])) {
-                    Utils::err('to be inserted');
+#                    Utils::err('to be inserted');
                     $safe_array[$s->SafeID] = $safe;
                 } else {
-                    Utils::err('direct access'); // or other group
+#                    Utils::err('direct access'); // or other group
                     if(isset($safe_array[$s->SafeID]->group)) {
                         if(isBetterGroup($group, $safe_array[$s->SafeID]->group)) {
                             $safe_array[$s->SafeID]->group = $group;
@@ -429,9 +421,10 @@ class User
         ];
         if (defined('THEME') ) {
             $data['theme'] = "disabled";
-        } else if($this->profile->theme) {
+        } else if(property_exists($this->profile, 'theme')) {
             $data['theme'] = $this->profile->theme;
         }
+
 
         $groups  = $this->getGroups();
         if(count($groups)) {
@@ -441,27 +434,6 @@ class User
 
         $data = array_merge($data, $this->getPlanDetails());
 
-/*        
-        if($this->profile->plan == 'FREE') {
-
-            $data['MAX_RECORDS'] = FREE_ACCOUNT_MAX_RECORDS;
-            $data['MAX_STORAGE'] = FREE_ACCOUNT_MAX_STORAGE;
-            if(defined('FREE_MAX_FILE_SIZE')) {
-                $data['MAX_FILE_SIZE'] = FREE_MAX_FILE_SIZE;
-            } else {
-                $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
-            }
-
-        } else {
-            $data['MAX_RECORDS'] = 'unlimited';
-            $data['MAX_STORAGE'] = MAX_STORAGE_PER_USER;
-            $data['MAX_FILE_SIZE'] = MAX_FILE_SIZE;
-        }
-
-*/
-
-
-        
         if (defined('PUBLIC_SERVICE') && PUBLIC_SERVICE) {
             $data['business'] = false;
             if (Survey::showStatus($this)) {
@@ -562,17 +534,17 @@ class User
         $mng_res = $this->mng->safe_groups->find(['SafeID' => $SafeID ]);
         $mng_rows = $mng_res->toArray();
         foreach($mng_rows as $group) {
-            Utils::err("group ");
-            Utils::err($group);
+#            Utils::err("group ");
+#            Utils::err($group);
 
             // TODO: editor => self::ROLE_EDITOR
 
             if($group->role == "can edit") {
-                Utils::err("can write returns true");
+#                Utils::err("can write returns true");
                 return true;
             }
         }
-        Utils::err("can write returns false");
+#        Utils::err("can write returns false");
         return false;
     }
     
