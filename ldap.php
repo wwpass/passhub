@@ -14,6 +14,8 @@ $mng = DB::Connection();
 session_start();
 
 function ldap() {
+
+
     if (!$_POST['username'] || !$_POST['password']) {
         return "username and password fields should not be empty";
     }
@@ -23,7 +25,7 @@ function ldap() {
         return "Bad Request (46)";
     }
 */
-    $username = $_POST['username'];
+    $username = trim($_POST['username']);
     //$bind_rdn = "WWPASS\\" . $username;
 
     if (strpos($username, "@") === false) {
@@ -31,7 +33,7 @@ function ldap() {
 
     }
     $bind_rdn = $username;
-    $bind_pwd = $_POST['password'];
+    $bind_pwd = trim($_POST['password']);
   
     $ds=Utils::ldapConnect();
 
@@ -73,6 +75,11 @@ function ldap() {
     $ldap_filter = "(&{$user_filter}{$group_filter})";
     $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
     $info = ldap_get_entries($ds, $sr);
+
+    Utils::err('ldap search result:');
+    Utils::err($info);
+
+
     $user_enabled = $info['count'];
 
     if ($user_enabled) {
@@ -102,7 +109,11 @@ if ($result['status'] == 'Ok') {
         exit();
     }
     $_SESSION['userprincipalname'] = $result['userprincipalname'];
-    $_SESSION['email'] = $result['email'];
+    if($result['email']) {
+        $_SESSION['email'] = $result['email'];
+    } else {
+        $_SESSION['email'] = $result['userprincipalname'];
+    }
     Utils::showCreateUserPage();
     exit();
 }
