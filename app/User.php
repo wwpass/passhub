@@ -192,6 +192,10 @@ class User
         ) {
             return true;
         }
+
+        if(isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
+            return true;
+        }
         // check if we are the first:
         $admins = $this->mng->users->find(['site_admin' => true])->toArray();
         if( (count($admins) > 0) || !$create_if_first) {
@@ -1447,15 +1451,39 @@ class User
           
             $ldap_filter = "(&{$user_filter}{$group_filter})";
             $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
-            Utils::err('LDAP search with filter ' . $ldap_filter);
-            Utils::err('Base dn ' . LDAP['base_dn']);
+#            Utils::err('LDAP search with filter ' . $ldap_filter);
+#            Utils::err('Base dn ' . LDAP['base_dn']);
 
             if ($sr == false) {
                 Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
             }
             $info = ldap_get_entries($ds, $sr);
-            Utils::err('User enabled: ' . $info['count']);
+#            Utils::err('User enabled: ' . $info['count']);
             $user_enabled = $info['count'];
+
+
+            if (defined('LDAP') && (isset(LDAP['admin_group']))) {
+#                Utils::err('info');
+#                Utils::err($info);
+    
+#                Utils::err('memberof');
+                $memberof =  $info['0']['memberof'];
+    
+#                Utils::err($memberof);
+    
+                $group_count = $memberof['count'];
+                Utils::err('group count ' . $group_count);
+                for( $i = 0; $i < $group_count; $i++) {
+                    $group = $memberof[strval($i)];
+#                    Utils::err('group ' . $i . ' ' . $group);
+                    if($group == LDAP['admin_group']) {
+                        Utils::err('admin group member');
+                        $_SESSION['admin'] = true;
+                        break;
+                    }
+                }
+            }
+
             if ($user_enabled) {
                 return true;
             }

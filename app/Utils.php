@@ -86,7 +86,6 @@ class Utils
             ];
         }
 
-
         $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $messages]);
 
         $data = $response->getData();
