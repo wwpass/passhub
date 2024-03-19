@@ -14,8 +14,6 @@ $mng = DB::Connection();
 session_start();
 
 function ldap() {
-
-
     if (!$_POST['username'] || !$_POST['password']) {
         return "username and password fields should not be empty";
     }
@@ -76,9 +74,8 @@ function ldap() {
     $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
     $info = ldap_get_entries($ds, $sr);
 
-    Utils::err('ldap search result:');
-    Utils::err($info);
-
+//    Utils::err('ldap search result:');
+//    Utils::err($info);
 
     $user_enabled = $info['count'];
 
