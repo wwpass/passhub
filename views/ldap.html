@@ -1,6 +1,14 @@
 {% extends "r-layout.html" %}
 
 {% block content %}
+    <script>
+      function clearLdapAlert() {
+//        document.querySelector("#alert").innerHTML="";
+        document.querySelector("#alert").style.display="none";
+
+      }
+
+    </script>
 
     <div class="row">
         <div class="card col-12 col-lg-10 col-xl-8"
@@ -15,16 +23,16 @@
                     
             <div class="card-body">
               {% if alert %}
-                <div class="alert alert-danger" role="alert">{{alert}}</div>
+                <div id="alert" class="alert alert-danger" role="alert">{{alert}}</div>
               {% endif %}  
                 <form action="ldap.php" method="POST">
                   <div class="form-group">
-                    <label class = "control-label" for="ldap-username">Username:</label>
-                    <input id="ldap-username" class="form-control" type="text" name ="username" autofocus required> 
+                    <label class = "control-label" for="ldap-username">Username</label>
+                    <input id="ldap-username" class="form-control" type="text" name ="username" autofocus required oninput="clearLdapAlert()"> 
                   </div>          
                   <div class="form-group">
-                    <label class = "control-label" for="ldap-password">Password:</label>
-                    <input id="ldap-password" class="form-control" type="password" name ="password" required> 
+                    <label class = "control-label" for="ldap-password">Password</label>
+                    <input id="ldap-password" class="form-control" type="password" name ="password" required oninput="clearLdapAlert()"> 
                   </div>
                   <input type="hidden" name ="verifier" value={{verifier}}> 
                   <button class="btn btn-primary submit" type="submit"  style="float:right; margin-left: 1em">

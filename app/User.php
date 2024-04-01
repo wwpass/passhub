@@ -184,18 +184,22 @@ class User
     }
 
     public function isSiteAdmin($create_if_first = false) {
+
+        //LDAP:
+        if(defined('LDAP') && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
+            return true;
+        }
+
         if (!isset($this->profile)) {
             $this->getProfile();
         }
+
         if (isset($this->profile->site_admin) 
             && ($this->profile->site_admin == true)
         ) {
             return true;
         }
 
-        if(isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
-            return true;
-        }
         // check if we are the first:
         $admins = $this->mng->users->find(['site_admin' => true])->toArray();
         if( (count($admins) > 0) || !$create_if_first) {

@@ -120,17 +120,112 @@ class Iam
         return $groups;
     }
 
+    private static function isInAdminGroup($user) {
+        $group_count = $user['memberof']['count'];
+        for($g = 0; $g < $group_count; $g++ ) {
+            if($user['memberof'][strval($g)] == LDAP['admin_group']) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static function getLdapUsers() {
+        $ds=Utils::ldapConnect();
+
+        if(!$ds) {
+            Utils::err(" error 1070 ldapConnect fail");
+            return false;
+        }
+        
+        $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
+
+        if (!$r) {
+            $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
+            Utils::err($result);
+            $e = ldap_errno($ds); 
+            ldap_close($ds);
+            return false;
+        }
+
+        $user_filter = "(objectClass=user)";
+        $group_filter = "(memberof=".LDAP['group'].")";
+
+        
+        $ldap_filter = "(&{$user_filter}{$group_filter})";
+        $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
+
+        if ($sr == false) {
+            Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
+        }
+        $info = ldap_get_entries($ds, $sr);
+   #     Utils::err('passhub users group');
+   #     Utils::err($info);
+
+        $user_count = $info['count'];
+        Utils::err('user count ' . $user_count);
+        $user_upns = [];
+        $admin_upns = [];
+
+        for($u = 0; $u < $user_count; $u++) {
+            $user = $info[strval($u)];
+            $upn = strtolower($user['userprincipalname']['0']);
+            Utils::err('push ' . $upn);
+            array_push($user_upns, $upn);
+            if(self::isInAdminGroup($user)) {
+                array_push($admin_upns, $upn);  
+            }
+        }
+        Utils::err('user_upn');
+        Utils::err($user_upns);
+        Utils::err('admin_upn');
+        Utils::err($admin_upns);
+        return ["user_upns" => $user_upns, "admin_upns" => $admin_upns];
+    }
+
     private static function getUserArray($mng, $UserID) 
     {
         $cursor = $mng->users->find([], ['projection' => [
                 "_id" => true, 
                 "lastSeen" => true, 
-                "email" => true, 
+                "email" => true,
+                "userprincipalname" => true,
                 "site_admin" =>true, 
                 "disabled" => true
                 ]
             ]);
         $user_array = $cursor->toArray();
+
+        Utils::err('users in db');
+        Utils::err( $user_array);
+
+        if(defined('LDAP')) {
+
+            $lu = self::getLdapUsers();
+            $ldap_users = $lu["user_upns"];
+            $ldap_admins = $lu["admin_upns"];
+
+            $active_user_upns = [];
+            foreach($user_array as $u) {
+                array_push($active_user_upns, $u["userprincipalname"]);
+
+                $upn = strtolower($u["userprincipalname"]);
+                if(!in_array($upn, $ldap_users)) {
+                    $u["disabled"] = true;
+                } else {
+                    $u["disabled"] = false;
+                    if(in_array($upn, $ldap_admins)) {
+                        $u["site_admin"] = true;
+                    }
+                }
+            }
+            foreach($ldap_users as $lu) {
+                if(!in_array($lu, $active_user_upns)) {
+                    array_push($user_array, ["email" => $lu, "status" => "invited"]);
+                }
+            }
+            return $user_array;
+        }
 
         $mail_list = [];
 
@@ -241,12 +336,15 @@ class Iam
         if(defined('LICENSED_USERS')) {
             $result['LICENSED_USERS'] = LICENSED_USERS;
         }
+        if(defined('LDAP')) {
+            $result['LDAP'] = true;
+        }
         return $result;
     }
 
     public static function deleteUser($mng, $userToDelete) {
 
-        if(isset($userToDelete['id']) && $userToDelete['id']) {
+        if(isset($userToDelete['id']) && $userToDelete['id'] && (strlen($userToDelete['id']) > 0)) {
             $user = new User($mng, $userToDelete['id']);
 
             $user->getProfile();
