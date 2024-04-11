@@ -74,6 +74,7 @@ class Group
         Utils::err($filter);
         Utils::err('67 remove User result');
         Utils::err($result);
+        Utils::audit_log($mng, ["actor" =>  $_SESSION['email'], "operation" => "Remove user from group"]);
         return ['status' => 'Ok'];
     }
 
@@ -97,9 +98,9 @@ class Group
             'version' => $group->version,
             'encrypted_key_CSE' => $key]
         );
+        Utils::audit_log($mng, ["actor" =>  $_SESSION['email'], "operation" => "Add user to group", "user" => $email]);
         return ['status' => 'Ok'];
     }
-
 
     static public function rename($mng, $req) {
         $mng->group_users->updateMany(
@@ -110,8 +111,6 @@ class Group
     }
 
     static public function addSafe($mng, $req) {
-        Utils::err('req');
-        Utils::err($req);
         $role = isset($req->role) ? $req->role :  "can view";
         $mng->safe_groups->insertOne(
             [
@@ -123,12 +122,11 @@ class Group
             'encrypted_key' => $req->encrypted_key]
         );
         
+        Utils::audit_log($mng, ["actor" =>  $_SESSION['email'], "operation" => "Add safe to group"]);
         return ['status' => 'Ok'];
     }
 
     static public function removeSafe($mng, $req) {
-        Utils::err('req');
-        Utils::err($req);
         $mng->safe_groups->deleteOne(
             [
                 'SafeID' => $req->safeId, 
@@ -136,6 +134,7 @@ class Group
             ]
         );
         
+        Utils::audit_log($mng, ["actor" => $_SESSION['email'], "operation" => "Remove safe from group"]);
         return ['status' => 'Ok'];
     }
 
@@ -150,6 +149,8 @@ class Group
                 'GroupID' => $req->groupId,
             ]
         );
+        Utils::audit_log($mng, ["actor" =>  $_SESSION['email'], "operation" => "Delete group"]);
+
         return ['status' => 'Ok'];
     }
 
@@ -202,6 +203,11 @@ class Group
         }
 
         Utils::log('user ' . $UserID . ' activity group created');
+        Utils::audit_log($mng, ["actor" =>  $_SESSION['email'], "operation" => "Create group"]);
+        Utils::err('group created');
+        Utils::err($group);
+        Utils::err('result');
+
         return array("status" =>"Ok");
     }
 }

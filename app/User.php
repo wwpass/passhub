@@ -148,6 +148,10 @@ class User
     }                            
 
     public function getProfile() {
+        if (isset($this->profile)) {
+            return;
+        }
+
         $mng_res = $this->mng->users->find(['_id' => $this->_id]);
         $res_array = $mng_res->ToArray();
 
@@ -208,23 +212,6 @@ class User
         Utils::err('first admin');
         $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
         return true;
-    }
-
-    public function setStatus($new_status) {
-        if($new_status == 'admin') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, 'disabled' => false]]);
-            return ['status' => "Ok"];
-        }
-        if($new_status == 'active') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => false]]);
-            return ['status' => "Ok"];
-        }
-        if($new_status == 'disabled') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => true]]);
-            return ['status' => "Ok"];
-        }
-        Utils::err('usr err 107 operation ' . $operation);
-        return ['status' => "Internal error"];
     }
 
     public function setInactivityTimeout($id, $value) {

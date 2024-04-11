@@ -13,8 +13,33 @@
 
 namespace PassHub;
 
+
+/*
+function audit_log($mng, $message) {
+
+    if( array_key_exists('actor', $message) &&
+        array_key_exists('operation', $message)
+    ) {
+        $record = array_merge([ 'timestamp' => Date('c')], $message);
+        $mng->audit->insertOne($record);
+    } else {
+        Utils::err("audit_log: bad message");
+        Utils::err($message);
+    }
+}
+*/
+
 class Iam
 {
+    
+
+    public static function audit($mng, $req, $admin_email) {
+        $cursor = $mng->audit->find([]);
+        $data = $cursor->toArray();
+
+        return ["status"=>"Ok", "data" => json_encode($data)];
+    }
+
     public static function whiteMailList($mng) 
     {
         $cursor = $mng->mail_invitations->find([], ['projection' => ['_id' => false, 'email' => true]]);
@@ -38,7 +63,7 @@ class Iam
         Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
     }
 
-    public static function addWhiteMailList($mng, $email) 
+    public static function addWhiteMailList($mng, $email, $admin_email) 
     {
         $cursor = $mng->mail_invitations->find(['email' => $email]);
         foreach ( $cursor as $row) {
@@ -52,6 +77,9 @@ class Iam
         } 
 
         $mng->mail_invitations->insertOne(['email' => $email]);
+
+        Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "invite", "user" => $email]);
+
         self::sendInvitationMail($email);
         return self::whiteMailList($mng);
     }
@@ -61,7 +89,7 @@ class Iam
         $mng->mail_invitations->deleteMany(['email' => $email]);
         return self::whiteMailList($mng);
     }
-        
+    
     public static function isMailAuthorized($mng, $email) {
 
         if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
@@ -97,6 +125,72 @@ class Iam
         }
         return false;
     }
+
+    public static function setStatus($mng, $new_status, $user_id, $admin_email) {
+
+        $user = new User($mng, $user_id);
+        $user->getProfile();
+        $user_email = $user->profile['email'];
+
+        if($new_status == 'admin') {
+            $mng->users->updateOne(['_id' => $user->_id], ['$set' =>['site_admin' => true, 'disabled' => false]]);
+            Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "statusAdmin", "user" => $user_email]);
+            return ['status' => "Ok"];
+        }
+        if($new_status == 'active') {
+            $result = $mng->users->updateOne(['_id' => $user->_id], ['$set' =>['site_admin' => false, 'disabled' => false]]);
+    
+            Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "statusActive", "user" => $user_email]);
+            return ['status' => "Ok"];
+        }
+        if($new_status == 'disabled') {
+            $mng->users->updateOne(['_id' => $user->_id], ['$set' =>['site_admin' => false, 'disabled' => true]]);
+            Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "statusDisabled", "user" => $user_email]);
+            return ['status' => "Ok"];
+        }
+        Utils::err('usr err 107 operation ' . $operation);
+        return ['status' => "Internal error"];
+    }
+
+    public static function deleteUser($mng, $userToDelete, $admin_email) {
+
+        Utils::err('USerTo Delete');
+        Utils::err($userToDelete);
+        Utils::err($userToDelete->email);
+
+
+        if(isset($userToDelete->id) && $userToDelete->id && (strlen($userToDelete->id) > 0)) {
+            $user = new User($mng, $userToDelete->id);
+
+            $user->getProfile();
+            if ($user->profile['email']) {
+                 $result = $mng->mail_invitations->deleteMany(['email' => $user->profile['email']]);
+            }
+            Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "deleteAccount", "user" => $user->profile['email']]);
+            return $user->deleteAccount();
+        }
+
+        if(isset($userToDelete->email) && $userToDelete->email) {
+
+            $result = $mng->mail_invitations->deleteMany(['email' => $userToDelete->email]);
+            $users = User::findUserByMail($mng, $userToDelete->email);
+            $c = count($users);
+
+            Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "deleteInvitation", "user" => $userToDelete->email]);
+
+            if($c == 1) {
+
+                $id = $users[0];                                
+                $user = new User($mng, $users[0]);
+                return $user->deleteAccount();
+            } 
+            if($c == 0) {
+                return "Ok";
+            }
+        }
+        return "user not found";
+    }
+
 
     private static function getGroupSafes($mng, $GroupID) {
         $cursor = $mng->safe_groups->find(["GroupID" => $GroupID], ["projection" => ["_id"=> false, "SafeID" => true, "role" => true]]);
@@ -159,8 +253,6 @@ class Iam
             Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
         }
         $info = ldap_get_entries($ds, $sr);
-   #     Utils::err('passhub users group');
-   #     Utils::err($info);
 
         $user_count = $info['count'];
         Utils::err('user count ' . $user_count);
@@ -176,10 +268,6 @@ class Iam
                 array_push($admin_upns, $upn);  
             }
         }
-        Utils::err('user_upn');
-        Utils::err($user_upns);
-        Utils::err('admin_upn');
-        Utils::err($admin_upns);
         return ["user_upns" => $user_upns, "admin_upns" => $admin_upns];
     }
 
@@ -195,9 +283,6 @@ class Iam
                 ]
             ]);
         $user_array = $cursor->toArray();
-
-        Utils::err('users in db');
-        Utils::err( $user_array);
 
         if(defined('LDAP')) {
 
@@ -246,7 +331,6 @@ class Iam
         }
         
         $invited = Iam::whiteMailList($mng)['mail_array'];
-        Utils::err(print_r($mail_list, true));
         foreach($invited as $i) {
             if(!in_array($i['email'], $mail_list)) {
                 array_push($user_array, ["email" => $i['email'], "status" => "invited"]);
@@ -342,31 +426,4 @@ class Iam
         return $result;
     }
 
-    public static function deleteUser($mng, $userToDelete) {
-
-        if(isset($userToDelete['id']) && $userToDelete['id'] && (strlen($userToDelete['id']) > 0)) {
-            $user = new User($mng, $userToDelete['id']);
-
-            $user->getProfile();
-            if ($user->profile['email']) {
-                $result = $mng->mail_invitations->deleteMany(['email' => $user->profile['email']]);
-            }
-            return $user->deleteAccount();
-        }
-
-        if(isset($userToDelete['email']) && $userToDelete['email']) {
-            $result = $mng->mail_invitations->deleteMany(['email' => $userToDelete['email']]);
-            $users = User::findUserByMail($mng, $userToDelete['email']);
-            $c = count($users);
-            if($c == 1) {
-                $id = $users[0];                                
-                $user = new User($mng, $users[0]);
-                return $user->deleteAccount();
-            } 
-            if($c == 0) {
-                return "Ok";
-            }
-        }
-        return "user not found";
-    }
 }

@@ -156,6 +156,10 @@ class Puid
             Utils::err("new user $email $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
         }
         Utils::log("new user $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
+
+        if(!defined('PUBLIC_SERVICE')) {
+            Utils::audit_log($this->mng, ["actor" => $email, "operation" => "Create account"]);
+        }
     
         return array("UserID" => (string)$UserID, "status" => "Ok");
     }
