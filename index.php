@@ -33,6 +33,7 @@ use PassHub\Csrf;
 use PassHub\DB;
 use PassHub\User;
 use PassHub\Puid;
+use PassHub\Iam;
 
 $mng = DB::Connection();
 
@@ -54,6 +55,7 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     Utils::err("HTTP_USER_AGENT undefined (corrected)");
 }
 
+/*
 if (isset($_REQUEST['current_safe']) 
     && isset($_REQUEST['verifier']) 
     && (Csrf::isValid($_REQUEST['verifier']))
@@ -63,6 +65,8 @@ if (isset($_REQUEST['current_safe'])
     $user->setCurrentSafe(trim($_REQUEST['current_safe']));
     exit();
 }
+*/
+
 
 if (defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
     Utils::err("Error: both local storage and Google drive are enabled");
@@ -124,6 +128,7 @@ try {
                         exit();
                     }
                     Utils::err('Should not happen idx 129');
+                    exit();
                 }
             }
 
@@ -134,12 +139,17 @@ try {
             } 
             Utils::showCreateUserPage();
             exit();
-        } else if ($result['status'] == "Ok") {
+
+        } else if ($result['status'] != "Ok") {
+            exit($result['status']);//multiple PUID records;
+        } else {
             $UserID = $result['UserID'];
+            $user = new User($mng, $UserID);
+            $user->getProfile();
             $_SESSION["UserID"] = $UserID;
+            $_SESSION['email'] = $user->profile->email;
 
             if (defined('LDAP')) {
-                $user = new User($mng, $UserID);
                 $a = $user->checkLdapAccess();
                 if ($a === "not bound") {
                     echo Utils::render(
@@ -172,11 +182,14 @@ try {
                 }   
             }
 
-            $_SESSION["UserID"] = $UserID;
             Utils::log("user " . $UserID . " login " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
-            $firstResponceAfterLogin = true;
-        } else {
-            exit($result['status']);//multiple PUID records;
+            if(!defined('PUBLIC_SERVICE'))  {
+                Utils::audit_log($mng, ["actor" => $user->profile->email, "operation" => "Login"]);
+                Utils::err('$user');
+                Utils::err($user);
+            }
+
+//             $firstResponceAfterLogin = true;
         }
     }
     if(defined('DISCOURSE_SECRET') && isset($_SESSION['sso'])) {
@@ -248,66 +261,5 @@ if (isset($_SESSION['expired'])) {
     header("Location: expired.php");
     exit();
 }
-
-/*
-$twig_args = [
-    // layout
-    //'narrow' => true, 
-    // 'title' => $title,
-    'index_page' => true,
-    'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-
-    // content
-    'verifier' => Csrf::get(),
-    'password_font' => Utils::getPwdFont(),
-    'MAX_SAFENAME_LENGTH' => defined('MAX_SAFENAME_LENGTH') ? MAX_SAFENAME_LENGTH : 20,
-    'MAX_FILENAME_LENGTH' => defined('MAX_FILENAME_LENGTH') ? MAX_FILENAME_LENGTH : 40,
-    'MAX_NOTES_SIZE' => defined('MAX_NOTES_SIZE') ? MAX_NOTES_SIZE : 2048,
-    'MAX_URL_LENGTH' => defined('MAX_URL_LENGTH') ? MAX_URL_LENGTH : 2500,
-
-    'ANONYMOUS' => (!defined('MAIL_DOMAIN') && !defined('LDAP')),
-    'SHARING_CODE_TTL' => defined('SHARING_CODE_TTL') ? SHARING_CODE_TTL/60/60 : 48,  
-
-    // idle_and_removal
-    'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
-    'IDLE_TIMEOUT' => IDLE_TIMEOUT,
-    'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time']),
-
-];
-if ($user->isSiteAdmin()) {
-    $twig_args['isSiteAdmin'] = true;
-}
-
-if (file_exists('config/server_name.php')) {
-    $twig_args['server_name'] = file_get_contents('config/server_name.php');
-}
-
-if (isset($_SESSION["show"])) { 
-    $twig_args['show'] = $_SESSION['show'];
-    unset($_SESSION["show"]);
-}
-
-$searchClearButton = true;
-
-if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'firefox') !==  false) {
-    $searchClearButton = false;
-}
-if (strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'iphone') !==  false) {
-    $searchClearButton = false;
-}
-
-if ($searchClearButton) { 
-    $twig_args['search_clear_button'] = true;
-}
-
-
-$twig_args = [
-    'verifier' => Csrf::get(),
-];
-
-
-// echo Utils::render('index.html', $twig_args); 
-*/
-
 
 echo Utils::render_react('index.html', ['verifier' => Csrf::get()]); 
