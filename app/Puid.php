@@ -139,6 +139,10 @@ class Puid
             $record['plan'] = FREE[0]['NAME'];
         }
   
+        if (isset($_SESSION['company'])) {
+            $record['company'] = $_SESSION['company'];
+        }
+
         try {
             $r = $this->mng->users->insertOne($record);
         } catch (Exception $e) {

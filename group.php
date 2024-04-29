@@ -51,8 +51,9 @@ function create_group_proxy($mng) {
         Utils::errorPage('You do not have admin rights');
         exit();
     }
-    Utils::err('req');
-    Utils::err($req);
+    
+    # Utils::err('req');
+    # Utils::err($req);
 
     if($req->operation == "getUserPublicKey") {
         return Group::getUserPublicKey($mng, $req->groupId, $req->email, $UserID);

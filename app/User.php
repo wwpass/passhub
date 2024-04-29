@@ -420,12 +420,10 @@ class User
             $data['theme'] = $this->profile->theme;
         }
 
-
         $groups  = $this->getGroups();
         if(count($groups)) {
             $data['groups'] = $groups;
         }
-
 
         $data = array_merge($data, $this->getPlanDetails());
 
@@ -438,6 +436,9 @@ class User
             $data['business'] = true;
             if (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED) {
                $data['HIDDEN_PASSWORDS_ENABLED'] = true; 
+            }
+            if(defined('MSP') && MSP  && !isset($this->profile->company)) {
+                $data['msp'] = true;
             }
         }
 
@@ -1175,6 +1176,12 @@ class User
                     return "User " . $email . " is not registered";
                     // ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
                 }
+
+
+                if(defined('MSP') && isset($_SESSION['company']) && isset($a[0]->company) && ($a[0]->company != $_SESSION['company'])) {
+                    return "User " . $email . " not found";
+                }
+
                 $TargetUserID = (string)($a[0]->_id);
                 if ($TargetUserID == $this->UserID) {
                     return "You cannot share the safe with yourself (" . $UserName . ")";

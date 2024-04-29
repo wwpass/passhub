@@ -3,12 +3,10 @@
 /**
  * iam.php
  *
- * PHP version 7
- *
  * @category  Password_Manager
  * @package   PassHub
  * @author    Mikhail Vysogorets <m.vysogorets@wwpass.com>
- * @copyright 2016-2020 WWPass
+ * @copyright 2016-2024 WWPass
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -29,82 +27,44 @@ $UserID = $_SESSION['UserID'];
 
 function iam_ops_proxy($mng, $UserID) {
 
-    // Takes raw data from the request
     $json = file_get_contents('php://input');
-
-    // Converts it into a PHP object
     $req = json_decode($json);
-    Utils::err(print_r($req, true));
-
-    if(!isset($req->operation)) {
-        if (!isset($_SESSION['UserID'])) {
-            header("Location: login.php");
-            exit();
-        }
-        $user = new User($mng, $UserID);
-        $user->getProfile();
-
-        if (!$user->isSiteAdmin(true)) {
-            Utils::err('iam: no admin rights');
-            Utils::errorPage('You do not have admin rights');
-            exit();
-        }
-        echo Utils::render(
-            'iam.html',
-            [
-                'iam_page' => true,
-                'verifier' => Csrf::get(),
-                'me' => $UserID,
-                // idle_and_removal
-                'WWPASS_TICKET_TTL' => WWPASS_TICKET_TTL, 
-                'IDLE_TIMEOUT' => IDLE_TIMEOUT,
-                'ticketAge' =>  (time() - $_SESSION['wwpass_ticket_creation_time']),
-            ]  
-        );
-        exit();
-    }
-
 
     if (!isset($_SESSION['UserID'])) {
         return 'login';
     }
-    $user = new User($mng, $UserID);
-    $user->getProfile();
 
-    if (!$user->isSiteAdmin()) {
-        Utils::err('iam: no admin rights');
-        return ['status' => "Bad Request (71)"];
-    }
 
     if (!isset($req->verifier) || !Csrf::isValid($req->verifier)) {
         Utils::err("iam: bad csrf");
         return ['status' => "Bad Request (68)"];
     }
 
+    $admin = new User($mng, $UserID);
+    $admin->getProfile();
+
+    if (!$admin->isSiteAdmin()) {
+        Utils::err('iam error 47');
+        return ['status' => "Bad Request (48)"];
+    }
+
     $operation = $req->operation;
 
     if ($operation == 'users') {
-        $data = Iam::getPageData($mng, $UserID);
-        Utils::err('Operation users');
-	
-	$data['me'] = $UserID;
-	$data['status'] = 'Ok';
-	return $data;
-
-/*
-        return [
-            "status" => "Ok", 
-            "stats" => $data["stats"], 
-            "users" => $data["user_array"], 
-            "me" => $UserID
-            // "mail_array" => $data["mail_array"]
-        ];
-*/
-
-    }
+        $data = Iam::getPageData($mng, $req, $UserID);
+        if(defined('MSP')) {
+            $data['me'] = $UserID;
+        }
+        $data['status'] = 'Ok';
+        return $data;
+}
 
     if($operation == 'delete') {
-        return Iam::deleteUser($mng, ['email' => $req->email, 'id'=> $req->id]);
+        return Iam::deleteUser($mng, $req, $admin->profile['email']);
+    }
+
+    if($operation == 'audit') {
+        return Iam::audit($mng, $req, $admin->profile['email']);
     }
 
     if(in_array($operation, ['admin', 'active', 'disabled'])) {
@@ -112,13 +72,13 @@ function iam_ops_proxy($mng, $UserID) {
         if (isset($req->id)) {
             if ($req->id == $_SESSION['UserID']) {
                 Utils::err("iam error 59");
-                return "internal error iam 59";
+                return "internal error";
             }
-            $user = new User($mng, $req->id);
-            return $user->setStatus($operation);
+            $user_id = $req->id;
+            return Iam::setStatus($mng, $operation, $user_id, $admin->profile['email']);
         }
-        Utils::err('iam: $operation operation fail');
-        return ['status' => 'IAM Internal error 109, see logs'];
+        Utils::err('iam error 76');
+        return ['status' => 'internal error'];
     }
 
     if($operation == 'newuser') {
@@ -127,39 +87,17 @@ function iam_ops_proxy($mng, $UserID) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 return ['status' => 'illegal email address'];
             }
-            $email = strtolower($email);
+            $req->email = strtolower($req->email);
+            //  $email = strtolower($email);
             // plus: delete user by mail
-            return Iam::addWhiteMailList($mng, $email);
+
+            return Iam::addWhiteMailList($mng, $req, $admin->profile['email']);
         }
-        Utils::err('iam: new user operation fail');
-        return ['status' => 'IAM Internal error 109, see logs'];
+        Utils::err('iam error 91');
+        return ['status' => 'internal error'];
     }
-
-
-/*
-
-    if (isset($_POST['newUserMail'])) {
-        if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
-            Utils::err("bad csrf");
-            return ['status' => "Bad Request (68)"];
-        } 
-
-
-        $email = $_POST['newUserMail'];
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            header('Content-type: application/json');
-            return ['status' => 'illegal email address' . htmlspecialchars($email)];
-        }
-        $email = strtolower($_POST['newUserMail']);
-        return Iam::addWhiteMailList($mng, $email);
-    }
-*/
-
-
- //    $pageData = Iam::getPageData($mng, $UserID);
- //   $stats = $pageData["stats"];
- //   $user_array = $pageData["user_array"];    
-
+    Utils::err('Iam: unknown operation ' .  $operation);
+    return ['status' => 'internal error 97'];
 }
 
 $result = iam_ops_proxy($mng, $UserID);

@@ -13,22 +13,6 @@
 
 namespace PassHub;
 
-
-/*
-function audit_log($mng, $message) {
-
-    if( array_key_exists('actor', $message) &&
-        array_key_exists('operation', $message)
-    ) {
-        $record = array_merge([ 'timestamp' => Date('c')], $message);
-        $mng->audit->insertOne($record);
-    } else {
-        Utils::err("audit_log: bad message");
-        Utils::err($message);
-    }
-}
-*/
-
 class Iam
 {
     
@@ -40,9 +24,13 @@ class Iam
         return ["status"=>"Ok", "data" => json_encode($data)];
     }
 
-    public static function whiteMailList($mng) 
+    public static function whiteMailList($mng, $company=null) 
     {
-        $cursor = $mng->mail_invitations->find([], ['projection' => ['_id' => false, 'email' => true]]);
+        $filter = [];
+        if($company && (strlen($company) == 24) && ctype_xdigit($company)) {
+            $filter = ['company' => $company];
+        }
+        $cursor = $mng->mail_invitations->find($filter, ['projection' => ['_id' => false, 'email' => true]]);
         $mail_array = $cursor->toArray();
         return ["status" =>"Ok", 'mail_array' => $mail_array];
     }
@@ -63,8 +51,9 @@ class Iam
         Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
     }
 
-    public static function addWhiteMailList($mng, $email, $admin_email) 
+    public static function addWhiteMailList($mng, $req, $admin_email) 
     {
+        $email = $req->email;
         $cursor = $mng->mail_invitations->find(['email' => $email]);
         foreach ( $cursor as $row) {
             // already invited
@@ -75,13 +64,20 @@ class Iam
         if($c > 0) {
             return ['status' => 'already used'];
         } 
+        $company = null;
+        if( $req->company && (strlen($req->company) == 24) && ctype_xdigit($req->company) ) {
+            $company = $req->company;
+            $mng->mail_invitations->insertOne(['email' => $email, 'company' => $company]);
+            
+        } else {
+            $mng->mail_invitations->insertOne(['email' => $email]);
+        }
 
-        $mng->mail_invitations->insertOne(['email' => $email]);
 
         Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "invite", "user" => $email]);
 
         self::sendInvitationMail($email);
-        return self::whiteMailList($mng);
+        return self::whiteMailList($mng, $company);
     }
 
     public static function removeWhiteMailList($mng, $email) 
@@ -121,6 +117,11 @@ class Iam
         // is invited:
         $cursor = $mng->mail_invitations->find(['email' => strtolower($email)]);
         foreach ( $cursor as $row) {
+            if($row->company) {
+                $_SESSION['company'] = $row->company;
+                return true;
+            }
+
             return true;
         }
         return false;
@@ -153,11 +154,6 @@ class Iam
     }
 
     public static function deleteUser($mng, $userToDelete, $admin_email) {
-
-        Utils::err('USerTo Delete');
-        Utils::err($userToDelete);
-        Utils::err($userToDelete->email);
-
 
         if(isset($userToDelete->id) && $userToDelete->id && (strlen($userToDelete->id) > 0)) {
             $user = new User($mng, $userToDelete->id);
@@ -255,14 +251,12 @@ class Iam
         $info = ldap_get_entries($ds, $sr);
 
         $user_count = $info['count'];
-        Utils::err('user count ' . $user_count);
         $user_upns = [];
         $admin_upns = [];
 
         for($u = 0; $u < $user_count; $u++) {
             $user = $info[strval($u)];
             $upn = strtolower($user['userprincipalname']['0']);
-            Utils::err('push ' . $upn);
             array_push($user_upns, $upn);
             if(self::isInAdminGroup($user)) {
                 array_push($admin_upns, $upn);  
@@ -271,9 +265,25 @@ class Iam
         return ["user_upns" => $user_upns, "admin_upns" => $admin_upns];
     }
 
-    private static function getUserArray($mng, $UserID) 
+    private static function getUserArray($mng, $req, $UserID) 
     {
-        $cursor = $mng->users->find([], ['projection' => [
+        $filter = [];
+        $company = null;
+        if($req->company  && (strlen($req->company) == 24) && ctype_xdigit($req->company)) {
+            $company = $req->company;
+            $filter = ['company' => $req->company];
+        }
+
+        if(defined('MSP')) {
+            $User = new User($mng, $UserID);
+            $company = $User->getProfile()->company;
+   
+            if(isset($company)) {
+                $filter = ['company' => $company];
+            }
+        }
+
+        $cursor = $mng->users->find($filter, ['projection' => [
                 "_id" => true, 
                 "lastSeen" => true, 
                 "email" => true,
@@ -315,7 +325,7 @@ class Iam
         $mail_list = [];
 
         foreach ($user_array as $user) {
-            array_push($mail_list,$user['email']);
+            array_push($mail_list, $user['email']);
         }
 
         $i_am_admin = false;
@@ -329,28 +339,31 @@ class Iam
                 }
             }
         }
+
+        $cursor = $mng->mail_invitations->find($filter, ['projection' => ['_id' => false, 'email' => true]]);
+        $invited = $cursor->toArray();        
         
-        $invited = Iam::whiteMailList($mng)['mail_array'];
         foreach($invited as $i) {
             if(!in_array($i['email'], $mail_list)) {
                 array_push($user_array, ["email" => $i['email'], "status" => "invited"]);
             }
         }
-
-        if ($admins_found === false) {   // first time visit to iam.php 
-            $id =  (strlen($UserID) != 24)? $UserID : new \MongoDB\BSON\ObjectID($UserID);
-            $mng->users->updateOne(['_id' => $id], ['$set' =>['site_admin' => true]]);
-            $cursor = $mng->users->find([], ['projection' => [
-                "_id" => true, 
-                "lastSeen" => true, 
-                "email" => true, 
-                "site_admin" =>true,
-                "disabled" =>true,
-                ]]);
-            $user_array = $cursor->toArray();
-        } else if ($i_am_admin === false) {
-            Utils::errorPage("not enough rights"); // TODO exception
-            return [];
+        if(!defined('MSP')) {
+            if ($admins_found === false) {   // first time visit to iam.php 
+                $id =  (strlen($UserID) != 24)? $UserID : new \MongoDB\BSON\ObjectID($UserID);
+                $mng->users->updateOne(['_id' => $id], ['$set' =>['site_admin' => true]]);
+                $cursor = $mng->users->find([], ['projection' => [
+                    "_id" => true, 
+                    "lastSeen" => true, 
+                    "email" => true, 
+                    "site_admin" =>true,
+                    "disabled" =>true,
+                    ]]);
+                $user_array = $cursor->toArray();
+            } else if ($i_am_admin === false) {
+                Utils::errorPage("not enough rights"); // TODO exception
+                return [];
+            }
         }
         return $user_array;
     }
@@ -361,14 +374,17 @@ class Iam
         return $cursor->toArray();
     }
 
-    public static function getPageData($mng, $UserID) 
+    public static function getPageData($mng, $req, $UserID) 
     {
-        $user_array = self::getUserArray($mng, $UserID);
-
-        if (count($user_array) == 0) {
-            return 'not enough rights';
-        }
         
+        $user_array = self::getUserArray($mng, $req, $UserID);
+
+        if(!defined('MSP')) {
+            if (count($user_array) == 0) {
+                return 'not enough rights';
+            }
+        }
+       
         $_SESSION['site_admin'] = true;
         
         $safe_user_array = self::getSafeUserArray($mng);

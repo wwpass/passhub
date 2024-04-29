@@ -17,6 +17,8 @@ require_once 'vendor/autoload.php';
 
 use PassHub\Utils;
 
+session_start();
+
 try {
     $t0 = microtime(true);
     $version4 = WWPass\Connection::VERSION == '4.0';
