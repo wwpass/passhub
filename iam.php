@@ -52,9 +52,9 @@ function iam_ops_proxy($mng, $UserID) {
 
     if ($operation == 'users') {
         $data = Iam::getPageData($mng, $req, $UserID);
-        if(defined('MSP')) {
+//        if(defined('MSP')) {
             $data['me'] = $UserID;
-        }
+//        }
         $data['status'] = 'Ok';
         return $data;
 }
