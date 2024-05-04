@@ -39,14 +39,6 @@ $mng = DB::Connection();
 
 session_start();
 
-/*
-if (isset($_GET["show"])) {
-    $_SESSION["show"] = $_GET["show"];
-    header("Location: index.php");
-    exit();
-}
-*/
-
 if (!defined('IDLE_TIMEOUT')) {
     define('IDLE_TIMEOUT', 540);
 }
@@ -54,19 +46,6 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
     $_SERVER['HTTP_USER_AGENT'] = "undefined";
     Utils::err("HTTP_USER_AGENT undefined (corrected)");
 }
-
-/*
-if (isset($_REQUEST['current_safe']) 
-    && isset($_REQUEST['verifier']) 
-    && (Csrf::isValid($_REQUEST['verifier']))
-    && isset($_SESSION['UserID'])
-) {
-    $user = new User($mng, $_SESSION['UserID']);
-    $user->setCurrentSafe(trim($_REQUEST['current_safe']));
-    exit();
-}
-*/
-
 
 if (defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
     Utils::err("Error: both local storage and Google drive are enabled");
@@ -89,6 +68,9 @@ try {
     if (!isset($_SESSION['UserID'])) {
         $result = $puid->getUserByPuid();
         if ($result['status'] == "not found") {
+
+
+
             if (defined('LDAP') 
                 && ( !isset(LDAP['mail_registration']) 
                     || (LDAP['mail_registration'] !== true))
@@ -104,32 +86,30 @@ try {
                     ]
                 );
                 exit();
-            }
-
+            } 
+            
             if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
                 if (!isset($_SESSION['TermsAccepted'])) {
                     header("Location: accept_terms.php");
                     exit();
-                }
-            } else {
-                if (!$puid->isValidated()) {
-                    if (!isset($_SESSION['reg_code'])) {
-                        Utils::err("requesting mail for new user");
+                } 
+            } else if (!$puid->isValidated()) {
+                if (!isset($_SESSION['reg_code'])) {
+                    Utils::err("requesting mail for new user");
 
-                        echo Utils::render(
-                            'request_mail.html', 
-                            [
-                                // layout
-                                'narrow' => true, 
-                                'hide_logout' => true,
-                                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-                            ]
-                        );
-                        exit();
-                    }
-                    Utils::err('Should not happen idx 129');
+                    echo Utils::render(
+                        'request_mail.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'hide_logout' => true,
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                        ]
+                    );
                     exit();
                 }
+                Utils::err('Should not happen idx 129');
+                exit();
             }
 
             if(defined('CREATE_USER')) {
@@ -141,6 +121,7 @@ try {
             exit();
 
         } else if ($result['status'] != "Ok") {
+            Utils::err("multiple PUID records " . $_SESSION['PUID']);
             exit($result['status']);//multiple PUID records;
         } else {
             $UserID = $result['UserID'];
@@ -185,11 +166,7 @@ try {
             Utils::log("user " . $UserID . " login " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
             if(!defined('PUBLIC_SERVICE'))  {
                 Utils::audit_log($mng, ["actor" => $user->profile->email, "operation" => "Login"]);
-                Utils::err('$user');
-                Utils::err($user);
             }
-
-//             $firstResponceAfterLogin = true;
         }
     }
     if(defined('DISCOURSE_SECRET') && isset($_SESSION['sso'])) {
