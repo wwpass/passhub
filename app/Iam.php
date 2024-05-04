@@ -91,6 +91,12 @@ class Iam
         if(defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
             return true;
         }
+
+        if(defined('REGISTRATION_ACCESS_CODE') && isset($_SESSION['REGISTRATION_ACCESS_CODE']) &&  ($_SESSION['REGISTRATION_ACCESS_CODE'] == REGISTRATION_ACCESS_CODE)) {
+            Utils::err('REGISTRATION_ACCESS_CODE present');
+            return true;
+        }
+
         if( defined('LDAP')  
             && isset(LDAP['mail_registration']) 
             && (LDAP['mail_registration'] == true)) {

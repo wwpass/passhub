@@ -162,9 +162,13 @@ class Puid
         Utils::log("new user $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
 
         if(!defined('PUBLIC_SERVICE')) {
-            Utils::audit_log($this->mng, ["actor" => $email, "operation" => "Create account"]);
+            if(defined('REGISTRATION_ACCESS_CODE') && isset($_SESSION['REGISTRATION_ACCESS_CODE']) &&  ($_SESSION['REGISTRATION_ACCESS_CODE'] == REGISTRATION_ACCESS_CODE)) {
+                Utils::audit_log($this->mng, ["actor" => $email, "operation" => "Create account", "access_code" => "..." . substr(REGISTRATION_ACCESS_CODE,-4)]);
+            } else {
+               Utils::audit_log($this->mng, ["actor" => $email, "operation" => "Create account"]);
+            }
         }
-    
+   
         return array("UserID" => (string)$UserID, "status" => "Ok");
     }
 

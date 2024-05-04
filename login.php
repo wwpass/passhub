@@ -144,6 +144,13 @@ if (isset($_SESSION['PUID'])) {
     exit();
 }
 
+
+if(defined('REGISTRATION_ACCESS_CODE') && isset($_GET['access_code'])) {
+    if ($_GET['access_code'] == REGISTRATION_ACCESS_CODE) {
+        $_SESSION['REGISTRATION_ACCESS_CODE'] = $_GET['access_code'];
+    }
+}
+
 if (!isset($_GET['wwp_status'])) {
     unset($_SESSION['reg_code']);
 }
@@ -165,9 +172,9 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
     } else {
         // clear all keys but req_code if present
         if(defined('DISCOURSE_SECRET')) {
-                $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "", 'sso' =>''));
+            $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "", 'sso' =>'', 'REGISTRATION_ACCESS_CODE' => ''));
         } else {
-            $_SESSION = array_intersect_key($_SESSION, array('reg_code' => ""));
+            $_SESSION = array_intersect_key($_SESSION, array('reg_code' => "", 'REGISTRATION_ACCESS_CODE' => ''));
         }
 
         $ticket = $_REQUEST['wwp_ticket'];
