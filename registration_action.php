@@ -117,7 +117,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     $error_msg = "Invalid email address: " . htmlspecialchars($email);
 } else if (count($parts) != 2) {
     $error_msg = "Invalid email address: " . htmlspecialchars($email);
-} else if (!Iam::isMailAuthorized($mng, $email)) {
+} else if ( (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) &&  !Iam::isMailAuthorized($mng, $email)) {
     $error_msg = "<p>The email address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
 } else {
     $puid = new Puid($mng, $_SESSION['PUID']);
