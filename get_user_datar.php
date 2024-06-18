@@ -80,7 +80,14 @@ function getUserDataProxy($mng)
     $dt = number_format((microtime(true) - $t0), 3);
     Utils::timingLog("csrfValid " . $dt);
     
-    $user = new User($mng, $_SESSION['UserID']);
+    try {
+        $user = new User($mng, $_SESSION['UserID']);
+    } catch (Exception $e) {
+        $err_msg = 'Caught exception: ' . $e->getMessage();
+        Utils::err(get_class($e));
+        Utils::err($err_msg);
+        return "login";
+    }
     $dt = number_format((microtime(true) - $t0), 3);
     Utils::timingLog("newUser " . $dt);
     return $user->getData();

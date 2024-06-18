@@ -148,6 +148,10 @@ class User
     }                            
 
     public function getProfile() {
+        if (isset($this->profile)) {
+            return;
+        }
+
         $mng_res = $this->mng->users->find(['_id' => $this->_id]);
         $res_array = $mng_res->ToArray();
 
@@ -184,14 +188,22 @@ class User
     }
 
     public function isSiteAdmin($create_if_first = false) {
+
+        //LDAP:
+        if(defined('LDAP') && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
+            return true;
+        }
+
         if (!isset($this->profile)) {
             $this->getProfile();
         }
+
         if (isset($this->profile->site_admin) 
             && ($this->profile->site_admin == true)
         ) {
             return true;
         }
+
         // check if we are the first:
         $admins = $this->mng->users->find(['site_admin' => true])->toArray();
         if( (count($admins) > 0) || !$create_if_first) {
@@ -200,23 +212,6 @@ class User
         Utils::err('first admin');
         $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true]]);
         return true;
-    }
-
-    public function setStatus($new_status) {
-        if($new_status == 'admin') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => true, 'disabled' => false]]);
-            return ['status' => "Ok"];
-        }
-        if($new_status == 'active') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => false]]);
-            return ['status' => "Ok"];
-        }
-        if($new_status == 'disabled') {
-            $this->mng->users->updateOne(['_id' => $this->_id], ['$set' =>['site_admin' => false, 'disabled' => true]]);
-            return ['status' => "Ok"];
-        }
-        Utils::err('usr err 107 operation ' . $operation);
-        return ['status' => "Internal error"];
     }
 
     public function setInactivityTimeout($id, $value) {
@@ -425,12 +420,10 @@ class User
             $data['theme'] = $this->profile->theme;
         }
 
-
         $groups  = $this->getGroups();
         if(count($groups)) {
             $data['groups'] = $groups;
         }
-
 
         $data = array_merge($data, $this->getPlanDetails());
 
@@ -443,6 +436,9 @@ class User
             $data['business'] = true;
             if (defined('HIDDEN_PASSWORDS_ENABLED') && HIDDEN_PASSWORDS_ENABLED) {
                $data['HIDDEN_PASSWORDS_ENABLED'] = true; 
+            }
+            if(defined('MSP') && MSP  && !isset($this->profile->company)) {
+                $data['msp'] = true;
             }
         }
 
@@ -1180,6 +1176,12 @@ class User
                     return "User " . $email . " is not registered";
                     // ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
                 }
+
+
+                if(defined('MSP') && isset($_SESSION['company']) && isset($a[0]->company) && ($a[0]->company != $_SESSION['company'])) {
+                    return "User " . $email . " not found";
+                }
+
                 $TargetUserID = (string)($a[0]->_id);
                 if ($TargetUserID == $this->UserID) {
                     return "You cannot share the safe with yourself (" . $UserName . ")";
@@ -1447,15 +1449,39 @@ class User
           
             $ldap_filter = "(&{$user_filter}{$group_filter})";
             $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
-            Utils::err('LDAP search with filter ' . $ldap_filter);
-            Utils::err('Base dn ' . LDAP['base_dn']);
+#            Utils::err('LDAP search with filter ' . $ldap_filter);
+#            Utils::err('Base dn ' . LDAP['base_dn']);
 
             if ($sr == false) {
                 Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
             }
             $info = ldap_get_entries($ds, $sr);
-            Utils::err('User enabled: ' . $info['count']);
+#            Utils::err('User enabled: ' . $info['count']);
             $user_enabled = $info['count'];
+
+
+            if (defined('LDAP') && (isset(LDAP['admin_group']))) {
+#                Utils::err('info');
+#                Utils::err($info);
+    
+#                Utils::err('memberof');
+                $memberof =  $info['0']['memberof'];
+    
+#                Utils::err($memberof);
+    
+                $group_count = $memberof['count'];
+                Utils::err('group count ' . $group_count);
+                for( $i = 0; $i < $group_count; $i++) {
+                    $group = $memberof[strval($i)];
+#                    Utils::err('group ' . $i . ' ' . $group);
+                    if($group == LDAP['admin_group']) {
+                        Utils::err('admin group member');
+                        $_SESSION['admin'] = true;
+                        break;
+                    }
+                }
+            }
+
             if ($user_enabled) {
                 return true;
             }

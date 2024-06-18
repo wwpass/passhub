@@ -86,7 +86,6 @@ class Utils
             ];
         }
 
-
         $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $messages]);
 
         $data = $response->getData();
@@ -206,6 +205,22 @@ class Utils
     public static function err($message) {
         self::log($message, "passhub", "err");
     }
+
+    public static function audit_log($mng, $message) {
+
+        if( array_key_exists('actor', $message) &&
+            array_key_exists('operation', $message)
+        ) {
+            $record = array_merge([ 'timestamp' => Date('c')], $message);
+            $mng->audit->insertOne($record);
+        } else {
+            self::err("audit_log: bad message");
+            self::err($message);
+        }
+    }
+    
+
+
 /*
     public static function err1($message) {
         if(is_array($message)) {
