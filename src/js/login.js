@@ -74,7 +74,10 @@ if (isSafariPrivateMode()) {
 }
 
 if (!navigator.userAgent.match(/electron/)) {
-  if ((window.location.protocol !== 'https:') && (window.location.hostname !== 'localhost') && !window.location.hostname.endsWith('.localhost')) {
+  if ((window.location.protocol !== 'https:')
+    && (window.location.hostname !== 'localhost')
+    && (window.location.hostname !== '127.0.0.1')
+    && !window.location.hostname.endsWith('.localhost')) {
     window.location.href = 'notsupported.php?js=2';
   } else if (!compatibleBrowser()) {
     window.location.href = 'notsupported.php?js=1';
