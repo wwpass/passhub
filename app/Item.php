@@ -28,7 +28,7 @@ class Item
         $this->_id = (strlen($this->entryID) != 24) ? $this->entryID : 
             new \MongoDB\BSON\ObjectID($this->entryID);
     }
-
+/*
     public static function get_item_list_cse($mng, $UserID, $SafeID, $opt = ['no_files' => false]) {
 
         $UserID = (string)$UserID;
@@ -49,7 +49,7 @@ class Item
         }
         return array();
     }
-
+*/
 
 //******************************************************************
 
