@@ -16,7 +16,7 @@ define('WWPASS_PIN_REQUIRED', true);
 // Log out on hardware PassKey removal, default true
 define('WWPASS_LOGOUT_ON_KEY_REMOVAL', true);
 
-// MAX allocated resources
+// MAX allocated resources, storage size in bytes
 define('MAX_RECORDS_PER_USER', 10000);
 define('MAX_STORAGE_PER_USER', 1024 * 1024 * 1024);
 
@@ -96,8 +96,11 @@ define(
 );
 */
 
-// ** Access control
+// ** Access control and sharing method
+// IF LDAP is defined, it has the higher priority
 
+
+/*
 define(
     'LDAP', [
       // Active directory server schema, name and port
@@ -117,7 +120,7 @@ define(
       'bind_pwd' => "xxxxx"
     ]
 );
-
+*/
 
 // if LDAP is not defined: allowed mail domains, space separated
 define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
@@ -127,12 +130,8 @@ define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
 // 
 // define('MAIL_DOMAIN', "any");
 
-// Sharing invitation expiration timeout, default 48 hours (anonimous accounts only)
+// Sharing invitation expiration timeout, default 48 hours (anonymous accounts only)
 define('SHARING_CODE_TTL', 48*60*60);
-
-
-
-// ** 
 
 // white-label login page 
 // define('LOGIN_PAGE', "views/login.html");
