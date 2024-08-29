@@ -1,21 +1,21 @@
 ---
-sidebar_label: "Installing PassHub on Ubuntu 20.04"
 sidebar_position: 11
 ---
 
-# Installing PassHub on Ubuntu 20.04
+# Installing PassHub on Linux
 
 ## About This Document
 
 PassHub is a web-based password manager for individuals and teams with support for client-side encryption. PassHub relies on WWPass authentication and data encryption technology and can work both with hardware WWPass Key and WWPass Key smartphone application.
 
-In this guide, we describe how to get PassHub installed on your Ubuntu 20.04 server.
 
 Practical knowledge of web server deployment is required, including DNS configuration and SSL certificates.
 
+This installation guide was tested for Ubuntu 24.04 but will work with other Linux Distrubutions.
+
 ## Prerequisites
 
-To deploy Passhub, you should set up Ubuntu 20.04 Server and
+To deploy Passhub, you should set up a Linux Server and
 configure a regular, non-root user with `sudo` privileges. The following hardware requirements should be met:
 
 - CPU: 1 Core
@@ -27,8 +27,6 @@ of PassHub users.
 
 Your server should be accessible either publicly or within your organization network and have a DNS name configured. An internet connection is needed both for the purposes of this guide and regular operation. A valid (not self-signed) SSL certificate is required so that your server can be accessed via HTTPS.
 
-PassHub requires a WWPass Service Provider certificate, which can be obtained at https://developers.wwpass.com.
-
 ## Step 1: Install the Nginx Web Server
 
 Since this is our first interaction with the apt packaging system in this session, we should update our local package index, so that we have access to the most recent versions of packages. After that, Nginx can be installed.
@@ -38,39 +36,47 @@ sudo apt update
 sudo apt install -y nginx
 ```
 
-On Ubuntu 20.04, Nginx is configured to start running upon installation.
+On most Linux Systems, Nginx is configured to start running upon installation.
 
-## Step 2.1: Install MongoDB Database
+## Step 2: Install MongoDB Database
 
-While it is possible to use MongoDB version which comes with Ubuntu, we highly recommend MongoDB version 4.4.
+While it is possible to use the MongoDB version which comes with some Linux Distrubutions, we highly recommend MongoDB version 7.0.
 
-Please follow instructions on MongoDB site: https://docs.mongodb.com/v4.4/installation/, specifically for Ubuntu 20.04 use
-https://docs.mongodb.com/v4.4/tutorial/install-mongodb-on-ubuntu
+Please follow instructions on MongoDB site: https://www.mongodb.com/docs/manual/administration/install-on-linux/#std-label-install-mdb-community-edition-linux
+
+Specifically for Ubuntu 24.04 use
+https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/#std-label-install-mdb-community-ubuntu
+
+**Note:** The current command that MongoDB provides for pulling the list file for Ubuntu 24.04 is incorrect and must be changed to:
+```bash
+echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu/dists/jammy/mongodb-org/7.0/multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+```
 
 ## Step 3: Install PHP
 
-PHP version 7.4 which comes with Ubuntu 20.04 is generally Ok, However for the latest MongoDB version, get MongoDB PHP driver with PECL, according to MongoDB instructions: https://docs.mongodb.com/php-library/current/tutorial/install-php-library/
+PHP might be installed on your Linux System, However for the latest MongoDB version we suggest PHP Version 8.3.
 
-Type the following command to install PHP and additional modules required by PassHub:
+Type the following command to install PHP and other additional modules required by PassHub:
 
 ```bash
-sudo apt install -y php-fpm php-curl php-mbstring php-mail php-pear php-net-smtp
+sudo apt install -y php php-dev php-fpm php-curl php-mbstring php-mail php-pear php-net-smtp php-ldap
 ```
 
 ### 3.1: Maximum upload size
 
-Increase maximum upload size limits in `/etc/php/7.4/fpm/php.ini`:
+Increase maximum upload size limits in `/etc/php/8.3/fpm/php.ini`:
 
 ```
 post_max_size = 30M
 upload_max_filesize = 30M
 memory_limit = 256M
-
 ```
 
 ### 3.2: MongoDB driver
 
-Install MongoDB PHP driver according to https://docs.mongodb.com/drivers/php/
+Install the verision 1.19 MongoDB PHP driver with PECL, according to the MongoDB instructions: https://docs.mongodb.com/php-library/current/tutorial/install-php-library/
+
+**Note:** Do Not Run PHP Composer as we will do that later
 
 You may check the installed module version with the CLI command
 
@@ -78,27 +84,25 @@ You may check the installed module version with the CLI command
 php -r 'echo phpversion("mongodb");'
 ```
 
-(Should be 1.10 or higher)
+Make sure that the MongoDB module has been added to `php.ini` as it does not automatically always take effect
 
-### 3.3: LDAP module
-
-To configure LDAP connection, add **php-ldap** module:
-
-```bash
-sudo apt install -y php-ldap
 ```
-
-Finally, restart **php7.4-fpm** so that your configuration changes take effect:
+extension=mongodb.so
+```
+Finally, restart **php8.3-fpm** so that your configuration changes take effect:
 
 ```bash
-sudo service php7.4-fpm restart
+sudo service php8.3-fpm restart
 ```
 
 ### 3.4: Install PHP Composer
 
-For better results use **Composer version 2**: https://getcomposer.org/download/
+Most Linux distrubutions come with PHP Composer Version 2.7, to check run:
 
-While not recommended, it is still possible to use Composer version 1, which comes with Ubuntu
+```bash
+composer -vvv about
+```
+If not installed run:
 
 ```bash
 sudo apt install composer
@@ -106,16 +110,18 @@ sudo apt install composer
 
 ## Step 4: Extract PassHub Files
 
-Untar phub2-ent.tgz archive and put it to your server home directory.
+Grab the latest release of Passhub for Business from: https://github.com/wwpass/passhub/releases
+
+Untar the passhub.business.240829.tar.gz archive and put it in your server home directory.
 
 Extract the contents of the archive into the `/var/www` directory:
 
 ```bash
 cd /var/www
-sudo tar xvzf ~/phub2-ent.tgz
+sudo tar xvzf ~/passhub.business.240829.tgz
 ```
 
-Change ownership of the extracted files:
+Change the ownership of the extracted directory:
 
 ```bash
 sudo chown -R www-data:www-data /var/www/passhub
@@ -127,11 +133,15 @@ In the _/var/www/passhub_ directory run composer:
 
 ```bash
 sudo composer install
+sudo composer update
+composer require mongodb/mongodb
 ```
+**Note:** If these fail you can append '--ignore-platform-reqs'
+
 
 ### 4.2 Create working directories
 
-Create PassHub log and working directories:
+Create PassHub log, and working directories:
 
 ```bash
 sudo mkdir /var/log/passhub
@@ -144,52 +154,55 @@ sudo chown www-data:www-data /var/lib/passhub
 
 To configure Nginx web server, we need to obtain two SSL certificates: first, the HTTPS certificate to protect web connection and second - WWPass Service Provider certificate for PassHub.
 
-Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or there are more than one already existing URLs served by Nginx. If PassHub is not the first destination, you are probably already experienced enough to adapt following instructions to your needs.
+Final Nginx configuration depends on many factors, particularly if the PassHub is the only service or if there are more than one already existing URLs served by Nginx. If PassHub is not the first destination, you are probably already experienced enough to adapt following instructions to your needs.
 
-Here are the steps for freshly installed Nginx.
+Here are the steps for a freshly installed Nginx.
 
 ### 5.1 PassHub URL
 
 Start with selecting a URL for the PassHub service, e.g. 'passhub.yourcompany.com'. Set your DNS accordingly.
 
-### 5.1 SSL certificates
+### 5.2 WWPass certificates
+
+PassHub requires a WWPass Service Provider certificate, which can be obtained at the [WWPass developer](https://developers.wwpass.com) site. Click on 'Native Integrations', then 'Add New Application' and follow the instructions.
+
+### 5.3 SSL certificates
 
 Obtain the SSL certificate from Certificate Authority of your choice, e.g. [Let's Encrypt CA](https://letsencrypt.org/).
 
-### 5.2 WWPass certificates
+### 5.4 Nginx configuration
 
-PassHub requires a WWPass Service Provider certificate, which can be obtained at [WWPass developer](https://developers.wwpass.com) site.
-
-### 5.3 Nginx configuration
-
-There are no specific requirements for nginx configuration. Below is just a possible example
-
+There are no specific requirements for the nginx configuration. You will create a new configuration under:
+```bash
+/etc/nginx/sites-available/exampleconfig 
+```
+Here is an example config:
 ```nginx
 server {
   listen 80;
   listen [::]:80;
   server_name example.com;
   location / {
-    rewrite ^(.*)$ https://passhub.yourcompany.com$1;
+    rewrite ^(.*)$ https://passhub.yourcompany.com$1;        # Note 1
   }
 }
 server {
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
-  server_name passhub.yourcompany.com;
+  server_name passhub.yourcompany.com;    
   ssl on;
-  ssl_certificate /path/to/ssl/certificate/fullchain.pem;
-  ssl_certificate_key /path/to/ssl/certificate/privkey.pem;
+  ssl_certificate /path/to/ssl/certificate/fullchain.pem;    # Note 2
+  ssl_certificate_key /path/to/ssl/certificate/privkey.pem;  
   client_max_body_size 30M;
-  root /var/www/passhub;
-  index index.php index.html index.htm;
+  root /var/www/passhub.business.240829;   
+  index index.php index.html index.htm;                      # Note 3
   location ~/(config|helpers|src) {
     deny all;
     return 404;
   }
-  location ~ \.php$ {
+  location ~ \.php$ {                                        # Note 4
     include snippets/fastcgi-php.conf;
-    fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock; 
   }
 }
 ```
@@ -197,7 +210,9 @@ server {
 **Notes**:
 
 1. Change `passhub.yourcompany.com` to the DNS name of your server;
-2. Make sure `ssl_certificate` and `ssl_certificate_key` point to existing SSL certificate files;
+2. Make sure `ssl_certificate` and `ssl_certificate_key` point to existing SSL certificate files; 
+3. Add `index.php` to the `index index.html;` module if not in config file
+4. Everything inside the location module is required to connect and run PHP for Passhub 
 
 Create a symbolic link in the `/etc/nginx/sites-enabled/`
 directory so that Nginx can pick up the configuration file we just created:
@@ -233,7 +248,7 @@ Once your Nginx configuration contains no errors, reload nginx with new configur
 sudo nginx -s reload
 ```
 
-**Tip**: to temporarily disable your PassHub instance in Nginx, remove the symbolic link in the `/etc/nginx/sites-enabled/`
+**Optional Tip**: If you need to temporarily disable your PassHub instance in Nginx, remove the symbolic link in the `/etc/nginx/sites-enabled/`
 directory and reload Nginx configuration like this:
 
 ```bash
@@ -304,7 +319,6 @@ define('LOG_DIR', '/var/log/passhub');
 
 define('SYSLOG', true);
 
-
 // ** Database **
 
 // Database name
@@ -370,7 +384,7 @@ define(
 
 // If LDAP is defined, it has highest priority
 
-
+/*
 define(
     'LDAP', [
       // Active directory server schema, name and port
@@ -390,34 +404,32 @@ define(
       'bind_pwd' => "xxxxx"
     ]
 );
+*/
 
 
-
-// if LDAP is not defined: start with admin's email. The user will be assigned admin priviledges on the first login
+// if LDAP is not defined: allowed mail domains, space seperated. 
+// The user will be assigned admin priviledges on the first login
 
 define('MAIL_DOMAIN', "admin@yourcompany.com");
 
-//alernatively (not recommentded) it is possible to allow any users with email address from particular domain:
+// or use your mail only to start
+// define('MAIL_DOMAIN', "you@yourcompany.com");
+// 
+// define('MAIL_DOMAIN', "any");
 
-define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
-
-// or just allow anonymous registration (not recommended)
-define('MAIL_DOMAIN', "any");
-
-// if no LDAP or MAIL_DOMAIN is defined, anonymous registration and sharing are used
+// Sharing invitation expiration timeout, default 48 hours (anonymous accounts only)
+define('SHARING_CODE_TTL', 48*60*60);
 
 // **
 
 // white-label login page
 // define('LOGIN_PAGE', "views/login.html");
-
-
 ```
 
 Perform the following adjustments:
 
-1. Set `WWPASS_CERT_FILE` to the absolute path to your WWPass service provider certificate file (eg. /etc/ssl/yourcompany.com.crt);
-2. Set `WWPASS_KEY_FILE` to the absolute path to your WWPass service provider key file (e.g. /etc/ssl/yourcompany.com.key);
+1. Set `WWPASS_CERT_FILE` to the absolute path to your WWPass Service Provider certificate file (eg. /etc/ssl/yourcompany.com.crt);
+2. Set `WWPASS_KEY_FILE` to the absolute path to your WWPass Service Provider key file (e.g. /etc/ssl/yourcompany.com.key);
 
 3. Set `SUPPORT_MAIL_ADDRESS` to an email address you are going to use for handling user support requests;
 
@@ -435,11 +447,9 @@ If you have one, you are all set: Passhub uses it by default.
 
 ### Option 2
 
-Create or use a dedicated mail account on your company mail server. This case you need to install PHP PEAR/mail package on the Passhub server:
-
-`sudo apt install php-mail`
-
-Now add the account data to the config.php file, for example
+Create or use a dedicated mail account on your company mail server such as 
+[MailJet](https://www.mailjet.com/).
+Now add the account data to the config.php file, for example:
 
 ```php
  define(
@@ -455,9 +465,7 @@ Now add the account data to the config.php file, for example
 
 ### Option 3
 
-Create a dedicated gmail account. Basically, it is a variant of **Option 2**. Install PHP PEAR/mail package:
-
-`sudo apt install php-mail`
+Create a dedicated gmail account. Basically, it is a variant of **Option 2**.
 
 Add account data to the config.php, for example
 
@@ -475,15 +483,20 @@ Add account data to the config.php, for example
 
 For Gmail, tweak the security settings of the account. In the account settings choose 'Security' and turn on **Less secure app access** switch
 
+**Note:** Add or remove fields when required for mail setup
+
 ## Step 8: Test PassHub
 
-Open your web browser and navigate to the address of your PassHub server. You should see the PassHub main page with the authentication QR code. If your computer has WWPass Security Pack installed, you will also see a button to log in with the hardware WWPass Key under the QR code.
+Open your web browser and navigate to the address of your PassHub server.  
+e.g: `'passhub.yourcompany.com'`. You should see the PassHub main page with the authentication QR code. 
+
+**Note:** If your computer has the WWPass Security Pack installed, you will also see a button to log in with the hardware WWPass Key under the QR code.
 
 ## Step 9: Site administrator
 
-For corporate use, a PassHub administrator should be assigned. The administrator has the rights to monitor user activities, delete users or grant PassHub administrator role to other users. The PassHub administrator also controls the white list of email addresses of external users allowed to create an account.
+For corporate use, a PassHub administrator should be assigned. The administrator has the rights to monitor user activities, delete users or grant the PassHub administrator role to other users. The PassHub administrator also controls the white list of email addresses of external users allowed to create an account.
 
-The first logged-in user who visits `/iam.php` page of the site: `https://yourpasshub.com/iam.php` is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
+The first logged-in user who logins to the site is granted site administrator rights automatically. Other users only become site administrators by permission of the existing site administrators.
 
 ## Advanced: store your encrypted files in the cloud
 
@@ -558,8 +571,6 @@ To configure PassHub connection to Active Directory, fill the LDAP structure in 
 
 For detailed LDAP parameters see the file `config-sample.php` in the distro and in the text above.
 
-NOTE: `php-ldap` module is required for LDAP connection.
-
 ## Getting bigger
 
 ### Speed up MongoDB
@@ -577,13 +588,13 @@ db.safe_folders.createIndex({SafeID:-1})
 
 The number of simultaneous php-fpm instances affects request processing.
 
-Check `php7.4-fpm.log` files for the following lines:
+Check `php8.3-fpm.log` files for the following lines:
 
 ```
 WARNING: [pool www] server reached pm.max_children setting (5), consider raising it
 ```
 
-In this case increase settings in `/etc/php/7.4/fpm/pool.d/www.conf`
+In this case increase settings in `/etc/php/8.3/fpm/pool.d/www.conf`
 
 ```
 pm.max_children = 10
