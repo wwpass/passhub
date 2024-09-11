@@ -237,7 +237,7 @@ class Iam
         $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
 
         if (!$r) {
-            $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
+            $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds);
             Utils::err($result);
             $e = ldap_errno($ds); 
             ldap_close($ds);
@@ -418,7 +418,9 @@ class Iam
         $stats .= "Safes total: " . count($safes) . "\n";
         $stats .= "Safes shared: " . count($shared_safes) . "\n";
         
-        $stats .= "MAIL DOMAINS: " . MAIL_DOMAIN . "\n";
+        if(defined('MAIL_DOMAIN')) {
+            $stats .= "MAIL DOMAINS: " . MAIL_DOMAIN . "\n";
+        }
         
         foreach ($user_array as $user) {
             if(isset($user->_id)) {
