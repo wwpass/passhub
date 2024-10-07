@@ -105,7 +105,7 @@ class Puid
             'currentSafe' => null
         ];
   
-        if (defined('LDAP')) {
+        if (defined('LDAP') || defined('AzureCloud')) {
             $email = $_SESSION['email'];
             $userprincipalname = $_SESSION['userprincipalname'];
         } else if (defined('MAIL_DOMAIN')) {
