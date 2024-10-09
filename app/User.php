@@ -197,7 +197,7 @@ class User
     public function isSiteAdmin($create_if_first = false) {
 
         //LDAP:
-        if(defined('LDAP') && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
+        if( (defined('LDAP') || defined('AzureCloud')) && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
             return true;
         }
 
@@ -1428,6 +1428,21 @@ class User
         }
     }
 
+    public function checkAzureAccess() {
+        Utils::err('checkAzureAccess');
+        if (!isset($this->profile)) {
+            $this->getProfile();
+        }
+        if (isset($this->profile->userprincipalname)) {
+            $r = \PassHub\Azure::checkAccess($this->profile->userprincipalname);
+            Utils::err('checkAzureAccess');
+            Utils::err($r);
+	    Utils::err('Session');
+	    Utils::err($_SESSION);
+        Utils::err('TODO 1142');  
+        }
+    }
+    
     public function checkLdapAccess() {
         Utils::err('checkLdapAccess');
         if (!isset($this->profile)) {

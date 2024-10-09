@@ -77,9 +77,7 @@ Utils::err('----' . $me->getUserPrincipalName());
 Utils::err('----' . $me->getMail());
 
 
-
-
-$_SESSION['userprincipalname'] = $$userprincipalname;
+$_SESSION['userprincipalname'] = $userprincipalname;
 
 $_SESSION['email'] = $email;
 

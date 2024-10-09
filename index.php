@@ -135,6 +135,8 @@ try {
             $_SESSION['email'] = $user->profile->email;
 
             if(defined('AzureCloud')) {
+                $user->checkAzureAccess();
+                Utils::err('TODO 139');
 //                PassHub\Azure::AzureAuthenticate();
      //           exit();                                
             } else if (defined('LDAP')) {
