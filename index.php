@@ -135,10 +135,22 @@ try {
             $_SESSION['email'] = $user->profile->email;
 
             if(defined('AzureCloud')) {
-                $user->checkAzureAccess();
-                Utils::err('TODO 139');
-//                PassHub\Azure::AzureAuthenticate();
-     //           exit();                                
+                if(!$user->checkAzureAccess()) {
+                    $_SESSION = array();
+                    session_destroy();
+                    echo Utils::render(
+                        'error_page.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'hide_logout' => true,
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
+                            'header' => 'Access denied',
+                            'text' => 'Consult system administrator'
+                        ]
+                    );
+                    exit();
+                }
             } else if (defined('LDAP')) {
                 $a = $user->checkLdapAccess();
                 if ($a === "not bound") {

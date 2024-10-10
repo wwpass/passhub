@@ -115,9 +115,10 @@ class Azure
 	Utils::err($userMembersObject);
 
         // Check if this userprincipalname is same in members group 
-        for($i = 0; $i < count($userMembersObject); $i++) {
+	Utils::err('userMembersObject count ' . count($userMembersObject['value']));
+        for($i = 0; $i < count($userMembersObject['value']); $i++) {
             $userMembersArray = get_object_vars($userMembersObject["value"][$i]);     
-            $userMembersName = $userMembersArray["userPrincipalName"];                             
+            $userMembersName = $userMembersArray["userPrincipalName"];
         
             // If Not Null then Continue on
             if(!is_null($userMembersName)) {  
@@ -141,7 +142,7 @@ class Azure
 
 
         // Check if this userprincipalname is same in members group 
-        for($i = 0; $i < count($adminMembersObject); $i++) {
+        for($i = 0; $i < count($adminMembersObject['value']); $i++) {
             $adminMembersArray = get_object_vars($adminMembersObject["value"][$i]);     
             $adminMembersName = $adminMembersArray["userPrincipalName"];                             
         

@@ -1437,10 +1437,12 @@ class User
             $r = \PassHub\Azure::checkAccess($this->profile->userprincipalname);
             Utils::err('checkAzureAccess');
             Utils::err($r);
-	    Utils::err('Session');
-	    Utils::err($_SESSION);
-        Utils::err('TODO 1142');  
+            Utils::err('Session');
+            Utils::err($_SESSION);
+            Utils::err('TODO 1142');  
+            return $r;
         }
+        return false;
     }
     
     public function checkLdapAccess() {
