@@ -38,9 +38,10 @@ class Azure
     
     public static function checkAccess($username) {
 
+/*
         Utils::err('Azure checkAccess');
         Utils::err($username);
-
+*/
         $groupsArray = Azure::getUsers();
         $userUpns = $groupsArray["user_upns"];
         $adminUpns = $groupsArray["admin_upns"];
@@ -86,7 +87,7 @@ class Azure
         $userGroupIdArray = get_object_vars($userGroupObject["value"][0]); 
         $userGroupId = $userGroupIdArray["id"];
 
-	Utils::err("userGroupId " . $userGroupId);
+	// Utils::err("userGroupId " . $userGroupId);
 
         $getAdminGroupId = $guzzle->request('GET', 'https://graph.microsoft.com/v1.0/groups?$filter=startswith(displayName,' . "'$adminGroupUrl'" . ')&$select=id', [
             'headers' => [
@@ -99,7 +100,8 @@ class Azure
         $adminGroupObject = get_object_vars(json_decode($groupAdminIdBody));
         $adminGroupIdArray = get_object_vars($adminGroupObject["value"][0]);
         $adminGroupId = $adminGroupIdArray["id"];
-	Utils::err("adminGroupId " . $adminGroupId);
+
+	// Utils::err("adminGroupId " . $adminGroupId);
 
         // Call microsoft graph for all members in passhub users group from config 
         $getMembersOfUsers = $guzzle->request('GET', 'https://graph.microsoft.com/v1.0/groups/{' . $userGroupId . '}/members?$select=userPrincipalName', [
@@ -111,11 +113,13 @@ class Azure
         $memberOfUsersBody = $getMembersOfUsers->getBody();
         $userMembersObject = get_object_vars(json_decode($memberOfUsersBody));
 
+/*
 	Utils::err("Users group");
 	Utils::err($userMembersObject);
+*/
 
         // Check if this userprincipalname is same in members group 
-	Utils::err('userMembersObject count ' . count($userMembersObject['value']));
+// 	Utils::err('userMembersObject count ' . count($userMembersObject['value']));
         for($i = 0; $i < count($userMembersObject['value']); $i++) {
             $userMembersArray = get_object_vars($userMembersObject["value"][$i]);     
             $userMembersName = $userMembersArray["userPrincipalName"];
@@ -135,10 +139,10 @@ class Azure
 
         $memberOfAdminBody = $getMembersOfAdmins->getBody();
         $adminMembersObject = get_object_vars(json_decode($memberOfAdminBody));
-
+/*
 	Utils::err("Admin group");
 	Utils::err($adminMembersObject);
-
+*/
 
 
         // Check if this userprincipalname is same in members group 

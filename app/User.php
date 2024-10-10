@@ -1429,17 +1429,20 @@ class User
     }
 
     public function checkAzureAccess() {
-        Utils::err('checkAzureAccess');
+//         Utils::err('checkAzureAccess');
         if (!isset($this->profile)) {
             $this->getProfile();
         }
         if (isset($this->profile->userprincipalname)) {
-            $r = \PassHub\Azure::checkAccess($this->profile->userprincipalname);
+//            $r = \PassHub\Azure::checkAccess($this->profile->userprincipalname);
+            $r = Azure::checkAccess($this->profile->userprincipalname);
+            /*
             Utils::err('checkAzureAccess');
             Utils::err($r);
             Utils::err('Session');
             Utils::err($_SESSION);
             Utils::err('TODO 1142');  
+            */
             return $r;
         }
         return false;
