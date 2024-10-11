@@ -37,7 +37,7 @@ function ldap() {
 
     if(!$ds) {
         Utils::err(" error 1070 ldapConnect fail");
-        return "LDAP Connect fail, consult system administrator";
+        return "LDAP Connect fail, please contact your system administrator";
     }    
     
     for ( $i = 0; $i < 3; $i++) {
@@ -82,7 +82,7 @@ function ldap() {
     if ($user_enabled) {
         $user_mail = $info[0]['mail'][0];
     } else {
-        return "You are not authorized for this service. Consult your system administrator";
+        return "You are not authorized for this service. Please contact your system administrator";
     }
     ldap_close($ds);
 

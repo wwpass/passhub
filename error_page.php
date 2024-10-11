@@ -72,7 +72,7 @@ if (isset($_GET['js']) && ($_GET['js'] == "SafariPrivateMode")) {
             Utils::err("Crypto timeout");
         } else {
             $header = "Internal server error";
-            $text=$_SESSION['error_message'] = 'Consult system administrator';
+            $text=$_SESSION['error_message'] = 'Please contact your system administrator';
         }
     }
     Utils::err("error_page message: " . $_SESSION['error_message']);

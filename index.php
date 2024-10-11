@@ -50,7 +50,7 @@ if (!isset($_SERVER['HTTP_USER_AGENT'])) {
 
 if (defined('FILE_DIR') && defined('GOOGLE_CREDS')) {
     Utils::err("Error: both local storage and Google drive are enabled");
-    Utils::errorPage("Site is misconfigured. Consult system administrator");
+    Utils::errorPage("Site is misconfigured. Please contact your system administrator");
 }
 
 if (!isset($_SESSION['PUID'])) {
@@ -146,7 +146,7 @@ try {
                             'hide_logout' => true,
                             'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
                             'header' => 'Access denied',
-                            'text' => 'Consult system administrator'
+                            'text' => 'Please contact your system administrator'
                         ]
                     );
                     exit();
@@ -177,7 +177,7 @@ try {
                             'hide_logout' => true,
                             'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
                             'header' => 'Access denied',
-                            'text' => 'Consult system administrator'
+                            'text' => 'Please contact your system administrator'
                         ]
                     );
                     exit();
@@ -201,7 +201,7 @@ try {
     $user->getProfile();
 
     if($user->disabled()) {
-        Utils::errorPage("The account is disabled. Please consult your system administrator");
+        Utils::errorPage("The account is disabled. Please contact your system administrator");
     }
 
     if (!defined('LDAP') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {

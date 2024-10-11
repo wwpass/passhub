@@ -41,7 +41,7 @@ abstract class File
             return new FileS3($fname);
         }
         Utils::err("Error: no file storage configured");
-        throw new \Exception('Site is misconfigured. Consult system administrator.');
+        throw new \Exception('Site is misconfigured. Please contact your system administrator.');
     }
 
 
