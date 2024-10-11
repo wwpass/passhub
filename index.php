@@ -28,12 +28,13 @@ if (!file_exists('vendor/autoload.php')) {
 require_once 'vendor/autoload.php';
 
 use PassHub\Utils;
-use PassHub\Survey;
 use PassHub\Csrf;
 use PassHub\DB;
 use PassHub\User;
 use PassHub\Puid;
-use PassHub\Iam;
+
+// use PassHub\Iam;
+// use PassHub\Survey;
 
 $mng = DB::Connection();
 
@@ -69,7 +70,10 @@ try {
         $result = $puid->getUserByPuid();
         if ($result['status'] == "not found") {
 
-
+            if(defined('AzureCloud')) {
+                PassHub\Azure::Authenticate();
+                exit();                                
+            }
 
             if (defined('LDAP') 
                 && ( !isset(LDAP['mail_registration']) 
@@ -130,7 +134,24 @@ try {
             $_SESSION["UserID"] = $UserID;
             $_SESSION['email'] = $user->profile->email;
 
-            if (defined('LDAP')) {
+            if(defined('AzureCloud')) {
+                if(!$user->checkAzureAccess()) {
+                    $_SESSION = array();
+                    session_destroy();
+                    echo Utils::render(
+                        'error_page.html', 
+                        [
+                            // layout
+                            'narrow' => true, 
+                            'hide_logout' => true,
+                            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
+                            'header' => 'Access denied',
+                            'text' => 'Consult system administrator'
+                        ]
+                    );
+                    exit();
+                }
+            } else if (defined('LDAP')) {
                 $a = $user->checkLdapAccess();
                 if ($a === "not bound") {
                     echo Utils::render(
