@@ -15,9 +15,16 @@
     {{ content|raw }}
 
     <div>
+      {% if logout %}
+      <button class="btn btn-primary" style="float:right; margin-left: 1em" 
+        onclick="location.href = 'logout.php';">Log out</button>
+      {% else %}
       <button class="btn btn-primary" style="float:right; margin-left: 1em" 
         onclick="location.href = 'index.php';">Ok</button>
+      {% endif %}
+
     </div>
+
   </div>  
 </div>
 {% endblock %}

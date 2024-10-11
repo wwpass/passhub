@@ -77,9 +77,21 @@ Utils::err('----' . $me->getUserPrincipalName());
 Utils::err('----' . $me->getMail());
 
 
-$_SESSION['userprincipalname'] = $userprincipalname;
+// check if this userprincipalname exists
 
-$_SESSION['email'] = $email;
+$count = $mng->users->countDocuments(['userprincipalname' => $userprincipalname]);
+if($count == 0) {
+    $_SESSION['userprincipalname'] = $userprincipalname;
+    $_SESSION['email'] = $email;
+    Utils::showCreateUserPage();
+    exit();
+} 
+Utils::err("userprincipalname $userprincipalname already exists");
+
+Utils::messagePage("Error SSO 85", "<p>Please contact your system administrator</p>", true);
+
+
+
 
 /*
 
@@ -109,7 +121,6 @@ GET https://graph.microsoft.com/v1.0/users/6e7b768e-07e2-4810-8459-485f84f8f204/
 
 */
 
-Utils::showCreateUserPage();
 
 
 /*

@@ -267,15 +267,33 @@ class Utils
         exit();
     }
 
-    public static function messagePage($title, $content) {
 
-        Utils::render(
+    /*
+    function message_page($title, $content) {
+
+        echo Utils::render(
             'message_page.html',
             [
                 'narrow' => true,
                 'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
                 'title' => $title,
                 'content' => $content
+            ]
+        );
+        exit();
+    } 
+*/
+
+    public static function messagePage($title, $content, $logout = false) {
+
+        echo Utils::render(
+            'message_page.html',
+            [
+                'narrow' => true,
+                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
+                'title' => $title,
+                'content' => $content,
+                'logout' => $logout
             ]
         );
         exit();
@@ -343,21 +361,6 @@ class Utils
         $privKey = $wwc->readData($ticket);
         return $privKey;
     }
-
-    function message_page($title, $content) {
-
-        echo Utils::render(
-            'message_page.html',
-            [
-                'narrow' => true,
-                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-                'title' => $title,
-                'content' => $content
-            ]
-        );
-        exit();
-    } 
-
 
     public static function render_react(string $template, array $context = []): string
     {
