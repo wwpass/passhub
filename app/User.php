@@ -1454,67 +1454,8 @@ class User
             $this->getProfile();
         }
         if (isset($this->profile->userprincipalname)) {
-
-            $ds=Utils::ldapConnect();
-
-            if(!$ds) {
-                Utils::err(" error 1070 ldapConnect fail");
-                return false;
-            }
-            
-            $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
-
-            if (!$r) {
-                $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds) . " ". $i . "<br>";
-                Utils::err($result);
-                $e = ldap_errno($ds); 
-                ldap_close($ds);
-                return false;
-            }
-            $user_filter = "(userprincipalname={$this->profile->userprincipalname})";
-            $group_filter = "(memberof=".LDAP['group'].")";
-          
-            $ldap_filter = "(&{$user_filter}{$group_filter})";
-            $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
-#            Utils::err('LDAP search with filter ' . $ldap_filter);
-#            Utils::err('Base dn ' . LDAP['base_dn']);
-
-            if ($sr == false) {
-                Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
-            }
-            $info = ldap_get_entries($ds, $sr);
-#            Utils::err('User enabled: ' . $info['count']);
-            $user_enabled = $info['count'];
-
-
-            if (defined('LDAP') && (isset(LDAP['admin_group']))) {
-#                Utils::err('info');
-#                Utils::err($info);
-    
-#                Utils::err('memberof');
-                $memberof =  $info['0']['memberof'];
-    
-#                Utils::err($memberof);
-    
-                $group_count = $memberof['count'];
-                Utils::err('group count ' . $group_count);
-                for( $i = 0; $i < $group_count; $i++) {
-                    $group = $memberof[strval($i)];
-#                    Utils::err('group ' . $i . ' ' . $group);
-                    if($group == LDAP['admin_group']) {
-                        Utils::err('admin group member');
-                        $_SESSION['admin'] = true;
-                        break;
-                    }
-                }
-            }
-
-            if ($user_enabled) {
-                return true;
-            }
-            Utils::err('Ldap: access denied');
-
-            return false;
+            $r = LDAP::checkAccess($this->profile->userprincipalname);
+            return $r;
         }
         Utils::err('LDAP: no userprincipalname in user profile');
         return "not bound";

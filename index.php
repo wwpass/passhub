@@ -204,7 +204,7 @@ try {
         Utils::errorPage("The account is disabled. Please contact your system administrator");
     }
 
-    if (!defined('LDAP') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {
+    if ( !defined('LDAP') && !defined('AzureCloud') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {
 //        if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
         if ($user->profile->email == "") {
             if (!$puid->isValidated()) {

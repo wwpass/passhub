@@ -216,6 +216,7 @@ class Iam
         return $groups;
     }
 
+/*
     private static function isInAdminGroup($user) {
         $group_count = $user['memberof']['count'];
         for($g = 0; $g < $group_count; $g++ ) {
@@ -225,51 +226,7 @@ class Iam
         }
         return false;
     }
-
-    private static function getLdapUsers() {
-        $ds=Utils::ldapConnect();
-
-        if(!$ds) {
-            Utils::err(" error 1070 ldapConnect fail");
-            return false;
-        }
-        
-        $r=ldap_bind($ds, LDAP['bind_dn'], LDAP['bind_pwd']);
-
-        if (!$r) {
-            $result =  "Bind error " . ldap_error($ds) . " " . ldap_errno($ds);
-            Utils::err($result);
-            $e = ldap_errno($ds); 
-            ldap_close($ds);
-            return false;
-        }
-
-        $user_filter = "(objectClass=user)";
-        $group_filter = "(memberof=".LDAP['group'].")";
-
-        
-        $ldap_filter = "(&{$user_filter}{$group_filter})";
-        $sr=ldap_search($ds, LDAP['base_dn'],  $ldap_filter);
-
-        if ($sr == false) {
-            Utils::err("ldap_search fail, ldap_errno " . ldap_errno($ds) . " base_dn * " . LDAP['base_dn'] . " * ldap_filter " . $ldap_filter);
-        }
-        $info = ldap_get_entries($ds, $sr);
-
-        $user_count = $info['count'];
-        $user_upns = [];
-        $admin_upns = [];
-
-        for($u = 0; $u < $user_count; $u++) {
-            $user = $info[strval($u)];
-            $upn = strtolower($user['userprincipalname']['0']);
-            array_push($user_upns, $upn);
-            if(self::isInAdminGroup($user)) {
-                array_push($admin_upns, $upn);  
-            }
-        }
-        return ["user_upns" => $user_upns, "admin_upns" => $admin_upns];
-    }
+*/
 
     private static function getUserArray($mng, $req, $UserID) 
     {
@@ -305,7 +262,7 @@ class Iam
             if(defined('AzureCloud')) {
                 $lu = Azure::getUsers();
             } else {
-                $lu = self::getLdapUsers();
+                $lu = LDAP::getUsers();
             }
 
             $ldap_users = $lu["user_upns"];

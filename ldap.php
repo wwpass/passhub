@@ -13,7 +13,7 @@ $mng = DB::Connection();
 
 session_start();
 
-function ldap() {
+function ldap_proxy() {
     if (!$_POST['username'] || !$_POST['password']) {
         return "username and password fields should not be empty";
     }
@@ -33,7 +33,19 @@ function ldap() {
     $bind_rdn = $username;
     $bind_pwd = trim($_POST['password']);
   
-    $ds=Utils::ldapConnect();
+//    $ds=LDAP::connect();
+
+    if(isset(LDAP['LDAP_OPT_X_TLS_REQUIRE_CERT'])) {
+        ldap_set_option(NULL, LDAP_OPT_X_TLS_REQUIRE_CERT, LDAP['LDAP_OPT_X_TLS_REQUIRE_CERT']);
+    }
+    $ds=ldap_connect(LDAP['url']);
+    if(!$ds) {
+        return false;
+    }
+
+    ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
+    ldap_set_option($ds, LDAP_OPT_NETWORK_TIMEOUT, 10);
 
     if(!$ds) {
         Utils::err(" error 1070 ldapConnect fail");
@@ -92,7 +104,7 @@ function ldap() {
     return ['status' => 'Ok', 'email' => $user_mail, 'enabled' => $user_enabled, 'userprincipalname' => $username];
 }
 
-$result = ldap();
+$result = ldap_proxy();
 
 if (!is_array($result)) {
     $result = array("status" => $result);
