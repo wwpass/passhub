@@ -257,9 +257,9 @@ class Iam
             ]);
         $user_array = $cursor->toArray();
 
-        if(defined('AzureCloud') || defined ('LDAP')) {
+        if(defined('AZURE') || defined ('LDAP')) {
             $lu = null;
-            if(defined('AzureCloud')) {
+            if(defined('AZURE')) {
                 $lu = Azure::getUsers();
             } else {
                 $lu = LDAP::getUsers();
@@ -406,7 +406,7 @@ class Iam
         if(defined('LICENSED_USERS')) {
             $result['LICENSED_USERS'] = LICENSED_USERS;
         }
-        if(defined('LDAP') || defined('AzureCloud')) {
+        if(defined('LDAP') || defined('AZURE')) {
             $result['LDAP'] = true;
         }
         return $result;

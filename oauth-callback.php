@@ -27,12 +27,12 @@ if ( !array_key_exists("code",$_GET)  || !array_key_exists("state",$_GET) ) {
 $code = $_GET['code'];
 $state = $_GET['state'];
 
-$clientId = AzureCloud['application_client_id'];
-$tenantId = AzureCloud['directory_tenant_id'];
-$clientSecret = AzureCloud['client_value'];
+$clientId = AZURE['application_client_id'];
+$tenantId = AZURE['directory_tenant_id'];
+$clientSecret = AZURE['client_value'];
 
-$userGroupUrl = AzureCloud['user_group'];
-$adminGroupUrl = AzureCloud['admin_group'];
+$userGroupUrl = AZURE['user_group'];
+$adminGroupUrl = AZURE['admin_group'];
 
 
 $guzzle = new \GuzzleHttp\Client();

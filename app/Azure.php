@@ -20,10 +20,10 @@ class Azure
 {
 
     public static function Authenticate() {
-        Utils::err(AzureCloud);
+        Utils::err(AZURE);
         
-        $url = 'https://login.microsoftonline.com/' . AzureCloud['directory_tenant_id'] . '/oauth2/v2.0/authorize?' . http_build_query([
-            'client_id' => AzureCloud['application_client_id'],
+        $url = 'https://login.microsoftonline.com/' . AZURE['directory_tenant_id'] . '/oauth2/v2.0/authorize?' . http_build_query([
+            'client_id' => AZURE['application_client_id'],
             'response_type' => 'code',
             'redirect_uri' => 'https://' . $_SERVER['HTTP_HOST'] . '/oauth-callback.php',
             'response_mode' => 'query',
@@ -68,8 +68,8 @@ class Azure
 
         $accessToken = Azure::GetAccessToken();
 
-        $userGroupUrl = AzureCloud['user_group'];
-        $adminGroupUrl = AzureCloud['admin_group'];
+        $userGroupUrl = AZURE['user_group'];
+        $adminGroupUrl = AZURE['admin_group'];
         $user_upns = [];
         $admin_upns = [];
 
@@ -160,9 +160,9 @@ class Azure
 
     public static function GetAccessToken() {
 
-        $clientId = AzureCloud['application_client_id'];
-        $tenantId = AzureCloud['directory_tenant_id'];
-        $clientSecret = AzureCloud['client_value'];
+        $clientId = AZURE['application_client_id'];
+        $tenantId = AZURE['directory_tenant_id'];
+        $clientSecret = AZURE['client_value'];
 
         $guzzle = new \GuzzleHttp\Client();
         $tokenUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
