@@ -197,7 +197,7 @@ class User
     public function isSiteAdmin($create_if_first = false) {
 
         //LDAP:
-        if( (defined('LDAP') || defined('AzureCloud')) && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
+        if( (defined('LDAP') || defined('AZURE')) && isset($_SESSION['admin']) && ($_SESSION['admin'] == true)) {
             return true;
         }
 

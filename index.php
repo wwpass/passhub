@@ -70,7 +70,7 @@ try {
         $result = $puid->getUserByPuid();
         if ($result['status'] == "not found") {
 
-            if(defined('AzureCloud')) {
+            if(defined('AZURE')) {
                 PassHub\Azure::Authenticate();
                 exit();                                
             }
@@ -134,7 +134,7 @@ try {
             $_SESSION["UserID"] = $UserID;
             $_SESSION['email'] = $user->profile->email;
 
-            if(defined('AzureCloud')) {
+            if(defined('AZURE')) {
                 if(!$user->checkAzureAccess()) {
                     $_SESSION = array();
                     session_destroy();
@@ -204,7 +204,7 @@ try {
         Utils::errorPage("The account is disabled. Please contact your system administrator");
     }
 
-    if ( !defined('LDAP') && !defined('AzureCloud') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {
+    if ( !defined('LDAP') && !defined('AZURE') && (defined('PUBLIC_SERVICE') || defined('MAIL_DOMAIN')) && !isset($_SESSION['later'])) {
 //        if (defined('MAIL_DOMAIN') && !isset($_SESSION['later'])) {
         if ($user->profile->email == "") {
             if (!$puid->isValidated()) {
