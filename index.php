@@ -72,7 +72,7 @@ try {
 
             if(defined('AZURE')) {
                 PassHub\Azure::Authenticate();
-                exit();                                
+    		exit();
             }
 
             if (defined('LDAP') 
@@ -115,12 +115,11 @@ try {
                 Utils::err('Should not happen idx 129');
                 exit();
             }
-
-            if(defined('CREATE_USER')) {
+	    if(defined('CREATE_USER')) {
                 $_SESSION['CREATE_USER'] = true;
                 echo Utils::render_react('index.html', ['verifier' => Csrf::get()]); 
-                exit();
-            } 
+              	exit();
+            }
             Utils::showCreateUserPage();
             exit();
 
@@ -128,12 +127,11 @@ try {
             Utils::err("multiple PUID records " . $_SESSION['PUID']);
             exit($result['status']);//multiple PUID records;
         } else {
-            $UserID = $result['UserID'];
+	    $UserID = $result['UserID'];
             $user = new User($mng, $UserID);
             $user->getProfile();
             $_SESSION["UserID"] = $UserID;
             $_SESSION['email'] = $user->profile->email;
-
             if(defined('AZURE')) {
                 if(!$user->checkAzureAccess()) {
                     $_SESSION = array();

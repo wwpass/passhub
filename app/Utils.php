@@ -335,7 +335,7 @@ class Utils
             self::err("template.xml absent or empty");
             self::errorPage("Internal error. Please come back later.");
         }
-        
+       
         echo self::render(
             'r-upsert_user.html', 
             [
