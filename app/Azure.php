@@ -41,7 +41,7 @@ class Azure
 /*
         Utils::err('Azure checkAccess');
         Utils::err($username);
-*/
+*/	
         $groupsArray = Azure::getUsers();
         $userUpns = $groupsArray["user_upns"];
         $adminUpns = $groupsArray["admin_upns"];
@@ -65,9 +65,7 @@ class Azure
 }   
 
     public static function getUsers() {
-
-        $accessToken = Azure::GetAccessToken();
-
+	$accessToken = Azure::getAccessToken();
         $userGroupUrl = AZURE['user_group'];
         $adminGroupUrl = AZURE['admin_group'];
         $user_upns = [];
@@ -159,11 +157,9 @@ class Azure
     }
 
     public static function GetAccessToken() {
-
         $clientId = AZURE['application_client_id'];
         $tenantId = AZURE['directory_tenant_id'];
         $clientSecret = AZURE['client_value'];
-
         $guzzle = new \GuzzleHttp\Client();
         $tokenUrl = 'https://login.microsoftonline.com/' . $tenantId . '/oauth2/v2.0/token';
         $token = json_decode($guzzle->post($tokenUrl, [

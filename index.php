@@ -72,7 +72,7 @@ try {
 
             if(defined('AZURE')) {
                 PassHub\Azure::Authenticate();
-                exit();                                
+    		exit();
             }
 
             if (defined('LDAP') 
@@ -115,12 +115,14 @@ try {
                 Utils::err('Should not happen idx 129');
                 exit();
             }
-
-            if(defined('CREATE_USER')) {
+	    if(defined('CREATE_USER')) {
+		Utils::log('INDEXPHP: initate create user check');
                 $_SESSION['CREATE_USER'] = true;
                 echo Utils::render_react('index.html', ['verifier' => Csrf::get()]); 
-                exit();
-            } 
+              	Utils::log('1111111111');
+		exit();
+            }
+            Utils::log('!!!!!!!!!!'); 
             Utils::showCreateUserPage();
             exit();
 
@@ -128,15 +130,18 @@ try {
             Utils::err("multiple PUID records " . $_SESSION['PUID']);
             exit($result['status']);//multiple PUID records;
         } else {
+	    Utils::log('INDEX PHP: Somehow get to line 135 of Index.php?');
             $UserID = $result['UserID'];
             $user = new User($mng, $UserID);
             $user->getProfile();
             $_SESSION["UserID"] = $UserID;
             $_SESSION['email'] = $user->profile->email;
-
-            if(defined('AZURE')) {
+            // somehow get herre BEFORE creating user asccount
+            // account is created THEN it shows account creation screen  THEN it checks HERE if user does nNOT have access then shows error screen/...
+	    if(defined('AZURE')) {
                 if(!$user->checkAzureAccess()) {
                     $_SESSION = array();
+		   // Utils::log('ACCESS CHECK!');
                     session_destroy();
                     echo Utils::render(
                         'error_page.html', 
@@ -146,7 +151,7 @@ try {
                             'hide_logout' => true,
                             'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
                             'header' => 'Access denied',
-                            'text' => 'Please contact your system administrator'
+                            'text' => 'no access'
                         ]
                     );
                     exit();

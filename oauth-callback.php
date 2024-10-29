@@ -4,7 +4,7 @@ require_once 'config/config.php';
 require_once 'vendor/autoload.php';
 
 use PassHub\Utils;
-
+use PassHub\Azure;
 
 use Microsoft\Graph\Graph;
 use Microsoft\Graph\Model;
@@ -78,11 +78,27 @@ Utils::err('----' . $me->getMail());
 
 
 // check if this userprincipalname exists
-
 $count = $mng->users->countDocuments(['userprincipalname' => $userprincipalname]);
 if($count == 0) {
     $_SESSION['userprincipalname'] = $userprincipalname;
     $_SESSION['email'] = $email;
+    if(!Azure::checkAccess($userprincipalname)) {
+	 $_SESSION = array();
+        session_destroy();
+        echo Utils::render(
+            'error_page.html', 
+            [
+                // layout
+                'narrow' => true, 
+                'hide_logout' => true,
+                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
+                'header' => 'Access denied',
+                'text' => 'Please contact your system administrator'
+            ]
+        );
+        exit();
+    }
+
     Utils::showCreateUserPage();
     exit();
 } 
