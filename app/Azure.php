@@ -156,7 +156,7 @@ class Azure
         return ["user_upns" => $user_upns, "admin_upns" => $admin_upns];
     }
 
-    public static function GetAccessToken() {
+    public static function getAccessToken() {
         $clientId = AZURE['application_client_id'];
         $tenantId = AZURE['directory_tenant_id'];
         $clientSecret = AZURE['client_value'];
