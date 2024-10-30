@@ -232,7 +232,7 @@ class Company
         }
         return $groups;
     }
-
+/*
     private static function isInAdminGroup($user) {
         $group_count = $user['memberof']['count'];
         for($g = 0; $g < $group_count; $g++ ) {
@@ -242,7 +242,7 @@ class Company
         }
         return false;
     }
-
+*/
     private static function getUserArray($mng, $UserID) 
     {
         $cursor = $mng->users->find([], ['projection' => [
