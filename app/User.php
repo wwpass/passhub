@@ -402,7 +402,6 @@ class User
         
         $t0 = microtime(true);
 
-
         $safes=$this->getSafes();
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("getSafes " . $dt);
@@ -472,6 +471,10 @@ class User
             $data['site_admin'] = true;
         }        
 
+        if($this->profile->generator) {
+            $data['generator'] = $this->profile->generator;
+        }        
+ 
         $data['websocket'] = false;
         if (defined('WEBSOCKET')) {
             if(WEBSOCKET) {
