@@ -73,6 +73,24 @@ Utils::err($me);
 
 $userprincipalname = $me->getUserPrincipalName();
 $email = $me->getMail();
+
+if(is_null($email)) {
+    $_SESSION = array();
+    session_destroy();
+    echo Utils::render(
+        'error_page.html',
+        [
+            // layout
+            'narrow' => true,
+            'hide_logout' => true,
+            'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false,
+            'header' => 'Access denied',
+            'text' => 'Please contact your system administrator'
+        ]
+    );
+    Utils::err("Please add an Email to this User!");
+     exit();
+}
 Utils::err('----' . $me->getUserPrincipalName());
 Utils::err('----' . $me->getMail());
 
@@ -96,6 +114,7 @@ if($count == 0) {
                 'text' => 'Please contact your system administrator'
             ]
         );
+        Utils::err("User Does Not Exist In Azure Group");
         exit();
     }
 
