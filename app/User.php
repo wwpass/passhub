@@ -471,9 +471,9 @@ class User
             $data['site_admin'] = true;
         }        
 
-        if($this->profile->generator) {
+        if(property_exists($this->profile, 'generator')) {
             $data['generator'] = $this->profile->generator;
-        }        
+        }
  
         $data['websocket'] = false;
         if (defined('WEBSOCKET')) {
