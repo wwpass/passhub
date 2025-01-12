@@ -272,6 +272,10 @@ class User
     public function getSafes() {
 
         $t0 = microtime(true);
+
+//        $aggregate = Safe::getSafes($this->mng, $this->UserID);
+
+
         $mng_res = $this->mng->safe_users->find([ 'UserID' => $this->UserID]);
 
         $safe_array = array();
@@ -403,6 +407,9 @@ class User
         $t0 = microtime(true);
 
         $safes=$this->getSafes();
+
+//        $safes=Safe::getSafes($this->mng, $this->UserID);
+
         $dt = number_format((microtime(true) - $t0), 3);
         Utils::timingLog("getSafes " . $dt);
 
@@ -1154,19 +1161,16 @@ class User
             }
     
             if ($operation == 'email') { //share by email
-    
-                $pregUserName = preg_quote($UserName);
-                $a = (
-                    $this->mng->users->find(
-                        ['email' => new \MongoDB\BSON\Regex('^' . $pregUserName . '$', 'i')]
-                    )
-                )->toArray();
-    
-                if (count($a) > 1) {
-                    Utils::err("error acl 300");
-                    return "error acl 300";
+
+
+                try {
+                    $recipient = Utils::getUserByMail($this->mng, $UserName);
                 }
-                if (count($a) == 0) {
+                catch (\Exception $e) {
+                    Utils::err($e->getMessage());
+                    return "Internal server error 1189, please try again later";
+                }
+                if ($recipient == null) {
                     $email = htmlspecialchars($UserName);
                     $email_link = htmlspecialchars($UserName) 
                         . "?subject=" 
@@ -1181,18 +1185,15 @@ class User
                             . "please visit " . $req->origin . " and use the WWPass Key app to login"
                             . " to your PassHub account."
                         );  
-                        
                     Utils::err("share by mail: User with " . htmlspecialchars($UserName) . " not registered");
                     return "User " . $email . " is not registered";
-                    // ." <a href='mailto:$email_link' class='alert-link'>Send invitation</a>";
                 }
 
-
-                if(defined('MSP') && isset($_SESSION['company']) && isset($a[0]->company) && ($a[0]->company != $_SESSION['company'])) {
+                if(defined('MSP') && isset($_SESSION['company']) && isset($recipient->company) && ($recipient->company != $_SESSION['company'])) {
                     return "User " . $email . " not found";
                 }
 
-                $TargetUserID = (string)($a[0]->_id);
+                $TargetUserID = (string)($recipient->_id);
                 if ($TargetUserID == $this->UserID) {
                     return "You cannot share the safe with yourself (" . $UserName . ")";
                 }
@@ -1202,32 +1203,24 @@ class User
                     return "The recipient already has access to the safe";
                 }
                 Utils::log('user ' . $this->UserID . ' activity to share safe ' . $SafeID . ' with ' . $UserName);
-                return ['status' => 'Ok', 'public_key' => $a[0]->publicKey_CSE];
+                return ['status' => 'Ok', 'public_key' => $recipient->publicKey_CSE];
             }
             if ($operation == 'email_final') { //share by email
-                $pregUserName = preg_quote($UserName);
-                $a = (
-                    $this->mng->users->find(
-                        ['email' => new \MongoDB\BSON\Regex('^' . $pregUserName . '$', 'i')]
-                    )
-                )->toArray();
-                if (count($a) > 1) {
-                    Utils::err("error acl 300");
-                    return "error acl 300";
-                }
-                if (count($a) == 0) {
-                    Utils::err("no user found " . $UserName);
-                    return "no user found " . $UserName;
-                }
-                $TargetUserID = (string)($a[0]->_id);
 
-/*
-                
-                $recipientSafeName = '[Shared]';
-                if (isset($req->safeName)) {
-                    $recipientSafeName = $req->safeName;
+                try {
+                    $recipient = Utils::getUserByMail($this->mng, $UserName);
+                    if ($recipient == null) {
+                        Utils::err("no user found " . $UserName);
+                        return "no user found " . $UserName;
+                    }
+                }   
+                catch (\Exception $e) {
+                    Utils::err($e->getMessage());
+                    return "Internal server error 1263, please try again later";
                 }
-                */
+
+                $TargetUserID = (string)($recipient->_id);
+
 
                 if (defined('PUBLIC_SERVICE') && (PUBLIC_SERVICE == true)) {
                     $role = self::ROLE_ADMINISTRATOR;
@@ -1257,11 +1250,9 @@ class User
                     ]
                 );
 
-//                'SafeName' => $recipientSafeName,
-
-
                 if ($result->getInsertedCount() != 1) {
-                    return "Internal error acl 318";
+                    Utils::err("Internal error acl 1249");
+                    return "Internal error acl 1249";
                 }
                 Utils::log(
                     'user ' . $this->UserID
@@ -1277,8 +1268,8 @@ class User
             $cursor = $this->mng->safe_users->find($filter);
             $a = $cursor->toArray();
             if (count($a) > 1) {
-                Utils::err("error acl 420");
-                return "error acl 420";
+                Utils::err("error acl 1272");
+                return "error acl 1272";
             }
             if (count($a) === 0) { // try mail
                 $result = $this->mng->users->find(['email' => $UserName])->toArray();
@@ -1289,8 +1280,8 @@ class User
                     $cursor = $this->mng->safe_users->find($filter);
                     $a = $cursor->toArray();
                     if (count($a) !== 1) {
-                        Utils::err("error acl 343");
-                        return "error acl 343";
+                        Utils::err("error acl 1284");
+                        return "error acl 1284";
                     }
                 }
             }
@@ -1464,3 +1455,129 @@ class User
         return "not bound";
     }
 }
+
+
+
+
+
+/*
+
+        $pipeline = [
+            ['$match' => [ 'UserID' => $this->UserID]],
+            ['$lookup'=> [
+                              'from' => 'safe_items',
+                              'as' => 'items',
+                              'localField' => 'SafeID',
+                              'foreignField' => 'SafeID'
+                  ]]
+        ];
+        $cursor = $this->mng->safe_users->aggregate($pipeline);
+        $safe_items = $cursor->toArray();
+
+        $pipeline = [
+            ['$match' => [ 'UserID' => $this->UserID]],
+            ['$lookup'=> [
+                              'from' => 'safe_folders',
+                              'as' => 'folders',
+                              'localField' => 'SafeID',
+                              'foreignField' => 'SafeID'
+                  ]]
+        ];
+        $cursor = $this->mng->safe_users->aggregate($pipeline);
+
+        $safe_folders = $cursor->toArray();
+
+#        Utils::err('----------');
+#        Utils::err("folders aggregate result");
+#        Utils::err($safe_folders);
+#        Utils::err('----------');
+
+        $safe_array1 = array();
+        $storage_used1 = 0;
+        $total_records1 = 0;
+
+
+        
+      
+        foreach($safe_items as $s) {
+
+            $safe_entry = [
+                "name" => isset($s->SafeName) ? $s->SafeName : "error",
+                "user_name" => $s->UserName,
+                "id" => $s->SafeID,
+                'confirm_req' => $s->confirm_req,
+                'confirmed' => true,
+                "key" => isset($s->encrypted_key) ? $s->encrypted_key : $s->encrypted_key_CSE,
+                "user_role" => $s->role
+            ];
+
+            if($s->version == 3) {
+                $safe_entry['version'] = $s->version;
+                $safe_entry['eName'] = $s->eName;
+                $safe_entry['name'] = "error";
+            } else {
+                $safe_entry['name'] = $s->SafeName;
+            }
+            $safe_entry['items'] = $s->items;
+
+            foreach($safe_entry['items'] as $i) {
+                $i->_id = (string)$i->_id;
+                if (property_exists($i, 'file')) {
+                    $storage_used1 += $i->file->size;
+                }   
+            }
+            $total_records1 += count($safe_entry['items']);
+
+            $safe_array1[$s->SafeID] = $safe_entry;
+        }
+
+
+
+        foreach($safe_folders as $s) {
+
+            foreach($s->folders as $f) {
+                $f->_id = (string)$f->_id;
+            }
+
+            $safe_array1[$s->SafeID]['folders'] = $s->folders;
+        }
+
+
+
+        $pipeline = [
+            ['$match' => [ 'UserID' => $this->UserID]],
+            ['$lookup'=> [
+                              'from' => 'safe_users',
+                              'as' => 'safes',
+                              'localField' => 'SafeID',
+                              'foreignField' => 'SafeID'
+                  ]],
+#            $count: "passing_scores" 
+        ];
+
+        $cursor = $this->mng->safe_users->aggregate($pipeline);
+
+        $safe_users = $cursor->toArray();
+
+        foreach($safe_users as $s) {
+            $safe_array1[$s->SafeID]['users'] = count($s->safes);
+        }
+
+        Utils::err('----------');
+#       Utils::err("safe_array1");
+#        Utils::err($safe_array1 );
+       Utils::err('----------');
+        Utils::err(json_encode($safe_array1, JSON_PRETTY_PRINT));
+        Utils::err('=======================');
+
+
+        Utils::err('storage');
+        Utils::err($storage_used1);
+        Utils::err('total recordse');
+        Utils::err($total_records1);
+
+
+
+
+
+*/

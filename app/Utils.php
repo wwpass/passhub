@@ -414,7 +414,6 @@ class Utils
 
     public static function getUserByMail($mng, $email) {
 
-
         $pregEmail = preg_quote($email);
         $a = (
             $mng->users->find(
@@ -423,8 +422,7 @@ class Utils
         )->toArray();
         
         if (count($a) > 1) {
-            Utils::err("error acl 300");
-            return "error acl 300";
+            throw new \Exception("error  utils 426, found " . count($a) . " users with email " . $email);
         }
         if (count($a) == 1) {
             return $a[0];
