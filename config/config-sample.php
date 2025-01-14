@@ -122,6 +122,26 @@ define(
 );
 */
 
+// Azure & EntraID Definition, has the highest priority
+
+/*
+define(
+    'AZURE', [
+
+    // App Registration ID's
+    'application_client_id' => "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    'directory_tenant_id' => "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+
+    // App Registration Client Secret
+    'client_value' => "XXXXX~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+
+    // Name of Groups in Entra ID
+    'user_group' => "PasshubUsers",
+    'admin_group' => "PasshubAdmins",
+    ]
+);
+*/
+
 // if LDAP is not defined: allowed mail domains, space separated
 define('MAIL_DOMAIN', "yourcompany.com domain2.com ");
 
