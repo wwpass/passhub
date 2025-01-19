@@ -1,0 +1,4 @@
+#!/bin/sh
+
+/var/lib/passhub.backup/do_backup.sh
+
