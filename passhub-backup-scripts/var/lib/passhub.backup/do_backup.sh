@@ -2,10 +2,6 @@
 
 folder=$(dirname "$0")
 
-if [ ! -d $folder/$instance ]; then
-    mkdir $folder/$instance
-fi;
-
 if [ -f $folder/s3_key ]; then
     chmod 400 $folder/s3_key
 
