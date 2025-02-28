@@ -411,22 +411,4 @@ class Utils
         }
         return "Ok";
     }    
-
-    public static function getUserByMail($mng, $email) {
-
-        $pregEmail = preg_quote($email);
-        $a = (
-            $mng->users->find(
-                ['email' => new \MongoDB\BSON\Regex('^' . $pregEmail . '$', 'i')]
-            )
-        )->toArray();
-        
-        if (count($a) > 1) {
-            throw new \Exception("error  utils 426, found " . count($a) . " users with email " . $email);
-        }
-        if (count($a) == 1) {
-            return $a[0];
-        }
-        return null;
-    } 
 }
