@@ -59,11 +59,12 @@ class Iam
             // already invited
             return ['status' => 'already used'];
         }
-        $users = User::findUserByMail($mng, $email);
-        $c = count($users);
-        if($c > 0) {
+        
+        $user = User::getUserByMail($mng, $email);
+        if($user != 0) {
             return ['status' => 'already used'];
         } 
+
         $company = null;
         if( $req->company && (strlen($req->company) == 24) && ctype_xdigit($req->company) ) {
             $company = $req->company;
