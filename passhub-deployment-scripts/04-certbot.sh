@@ -13,7 +13,6 @@ if [[ "$option" == "yes" ]]; then
 
     echo "Getting SSL Certificate..."
     if [ ! -e /usr/bin/certbot ]; then
-
         sudo snap install --classic certbot
         sudo ln -s /snap/bin/certbot /usr/bin/certbot
     fi
