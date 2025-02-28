@@ -332,8 +332,6 @@ class User
 
                 $t0 = microtime(true);
 
-/*                $items = Item::get_item_list_cse($this->mng, $this->UserID, $safe->id); */
-
                 $cursor = $this->mng->safe_items->find(['SafeID' => $safe->id]);
                 $items =  $cursor->toArray();
                 foreach ($items as $item) {
@@ -1067,6 +1065,28 @@ class User
         )->toArray();
         return $a;
     }
+
+    public static function getUserByMail($mng, $email) {
+
+        $pregEmail = preg_quote($email);
+        $a = (
+            $mng->users->find(
+                ['email' => new \MongoDB\BSON\Regex('^' . $pregEmail . '$', 'i')]
+            )
+        )->toArray();
+        
+        if (count($a) > 1) {
+            foreach($a as $u) {            
+                Utils::err($u);
+            }
+            throw new \Exception("error  utils 426, found " . count($a) . " users with email " . $email);
+        }
+        if (count($a) == 1) {
+            return $a[0];
+        }
+        return null;
+    } 
+    
     
     public function safeAcl($req) {
 
@@ -1133,7 +1153,7 @@ class User
 
         $myrole = $this->getUserRole($SafeID);
         if (!$myrole) {
-            return "error 275";
+            return "error 1157";
         }
     
         if ($operation == "unsubscribe") {
@@ -1163,8 +1183,14 @@ class User
             if ($operation == 'email') { //share by email
 
 
+                if (!filter_var($UserName, FILTER_VALIDATE_EMAIL)) {
+                    return "Invalid email address: " .  $UserName;
+                }
+
+                $UserName = strtolower($UserName);
+
                 try {
-                    $recipient = Utils::getUserByMail($this->mng, $UserName);
+                    $recipient = User::getUserByMail($this->mng, $UserName);
                 }
                 catch (\Exception $e) {
                     Utils::err($e->getMessage());
@@ -1208,7 +1234,7 @@ class User
             if ($operation == 'email_final') { //share by email
 
                 try {
-                    $recipient = Utils::getUserByMail($this->mng, $UserName);
+                    $recipient = User::getUserByMail($this->mng, $UserName);
                     if ($recipient == null) {
                         Utils::err("no user found " . $UserName);
                         return "no user found " . $UserName;

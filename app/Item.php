@@ -28,28 +28,6 @@ class Item
         $this->_id = (strlen($this->entryID) != 24) ? $this->entryID : 
             new \MongoDB\BSON\ObjectID($this->entryID);
     }
-/*
-    public static function get_item_list_cse($mng, $UserID, $SafeID, $opt = ['no_files' => false]) {
-
-        $UserID = (string)$UserID;
-        $SafeID = (string)$SafeID;
-        $user = new User($mng, $UserID);
-        $role = $user->getUserRole($SafeID);
-        if ($role) {   //read is enough for a while
-            $filter = ['SafeID' => $SafeID];
-            if ($opt['no_files'] === true) {
-                $filter = ['SafeID' => $SafeID, 'file' => [ '$exists' => false]];
-            }
-            $cursor = $mng->safe_items->find($filter);
-            $item_array =  $cursor->toArray();
-            foreach ($item_array as $item) {
-                $item->_id= (string)$item->_id;
-            }
-            return $item_array;
-        }
-        return array();
-    }
-*/
 
 //******************************************************************
 
