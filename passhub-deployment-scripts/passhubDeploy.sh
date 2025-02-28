@@ -3,7 +3,7 @@
 # Parameters Test:
 # Example:
 # ./passhubDeploy.sh --azure appId TenantId ClientSecret subdomain.Region username
-# ./passhubDeploy.sh --azure 1-2-3-4 5-6-7-8 abc~fgh passhub1.westus mvv
+# ./passhubDeploy.sh --azure 1-2-3-4 5-6-7-8 abc~fgh passhub.eastus admin
 
 set -e
 
@@ -37,22 +37,3 @@ else
     echo "No Arguments Provided"
     exit 1
 fi
-
-
-
-#if [ "$1" == "--azure" ]; then
-##  if [ -z "$1" ]; then
-#    echo "Not all Arguments Provided or Null"
-#    exit 1
-#  else
-#    echo "Application Id: " $2
-#    echo "Tenant Id: " $3
-#    echo "Client Secret: " $4
-#    echo "SubDomain and Region: " $5
-#  fi
-#elif [ "$1" == "--help" ]; then
-#  echo "--azure [applicationId] [tenantId] [clientSecret] [Subdomain + Region]"
-#else
-#  echo "Not using azure"
-#fi
-

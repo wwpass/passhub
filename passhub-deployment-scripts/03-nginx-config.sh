@@ -82,5 +82,5 @@ sudo service nginx restart
 # nginx -s reload
 
 # Add into /home/$username/.profile to run 04-certbot.sh so it runs on login,
-echo "/var/www/passhubAzure/scripts/04-certbot.sh $username $subdomainRegion" >> /home/${username}/.profile
+echo "/var/www/passhubAzure/passhub-deployment-scripts/04-certbot.sh $username $subdomainRegion" >> /home/${username}/.profile
 # Reference 04-certbot.sh for next steps..

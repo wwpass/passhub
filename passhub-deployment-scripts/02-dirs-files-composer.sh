@@ -13,22 +13,21 @@ sed -i ' s/post_max_size = 8M/post_max_size = 30M/' /etc/php/8.3/fpm/php.ini
 sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 30M/' /etc/php/8.3/fpm/php.ini
 sed -i 's/memory_limit = 128M/memory_limit = 256M/' /etc/php/8.3/fpm/php.ini
 
-
-tag=$(wget https://github.com/wwpass/passhub/releases/latest 2>&1 | grep Location)
+# Azure Does This Currently:
+#tag=$(wget https://github.com/wwpass/passhub/releases/latest 2>&1 | grep Location)
 # example output: Location: https://github.com/wwpass/passhub/releases/tag/v3.3.0 [following]
 
 # from output start at tag then continue until first space
-tag=$(echo $tag | grep -o 'tag[^ ]*')
+#tag=$(echo $tag | grep -o 'tag[^ ]*')
 
 # example: tag/v3.3.0, then remove tag/
-tag=$(echo $tag | sed 's/^tag\///')
+#tag=$(echo $tag | sed 's/^tag\///')
 
 # then add version into wget
-wget https://github.com/wwpass/passhub/releases/download/${tag}/passhub.business.tgz
+#wget https://github.com/wwpass/passhub/releases/download/${tag}/passhub.business.tgz
 
-
-tar -xvzf passhub.business.tgz -C /var/www/ 
-mv /var/www/passhub.business /var/www/passhubAzure
+#tar -xvzf passhub.business.tgz -C /var/www/ 
+#mv /var/www/passhub.business /var/www/passhubAzure
 chown -R www-data:www-data /var/www/passhubAzure/
 
 mkdir -p /var/log/passhub
