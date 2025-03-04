@@ -7,15 +7,13 @@
 
 set -e
 
+workingDirectory=$(dirname "$(readlink -f "$0")"
+
 run_Scripts() {
     for i in 01-packages.sh 02-dirs-files-composer.sh 03-nginx-config.sh; do
-        echo "Running $i"
-        echo $2
-        echo $3
-        echo $4
-        echo $5
+        echo "Running $workingDirectory/$i"
         # Calling each script while passing all arguments
-        bash $i $2 $3 $4 $5 $6
+        bash $workingDirectory/$i $2 $3 $4 $5 $6
     done
 }
 
