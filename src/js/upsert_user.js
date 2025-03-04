@@ -39,21 +39,21 @@ function sendWhenReady() {
 
     axios.post(ajaxUrl, user
     )
-    .then((reply) => {
-      const result = reply.data;
-      if(result.status === 'Ok') {
-        window.location.href = 'index.php';
-        return;
-      }
-      alert(result.status);
-    })
-    .catch((error) => {
-      const hdr = '';
-      const status = '';
-      const err = error;
-      // ----  $('#backup_button').hide();
-      // ----  modalAjaxError($('#backup_alert'), hdr, status, err);
-    });
+      .then((reply) => {
+        const result = reply.data;
+        if (result.status === 'Ok') {
+          window.location.href = 'index.php';
+          return;
+        }
+        alert(result.status);
+      })
+      .catch((error) => {
+        const hdr = '';
+        const status = '';
+        const err = error;
+        // ----  $('#backup_button').hide();
+        // ----  modalAjaxError($('#backup_alert'), hdr, status, err);
+      });
   }
 }
 
@@ -109,7 +109,7 @@ function publicKeyExported_spki(key) {
 function keyPairGenerated(keypair) {
   let elapsed = new Date();
   elapsed -= start_time;
-  document.querySelector('#create_userwait').textContent=`KeyPair generated in ${elapsed} ms (cryptoAPI)`;
+  document.querySelector('#create_userwait').textContent = `KeyPair generated in ${elapsed} ms (cryptoAPI)`;
 
   subtle.exportKey('pkcs8', keypair.privateKey).then(privateKeyExported_pkcs8).catch(cryptoapi_catch);
   subtle.exportKey('spki', keypair.publicKey).then(publicKeyExported_spki).catch(cryptoapi_catch);
@@ -123,25 +123,25 @@ if (subtle && !((navigator.userAgent.match('Version/10') && navigator.userAgent.
     publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
     hash: { name: 'SHA-1' },
   },
-  true, ['encrypt', 'decrypt']).then(keyPairGenerated).catch(cryptoapi_catch);
+    true, ['encrypt', 'decrypt']).then(keyPairGenerated).catch(cryptoapi_catch);
 } else {
   const state = forge.rsa.createKeyPairGenerationState(2048, 0x10001);
   let waitMessage = '>';
   let secondsPassed = 0;
   const createUserWaitElement = document.querySelector('#create_userwait');
-  reateUserWaitElement.textContent = `Wait ${waitMessage}`;
+  createUserWaitElement.textContent = `Wait ${waitMessage}`;
   const step = () => {
     // run for 100 ms
     if (!forge.rsa.stepKeyPairGenerationState(state, 1000)) {
       setTimeout(step, 1);
       waitMessage = '.' + waitMessage;
       secondsPassed += 1;
-      reateUserWaitElement.textContent = `Wait ${waitMessage}`;
+      createUserWaitElement.textContent = `Wait ${waitMessage}`;
       document.querySelector('#seconds_passsed').textContent = `seconds passed ${secondsPassed}`;
     } else {
       let elapsed = new Date();
       elapsed -= start_time;
-      reateUserWaitElement.textContent = `KeyPair generated in ${elapsed} ms (forge)`;
+      createUserWaitElement.textContent = `KeyPair generated in ${elapsed} ms (forge)`;
       const publicPem = forge.pki.publicKeyToPem(state.keys.publicKey);
 
       // const privatePem = forge.pki.privateKeyToPem(state.keys.privateKey);
