@@ -1,0 +1,29 @@
+{% extends "r-layout.html" %}
+
+{% block content %}
+
+      <div class="row">
+        <div class="card col-12 col-lg-10 col-xl-8" 
+          style="border-radius:16px; 
+          max-width:820px; 
+          margin: 32px auto 0 auto">
+          <div class="card-header" style="background:white">
+            <h3>
+              Message to the site administrator:
+            </h3>   
+          </div>
+          <div class="card-body">
+
+            <p style="text-align: center; margin-top:32px">{{message}}</p>
+            {% if wwpass_manage is defined  %}  
+            <p>
+              Please follow the link <a href="http://manage.wwpass.com">manage.wwpass.com</a> to get a WWPass certificate.
+            </p>
+            {% endif %}
+            
+          </div>
+        </div>
+      </div>
+
+{% endblock %}
+

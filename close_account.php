@@ -1,7 +1,7 @@
 <?php
 
 /**
- * registration_action.php
+ * close_account.php
  *
  * PHP version 7
  *
