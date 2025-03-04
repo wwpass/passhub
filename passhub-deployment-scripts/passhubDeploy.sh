@@ -7,7 +7,7 @@
 
 set -e
 
-workingDirectory=$(dirname "$(readlink -f "$0")"
+workingDirectory=$(dirname $0)
 
 run_Scripts() {
     for i in 01-packages.sh 02-dirs-files-composer.sh 03-nginx-config.sh; do
