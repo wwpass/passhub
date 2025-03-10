@@ -43,9 +43,9 @@ sed -i "/tenant/s/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/$tenantId/" /var/www/pass
 sed -i "/~/s/XXXXX~XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/$clientSecret/" /var/www/passhubAzure/config/config.php
 
 # sed find 'AZURE' then keep going down until find */ then remove
-sed -i "/'AZURE'/,/\*\//{/\*\//d;}" /var/www/passhubAzure/config/config.php
+#sed -i "/'AZURE'/,/\*\//{/\*\//d;}" /var/www/passhubAzure/config/config.php
 # sed find EntraID then keep going down until find */ then remove
-sed -i "/EntraID/,/\/\*/{/\/\*/d;}" /var/www/passhubAzure/config/config.php
+#sed -i "/EntraID/,/\/\*/{/\/\*/d;}" /var/www/passhubAzure/config/config.php
 
 # Edit .crt and .key at top of Config.php
 sed -i "s/\/yourcompany/\/$subdomainRegion.cloudapp.azure/g" /var/www/passhubAzure/config/config.php
