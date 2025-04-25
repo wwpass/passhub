@@ -21,7 +21,8 @@ session_start();
 
 try {
     $t0 = microtime(true);
-    $version4 = WWPass\Connection::VERSION == '4.0';
+    $version4 = (intval(explode('.', WWPass\Connection::VERSION)[0]) > 3);
+
 
     $pin_required = defined('WWPASS_PIN_REQUIRED') ? WWPASS_PIN_REQUIRED : false;
     if(isset($_SESSION['NOP'])) {
