@@ -12,8 +12,13 @@
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
+ if (!file_exists('vendor/autoload.php')) {
+    die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
+}
+
 require_once 'config/config.php';
 
+/*
 
 if (!file_exists(WWPASS_KEY_FILE)) {
     die('Message to sysadmin: <p>Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist</p>');
@@ -26,11 +31,34 @@ if (!file_exists('vendor/autoload.php')) {
     die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
 }
 
+*/
 require_once 'vendor/autoload.php';
 
 use PassHub\Utils;
 use PassHub\DB;
 use PassHub\Puid;
+
+if (!file_exists(WWPASS_CERT_FILE)) {
+    echo Utils::render(
+        'no_crt_file_found.html',
+        [
+//            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
+            'wwpass_manage' => TRUE
+        ]
+    );
+    exit();
+}
+
+if (!file_exists(WWPASS_KEY_FILE)) {
+    echo Utils::render(
+        'no_crt_file_found.html',
+        [
+  //          'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
+            'wwpass_manage' => TRUE
+        ]
+    );
+    exit();
+}
 
 $mng = DB::Connection();
 
@@ -180,7 +208,9 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
         $ticket = $_REQUEST['wwp_ticket'];
 
         try {
-            $test4 = WWPass\Connection::VERSION == '4.0';
+            $test4 = (intval(explode('.', WWPass\Connection::VERSION)[0]) > 3);
+
+
 
             if ($test4) {
                 $wwc = new WWPass\Connection(

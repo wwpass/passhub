@@ -187,7 +187,7 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
 
         $ticket = $_REQUEST['wwp_ticket'];
         try {
-            $test4 = WWPass\Connection::VERSION == '4.0';
+            $test4 = (intval(explode('.', WWPass\Connection::VERSION)[0]) > 3);
 
             if ($test4) {
                 $wwc = new WWPass\Connection(

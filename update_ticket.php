@@ -24,7 +24,8 @@ session_start();
 
 $t0 = microtime(true);
 try {
-    $test4 = WWPass\Connection::VERSION == '4.0';
+    $test4 = (intval(explode('.', WWPass\Connection::VERSION)[0]) > 3);
+
 
     $old_ticket = $_SESSION['wwpass_ticket'];
 
