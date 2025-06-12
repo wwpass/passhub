@@ -9,15 +9,24 @@
           margin: 32px auto 0 auto">
           <div class="card-header" style="background:white">
             <h3>
-              Message to the site administrator:
+              Message to the Site Administrator
             </h3>   
           </div>
           <div class="card-body">
 
-            <p style="text-align: center; margin-top:32px">{{message}}</p>
+            {% if message is defined  %}  
+            <p style="margin-top:32px">{{message | raw}}</p>
+            <p>
+              Please follow the link <a href="http://manage.wwpass.com" target="_blank">manage.wwpass.com</a> to get a WWPass certificate.
+            </p>
+            {% endif %}
+
             {% if wwpass_manage is defined  %}  
             <p>
-              Please follow the link <a href="http://manage.wwpass.com">manage.wwpass.com</a> to get a WWPass certificate.
+              Your PassHub Instance is not yet provisioned at WWPass.
+            </p>
+            <p>
+              Please go to <a href="http://manage.wwpass.com" target="_blank">manage.wwpass.com</a> to obtain a subscription to WWPass authentication.
             </p>
             {% endif %}
             
