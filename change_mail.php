@@ -46,6 +46,7 @@ function change_mail_proxy($mng)
         Utils::err("Invalid email address " . $email);
         return "Invalid email address";
     }
+
     if(!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) {
         if (!Iam::isMailAuthorized($mng, $email)) {
             return "The email address " .  htmlspecialchars($email) . " cannot be used to create an account. Please contact your system administrator";
@@ -53,10 +54,10 @@ function change_mail_proxy($mng)
     }
 
     $puid = new Puid($mng, $_SESSION['PUID']); 
-    $result = $puid->getVerificationCode($email, "change");
+    $result = $puid->getVerificationCode($mng, $email, "change");
 
     if ($result['status'] != "Ok") {
-        Utils::err("error getting modification code: ", $result['status']);
+        Utils::err("error getting modification code: " .  $result['status']);
         return $result['status'];
     }
 
