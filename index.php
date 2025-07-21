@@ -16,35 +16,7 @@ require_once 'config/config.php';
 
 
 if (!file_exists('vendor/autoload.php')) {
-    echo Utils::render(
-        'no_crt_file_found.html',
-        [
-            'message' => 'Please run <b> sudo composer install</b> in the site root.'
-        ]
-    );
-    exit();
-}
-
-if (!file_exists(WWPASS_CERT_FILE)) {
-    echo Utils::render(
-        'no_crt_file_found.html',
-        [
-            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
-        ]
-    );
-    exit();
-}
-
-if (!file_exists(WWPASS_KEY_FILE)) {
-    echo Utils::render(
-        'no_crt_file_found.html',
-        [
-            'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
-        ]
-    );
-    exit();
+    die('Message to sysadmin: <p>Please run <b> sudo composer install</b> in the site root</p>');
 }
 
 require_once 'vendor/autoload.php';
@@ -55,8 +27,27 @@ use PassHub\DB;
 use PassHub\User;
 use PassHub\Puid;
 
-// use PassHub\Iam;
-// use PassHub\Survey;
+if (!file_exists(WWPASS_CERT_FILE)) {
+    echo Utils::render(
+        'no_crt_file_found.html',
+        [
+//           'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
+            'wwpass_manage' => TRUE
+        ]
+    );
+    exit();
+}
+
+if (!file_exists(WWPASS_KEY_FILE)) {
+    echo Utils::render(
+        'no_crt_file_found.html',
+        [
+//            'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
+            'wwpass_manage' => TRUE
+        ]
+    );
+    exit();
+}
 
 $mng = DB::Connection();
 
