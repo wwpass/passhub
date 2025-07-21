@@ -56,7 +56,7 @@ function create_group_proxy($mng) {
     # Utils::err($req);
 
     if($req->operation == "getUserPublicKey") {
-        return Group::getUserPublicKey($mng, $req->groupId, $req->email, $UserID);
+        return Group::getUserPublicKey($mng, $req->email);
     }
 
     if($req->operation == "addUser") {
