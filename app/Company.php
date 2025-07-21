@@ -89,11 +89,10 @@ class Company
             // already invited
             return ['status' => 'already used'];
         }
-        $users = User::findUserByMail($mng, $email);
-        $c = count($users);
-        if($c > 0) {
+        $user = User::getUserByMail($mng, $email);
+        if($user != null) {
             return ['status' => 'already used'];
-        } 
+        }
 
         $mng->mail_invitations->insertOne(['email' => $email]);
 
@@ -192,18 +191,17 @@ class Company
         if(isset($userToDelete->email) && $userToDelete->email) {
 
             $result = $mng->mail_invitations->deleteMany(['email' => $userToDelete->email]);
-            $users = User::findUserByMail($mng, $userToDelete->email);
-            $c = count($users);
+            $user = User::getUserByMail($mng, $userToDelete->email);
 
             Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "deleteInvitation", "user" => $userToDelete->email]);
 
-            if($c == 1) {
+            if($user != null) {
 
                 $id = $users[0];                                
                 $user = new User($mng, $users[0]);
                 return $user->deleteAccount();
             } 
-            if($c == 0) {
+            if($uc == 0) {
                 return "Ok";
             }
         }
