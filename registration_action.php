@@ -52,10 +52,6 @@ if (isset($_SESSION['UserID']) && isset($_GET['later'])) {
     exit();
 } 
 
-$email = '';
-$url = '';
-$req = (object)[];
-
 if(isset($_POST['email'])) {
     $req = (object)$_POST;
 } else {
@@ -91,8 +87,6 @@ if (isset($req->code6) && isset($req->purpose)) {
             exit();
         }
         $_SESSION['email'] = $result['email'];
-        // $parts = explode("@", $result['email']);
-        // $_SESSION['userprincipalname'] = $parts[0];
         $_SESSION['userprincipalname'] = $result['email'];
         $result=['status' => 'Ok'];
     }
@@ -105,53 +99,52 @@ if (isset($req->code6) && isset($req->purpose)) {
     exit();
 }
 
-
-if($email == '') {
-    $email = $req->email;
-    $url = strtolower($req->base_url);
-}
-
-$parts = explode("@", $email);
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    $error_msg = "Invalid email address: " . htmlspecialchars($email);
-} else if (count($parts) != 2) {
-    $error_msg = "Invalid email address: " . htmlspecialchars($email);
-} else if ( (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) &&  !Iam::isMailAuthorized($mng, $email)) {
-    $error_msg = "<p>The email address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
-} else {
-    $puid = new Puid($mng, $_SESSION['PUID']);
-    $result = $puid->getVerificationCode($email);
-    if ($result['status'] == "Ok") {
-        $subject = "PassHub Account Activation";
-
-        $hostname = "PassHub";
-        
-        if (isset($req->host)) {
-            $hostname = str_replace("passhub", "PassHub", $req->host);
-        }
-        $cta = "<p> Your 6-digit activation code is</p><p><b>". $result['code6'] . "</b></p>";
-
-        $body = $cta 
-        . "<p>Best regards, <br>PassHub Team.</p>"; 
-
-        $result = Utils::sendMail($email, $subject, $body);
-
-        Utils::err('verification mail sent to ' . $email);
-        $sent = true;
-        if ($result['status'] !== 'Ok') {
-            Utils::err("error sending email");
-            Utils::errorPage("error sending email. Please try again later");
-            $sent = false;
-        }
-
-    } else {
-        Utils::err("error getting registration code: ", $result['status']);
-        $error_msg = $result['status'];
+function registration_proxy($mng, $email) {
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return "Invalid email address: " . htmlspecialchars($email);
     }
+
+    if ( (!defined('PUBLIC_SERVICE') || !PUBLIC_SERVICE) &&  !Iam::isMailAuthorized($mng, $email)) {
+        return "<p>The email address " .  htmlspecialchars($email) . " cannot be used to create an account.</p><p> Please contact your system administrator.</p>";
+    }
+    
+    $puid = new Puid($mng, $_SESSION['PUID']);
+    $result = $puid->getVerificationCode($mng, $email);
+    if ($result['status'] != "Ok") {
+        Utils::err("error getting registration code: ", $result['status']);
+        return $result['status'];
+    } 
+    
+    $subject = "PassHub Account Activation";
+    $hostname = "PassHub";
+    
+    if (isset($req->host)) {
+        $hostname = str_replace("passhub", "PassHub", $req->host);
+    }
+    $cta = "<p> Your 6-digit activation code is</p><p><b>". $result['code6'] . "</b></p>";
+
+    $body = $cta 
+    . "<p>Best regards, <br>PassHub Team.</p>"; 
+
+    $result = Utils::sendMail($email, $subject, $body);
+
+    Utils::err('verification mail sent to ' . $email);
+    $sent = true;
+    if ($result['status'] !== 'Ok') {
+        Utils::err("error sending email");
+        Utils::errorPage("error sending email. Please try again later");
+        $sent = false;
+    }
+    return 'Ok';
 }
 
-if (!isset($error_msg)) {
+
+$email = strtolower($req->email);
+
+$result = registration_proxy($mng, $email);
+
+
+if($result == 'Ok') {
     $_SESSION['form_email'] = htmlspecialchars($email);
     header('Location: form_filled.php?registration_action');
     exit();
@@ -168,7 +161,7 @@ echo Utils::render(
         //content
 //        'email' => $_SESSION['form_email'],
 //        'success' => true,
-        'error_msg' => $error_msg,
+        'error_msg' => $result,
         'de' => (isset($_COOKIE['site_lang']) && ($_COOKIE['site_lang'] == 'de'))
     ]
 );

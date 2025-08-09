@@ -52,7 +52,7 @@ class MongoSessionHandler implements \SessionHandlerInterface
         $session = [
             '$set' => [
                 'data' => new \MongoDB\BSON\Binary($data, \MongoDB\BSON\Binary::TYPE_OLD_BINARY),
-                'last_accessed' => new \MongoDB\BSON\UTCDateTime(floor(microtime(true) * 1000))
+                'last_accessed' => new \MongoDB\BSON\UTCDateTime(intval(floor(microtime(true) * 1000)))
             ]
         ];
         try {
@@ -73,9 +73,11 @@ class MongoSessionHandler implements \SessionHandlerInterface
             return false;
         }
     }
+
+    
     public function gc($maxlifetime)
     {
-        $lastAccessed = new \MongoDB\BSON\UTCDateTime(floor((microtime(true) - $maxlifetime) * 1000));
+        $lastAccessed = new \MongoDB\BSON\UTCDateTime(intval(floor((microtime(true) - $maxlifetime) * 1000)));
         try {
             Utils::err("Removing any sessions older than {$lastAccessed}");
             $result = $this->collection->deleteMany(['last_accessed' => ['$lt' => $lastAccessed]]);

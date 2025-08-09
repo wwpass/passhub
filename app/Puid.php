@@ -34,7 +34,7 @@ class Puid
         return false; //multiple code records;
     }
 
-    public function getUserByPuid() {
+    public function getUserByPuid($last_seen_update = true) {
 
         $cursor = $this->mng->users->find([ 'PUID' => $this->PUID ]);
         $puids = $cursor->toArray();
@@ -42,33 +42,49 @@ class Puid
         if ($num_puids == 1) {
             $UserID = (string)($puids[0]->_id);
             Utils::err("PUID " . $puid . " found in users " . $UserID);
-            return array("UserID" => $UserID, "status" => "Ok");
+            return ["UserID" => $UserID, "status" => "Ok"];
         }
         if ($num_puids == 0) {  // try legacy table
             $cursor = $this->mng->puids->find(['PUID' => $this->PUID]);
             $puids = $cursor->toArray();
             $num_puids = count($puids);
             if ($num_puids == 0) {
-                return array("status" => "not found");
+                return ["status" => "not found"];
             }
             if ($num_puids == 1) {
-                $user = new User($this->mng, $puids[0]->UserID);
-                $user->updateLastSeen();
-                return array("UserID" => $puids[0]->UserID, "status" => "Ok");
+                if($last_seen_update) {
+                    $user = new User($this->mng, $puids[0]->UserID);
+                    $user->updateLastSeen();
+                }
+                return ["UserID" => $puids[0]->UserID, "status" => "Ok"];
             }
         }
         Utils::err("internal error usr 34 count " . $num_puids . " puid " . $puid);
         return array("status" =>"internal error usr 34"); //multiple PUID records;
     }
     
-    public function getVerificationCode($email, $purpose = "registration") {
+    public function getVerificationCode($mng, $email, $purpose = "registration") {
 
-        $cursor = $this->mng->users->find(['email' => $email]);
-        $codes = $cursor->toArray();
-        $num_users = count($codes);
-        if ($num_users  != 0) {
-            return ["status" => "This email address is already in use. Please provide another email address."];
+        $email = strtolower($email);
+
+        try {
+            $existing_user = User::getUserByMail($mng, $email);
+
+            if ($existing_user !== null) {
+
+                if($purpose == "change") {
+                    if($_SESSION['UserID'] == (string)$existing_user->_id) {
+                        return ["status" => "same email address " . $email];
+                    }
+                }
+                return ["status" => "The email address is already in use. Please provide another email address."];
+            } 
         }
+        catch (\Exception $e) {
+            Utils::err("getUserByMail exception: ", $e->getMessage());
+            return ["status" => "The email address is already in use. Please provide another email address."];
+        }
+
         $v1 = random_int(0, 9999);
         $v2 = random_int(0, 9999);
         $v3 = random_int(0, 9999);
@@ -91,10 +107,10 @@ class Puid
             $result = $this->mng->reg_codes->insertOne($code_array);
         }
         if ($result->getInsertedCount() != 1 ) {
-            Utils::err("Error user 294");
-            return ["status" => "Internal Error 294"];
+            Utils::err("Error puid 106");
+            return ["status" => "Internal Error 106"];
         }
-        return array("status" => "Ok", "code" => $v, 'code6' => $code6);
+        return ["status" => "Ok", "code" => $v, 'code6' => $code6];
     }
     
     public function createUser($req /* $publicKey, $encryptedPrivateKey*/) {

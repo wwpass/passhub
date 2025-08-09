@@ -172,7 +172,6 @@ if (isset($_SESSION['PUID'])) {
     exit();
 }
 
-
 if(defined('REGISTRATION_ACCESS_CODE') && isset($_GET['access_code'])) {
     if ($_GET['access_code'] == REGISTRATION_ACCESS_CODE) {
         $_SESSION['REGISTRATION_ACCESS_CODE'] = $_GET['access_code'];

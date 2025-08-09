@@ -45,14 +45,11 @@ class Group
         return null;
     } 
 
-    static public function getUserPublicKey($mng, $groupId, $email, $UserID) {
-
+    static public function getUserPublicKey($mng, $email) {
 
         // find user by Email
-        $user = Utils::getUserByMail($mng, $email);
-        if(is_string($user)) {
-            return $user;
-        } 
+        $user = User::getUserByMail($mng, $email);
+
         if(!$user) {
             return  "no user found with this email";
         }
@@ -79,7 +76,7 @@ class Group
     }
 
     static public function addUser($mng, $groupId, $email, $key, $UserID) {
-        $user = Utils::getUserByMail($mng, $email);
+        $user = User::getUserByMail($mng, $email);
         Utils::err('user');
         Utils::err($user);
 
