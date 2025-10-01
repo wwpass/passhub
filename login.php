@@ -95,9 +95,12 @@ if (stripos($_SERVER['HTTP_USER_AGENT'], "iPhone")) {
 if ($iOS) {
     $user_agent = explode(' ', $_SERVER['HTTP_USER_AGENT']);
     $idx = array_search('OS', $user_agent);
-    $ios_version = $user_agent[$idx+1];
-    if (substr($ios_version, 0, 1) != "1") {
-        $incompatible_browser = "iOS";
+    $ios_version = explode('_', $user_agent[$idx+1]);
+    if(count($ios_version) > 1) {
+        Utils::err('iOS version ' . $ios_version[0]);
+        if(intval($ios_version[0]) < 10) {
+            $incompatible_browser = "iOS";
+        }
     }
     $h1_text = "Sorry, older verions of $iOS browsers are no longer supported";
     $advise = "Still you can open PassHub in a desktop or a laptop browser and scan the QR code with WWPass Key app on your $iOS";
