@@ -229,15 +229,32 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
 
             $result = $puid->getUserByPuid();
             if($result['status'] == "not found") {
-                $result = array("status" => "not found");
-                
-                header('Cache-Control: no-cache, must-revalidate');
-                header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
-                header('Content-type: application/json');
-                
-                echo json_encode($result);
-                exit();
+
+                if( /*defined('CREATE_USER')  && isset($_SESSION['CREATE_USER'] && */ !isset($_SESSION['UserID']) )   {
+                    Utils::log("Create User CSE begin " . $_SERVER['REMOTE_ADDR'] . " " . $_SERVER['HTTP_USER_AGENT']);
+
+                    $template_safes = file_get_contents('config/template.xml');
+                    
+                    if (strlen($template_safes) == 0) {
+                        Utils::err("template.xml absent or empty");
+                        Utils::errorPage("Internal error. Please come back later.");
+                    } else {
+                        $result = [
+                            'status' => "not found", 
+                            'ticket' => $_SESSION['wwpass_ticket'],
+                            'template_safes' => json_encode($template_safes)
+                        ];
+                    }
+                    
+                    header('Cache-Control: no-cache, must-revalidate');
+                    header('Expires: Mon, 01 Jan 1996 00:00:00 GMT');
+                    header('Content-type: application/json');
+                    
+                    echo json_encode($result);
+                    exit();
+                }
             }
+
             if ($result['status'] == "Ok") {
                 $UserID = $result['UserID'];
                 $_SESSION["UserID"] = $UserID;
@@ -250,8 +267,8 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
                 header('X-CSRF-TOKEN: ' . $csrf);
                 echo json_encode($result);
                 exit();
-    
             }
+            
             Utils::err('Hello20');
             exit($result['status']);//multiple PUID records;
 
@@ -259,9 +276,6 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             Utils::err(print_r($_SESSION, true));
 
 
-            //$user = new User($db, $_SESSION['PUID']);
-          
-            //$result = $user->getProfile() + ['ticket' => $_SESSION['wwpass_ticket']];
             $result = array("status" => "Ok");
             $csrf=Csrf::get();
             
