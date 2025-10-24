@@ -1,28 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    {% if description is defined %}
-    <meta name="description" content="{{description}}">
-    {% else %}
-    <meta name="description" content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
-    {% endif %}
 
-    <link rel="icon" type="image/png" href="public/img/favicon.ico">
-    <title>PassHub</title>
-    <link rel="stylesheet" href="public/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/css/style-int.css?v=210222">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  {% if description is defined %}
+  <meta name="description" content="{{description}}">
+  {% else %}
+  <meta name="description"
+    content="Password manager for teams with strong multifactor authentication. Securely store and share accounts, files, and notes. Use as SaaS or on premise.">
+  {% endif %}
 
-    <style>
-      .text--white-link:visited {
-        color: white;
-      }
-    </style>
+  <link rel="icon" type="image/png" href="/public/img/logo/favicon.png">
+  <title>PassHub</title>
+  <link rel="stylesheet" href="public/css/bootstrap.min.css">
+  <link rel="stylesheet" href="public/css/style-int.css?v=210222">
 
-{% if google_analytics is not defined and hideContentSecurityPolicy is not defined %}  
-<!--
+  <style>
+    .text--white-link:visited {
+      color: white;
+    }
+  </style>
+
+  {% if google_analytics is not defined and hideContentSecurityPolicy is not defined %}
+  <!--
 <meta http-equiv="Content-Security-Policy" 
 
   content="default-src 
@@ -37,66 +39,68 @@
     'self' 
     https://fonts.googleapis.com">    
 -->
-{% else %}
-<!--    echo file_get_contents('config/google_script.js') -->
-{% endif %}
+  {% else %}
+  <!--    echo file_get_contents('config/google_script.js') -->
+  {% endif %}
 
 
-    <link rel="stylesheet" href="public/css/jquery.contextMenu.min.css">
-    <script src="public/js/jquery.min.js"></script>
-    <script src="public/js/bootstrap.bundle.min.js"></script>
-    </head>
+  <link rel="stylesheet" href="public/css/jquery.contextMenu.min.css">
+  <script src="public/js/jquery.min.js"></script>
+  <script src="public/js/bootstrap.bundle.min.js"></script>
+</head>
 
 
 {% if onload is defined %}
-  <body onload=$onload>
-{% else %}
+
+<body onload=$onload>
+  {% else %}
+
   <body>
-{% endif %}
+    {% endif %}
 
-{{ source('sprite.svg') }}
+    {{ source('sprite.svg') }}
 
-{% if google_analytics is defined %}  
-<!--  echo file_get_contents('config/google_noscript.js'); -->
-{% endif %}
+    {% if google_analytics is defined %}
+    <!--  echo file_get_contents('config/google_noscript.js'); -->
+    {% endif %}
 
-<style>
-  #pop {
-    z-index: 10001;
-    position: absolute; 
-    top: -50px;
-    padding:10px 0 15px 0;
-    width:100%;
-    color: white;
-    font-size: 1.25em;
+    <style>
+      #pop {
+        z-index: 10001;
+        position: absolute;
+        top: -50px;
+        padding: 10px 0 15px 0;
+        width: 100%;
+        color: white;
+        font-size: 1.25em;
 
-    /*background-color: #353f68; */
-    background-color: grey; 
+        /*background-color: #353f68; */
+        background-color: grey;
 
-    transition-property: top;
-    text-align:center;
-    transition-duration: 0.3s;
-    overflow:hidden;
-  }
+        transition-property: top;
+        text-align: center;
+        transition-duration: 0.3s;
+        overflow: hidden;
+      }
 
-  .form-clear {
-  align-items: center;
-  background: #cecece;
-  border-radius: 50%;
-  bottom: 8px;
-  color: rgba(0, 0, 0, .54);
-  cursor: pointer;
-  display: flex;
-  height: 24px;
-  justify-content: center;
-  position: absolute;
-  right: 0;
-  width: 24px;
-  z-index: 10;
-}
+      .form-clear {
+        align-items: center;
+        background: #cecece;
+        border-radius: 50%;
+        bottom: 8px;
+        color: rgba(0, 0, 0, .54);
+        cursor: pointer;
+        display: flex;
+        height: 24px;
+        justify-content: center;
+        position: absolute;
+        right: 0;
+        width: 24px;
+        z-index: 10;
+      }
 
 
-/*
+      /*
   #search_string:focus {
     background-color: white;
   }
@@ -104,7 +108,7 @@
     background-color: white;
   }
 */
-/*
+      /*
   #search_string {
     padding-right: 1.6em; 
     padding-left: 0.6em; 
@@ -117,40 +121,40 @@
     background-color: white;
   }
 */
-</style>
+    </style>
 
-<div id="pop">OTP copied to clipboard</div>
+    <div id="pop">OTP copied to clipboard</div>
 
 
-<div id='probe' style="background: red; width:0; height: 0; position: fixed; bottom:0; left:0;"></div>
+    <div id='probe' style="background: red; width:0; height: 0; position: fixed; bottom:0; left:0;"></div>
 
-<div class="modal" id="account_modal" tabindex="-1" role="dialog" aria-labelledby="accountLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title" id="accounttLabel">My Account</h1>
-        <button type="button" class="close" data-dismiss="modal" 
-        aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-danger" role="alert" id="account_alert"></div>
-        <div id="account_data">
-        </div>
-        <a href="#" id="delete_my_account" style="color:red">Delete my account</a>
-        <div>
-          <!--
+    <div class="modal" id="account_modal" tabindex="-1" role="dialog" aria-labelledby="accountLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title" id="accounttLabel">My Account</h1>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger" role="alert" id="account_alert"></div>
+            <div id="account_data">
+            </div>
+            <a href="#" id="delete_my_account" style="color:red">Delete my account</a>
+            <div>
+              <!--
         <a href="#" id="bind_second_link" style="color:green">Bind second</a>
         -->
-      </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id = "upgrade" style = "display:none"
-          onclick='window.location.href="payment.php"'>Upgrade to Premium</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" id="upgrade" style="display:none"
+              onclick='window.location.href="payment.php"'>Upgrade to Premium</button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
     <div class="container">
       <div class="row">
@@ -159,24 +163,24 @@
       </div>
       <div class="row vertical-align">
 
-        {% if narrow is defined %}  
+        {% if narrow is defined %}
         <div class=" col-12  col-lg-10 col-xl-8" style="padding:0; margin:0 auto;">
-        {% else %}
-        <div class=" col-12 col-lg-12"  style="padding:0; margin:0 auto;">
-        {% endif %}
+          {% else %}
+          <div class=" col-12 col-lg-12" style="padding:0; margin:0 auto;">
+            {% endif %}
 
-          <span style="padding-left:1em" class="d-md-none"></span>
+            <span style="padding-left:1em" class="d-md-none"></span>
 
-          <a href="index.php" style="text-decoration: none;">
-            <img src="public/img/new_ph_logo.svg" alt= "logo" width="98">
-          </a>
+            <a href="index.php" style="text-decoration: none;">
+              <img src="public/img/logo/passhub_logo_2d.svg" alt="logo" width="98">
+            </a>
 
             <span id="timing" style="color:white;padding-right:1px;"></span>
             <span class='d-md-none' id="xs_indicator"></span>
             <style>
               .search_clear {
-                margin-left:-1.8em; 
-                cursor:pointer;
+                margin-left: -1.8em;
+                cursor: pointer;
               }
             </style>
 
@@ -184,130 +188,138 @@
 
 
               {% if index_page is defined %}
-                {% if search_clear_button is defined %}
-                <span  class="d-none d-md-inline-block main-page" style='margin-right:20px;'>
-                  <input id="search_string" class="form-control main-page"  style='border:none'
-                  type="search" placeholder="Search.." autocomplete="off">
-                </span>
-  
+              {% if search_clear_button is defined %}
+              <span class="d-none d-md-inline-block main-page" style='margin-right:20px;'>
+                <input id="search_string" class="form-control main-page" style='border:none' type="search"
+                  placeholder="Search.." autocomplete="off">
+              </span>
+
               {% else %}
-                  <span  class="d-none d-md-inline-block main-page" style='margin-right:20px;'>
-                    <input id="search_string" class='main-page' style='border:none; padding-right: 2.2em;'
-                    type="text" placeholder="Search.." autocomplete="off">
-                    
-                    <span class='search_clear'>
-                      <svg width='20' height='20' class='item_icon  main-page' 
-                      style='margin:10px 0 0 0;'>
-                        <use href='#cross'></use>
-                      </svg>
-                    </span>
-                  </span>
-                  {% endif %}
+              <span class="d-none d-md-inline-block main-page" style='margin-right:20px;'>
+                <input id="search_string" class='main-page' style='border:none; padding-right: 2.2em;' type="text"
+                  placeholder="Search.." autocomplete="off">
+
+                <span class='search_clear'>
+                  <svg width='20' height='20' class='item_icon  main-page' style='margin:10px 0 0 0;'>
+                    <use href='#cross'></use>
+                  </svg>
+                </span>
+              </span>
+              {% endif %}
               {% endif %}
 
               <style>
-                #fake_username, #fake_password {
-                  border:none; 
-                  width:0;
-                  padding:0;
+                #fake_username,
+                #fake_password {
+                  border: none;
+                  width: 0;
+                  padding: 0;
                 }
               </style>
               <input type="text" id="fake_username"><input type="password" id="fake_password">
-   
-              {% if isSiteAdmin is defined %}          
+
+              {% if isSiteAdmin is defined %}
               <a href="iam.php">
-                <svg class='top_icon' width='24' height='24'><use href='#i-wrench'></use></svg>
+                <svg class='top_icon' width='24' height='24'>
+                  <use href='#i-wrench'></use>
+                </svg>
               </a>
-              {% elseif feedback_page is not defined %}          
+              {% elseif feedback_page is not defined %}
               <a href="feedback.php" title="Contact us">
-                <svg class='top_icon' width='24' height='24'><use href='#i-contact'></use></svg>
+                <svg class='top_icon' width='24' height='24'>
+                  <use href='#i-contact'></use>
+                </svg>
               </a>
               {% endif %}
-  
-              {% if help_page is not defined %} 
+
+              {% if help_page is not defined %}
               <a href="help.php" title="Help">
-                <svg class='top_icon' width='24' height='24'><use href='#i-help'></use></svg>
+                <svg class='top_icon' width='24' height='24'>
+                  <use href='#i-help'></use>
+                </svg>
               </a>
-              {% endif %}        
-  
+              {% endif %}
+
               {% if not hide_logout %}
-              <span id='account_button' style='padding-left:15px; cursor:pointer'> 
+              <span id='account_button' style='padding-left:15px; cursor:pointer'>
                 <img title="My account" src='public/img/account.svg'>
                 <span style="padding-left:1em" class="d-md-none"></span>
               </span>
-              {% endif %}        
-              </span>
-      <!--    </span> -->
+              {% endif %}
+            </span>
+            <!--    </span> -->
+          </div>
         </div>
-      </div>  
 
-      <div class="row">
-       <!-- <div class="col-md-12 d-none d-md-block" style="width:100%;height:18px"></div> -->
+        <div class="row">
+          <!-- <div class="col-md-12 d-none d-md-block" style="width:100%;height:18px"></div> -->
 
-        <div class="search_div col-12 d-md-none" style=" margin-top:12px; margin-bottom: 1px; padding-left:0; padding-right:0;">
+          <div class="search_div col-12 d-md-none"
+            style=" margin-top:12px; margin-bottom: 1px; padding-left:0; padding-right:0;">
 
-        {% if index_page is defined %}
-          {% if search_clear_button is defined %}
-            <input id="search_string_xs" class="form-control main-page"  style='border:none'
-            type="search" placeholder="Search.." autocomplete="off">
-          {% else %}
-            <div class = 'main-page'>
-              <input id="search_string_xs" class="form-control" 
-              style='display:inline; border:none; padding-right: 2.2em;'
-              type="text" placeholder="Search.." autocomplete="off">
-              
-              <span class ='search_clear'>
+            {% if index_page is defined %}
+            {% if search_clear_button is defined %}
+            <input id="search_string_xs" class="form-control main-page" style='border:none' type="search"
+              placeholder="Search.." autocomplete="off">
+            {% else %}
+            <div class='main-page'>
+              <input id="search_string_xs" class="form-control"
+                style='display:inline; border:none; padding-right: 2.2em;' type="text" placeholder="Search.."
+                autocomplete="off">
+
+              <span class='search_clear'>
                 <svg width='20' height='20' class='item_icon ' style='margin:10px 0 0 0;'>
                   <use href='#cross'></use>
                 </svg>
               </span>
             </div>
-          {% endif %}
-        {% endif %}
+            {% endif %}
+            {% endif %}
+          </div>
+
+          <div class="d-none d-md-block" style="width:100%;height:10px"></div>
         </div>
 
-        <div class="d-none d-md-block" style="width:100%;height:10px"></div>
+        {% if index_page is defined %}
+        <div id='probe_top' style="background: red; width:0; height: 0;"></div>
+
+        {% else %}
+        <div class="row">
+          {% endif %}
+
+
+          {% block content %}{% endblock %}
+
+
+          {% if index_page is defined %}
+          {% else %}
+        </div>
+        {% endif %}
+
+
+      </div>
+      <div id="progress-lock" class="progress-lock progress-lock--hidden">
+        <div class="progress-lock__inner">
+          <div class="progress-lock__message">
+            <span>Please wait…</span>
+          </div>
+        </div>
       </div>
 
-{% if index_page is defined %}
-<div id='probe_top' style="background: red; width:0; height: 0;"></div>
-
-{% else %}
-      <div class="row">
-{% endif %}
-
-
-{% block content %}{% endblock %}
-
-
-{% if index_page is defined %}
-{% else %}
-    </div>
-{% endif %}
-
-    
-  </div>
-  <div id="progress-lock" class="progress-lock progress-lock--hidden">
-    <div class="progress-lock__inner">
-        <div class="progress-lock__message">
-            <span>Please wait…</span>
-        </div>
-    </div>
-  </div>
-
-  {% if PUBLIC_SERVICE and index_page is defined %}
-  <div class="info_footer d-none d-lg-block">
-      <span>
+      {% if PUBLIC_SERVICE and index_page is defined %}
+      <div class="info_footer d-none d-lg-block">
+        <span>
           <a href="//wwpass.com" target="_blank">Powered by WWPass</a>
           <a href="privacy.php">Privacy Policy</a>
-      </span>
-  </div>
-    {% if server_name is defined %}
+        </span>
+      </div>
+      {% if server_name is defined %}
       {{ server_name | raw }}
-    {% endif %} 
-  {% endif %}
-        
-  {% block scripts %}{% endblock %}
+      {% endif %}
+      {% endif %}
+
+      {% block scripts %}{% endblock %}
 
   </body>
+
 </html>
