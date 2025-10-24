@@ -37,6 +37,7 @@ require_once 'vendor/autoload.php';
 use PassHub\Utils;
 use PassHub\DB;
 use PassHub\Puid;
+use PassHub\Csrf;
 
 if (!file_exists(WWPASS_CERT_FILE)) {
     echo Utils::render(
@@ -263,7 +264,9 @@ if (defined('PUBLIC_SERVICE')) {
     include_once 'src/policy.php';
     if (defined('LOGIN_PAGE')) {
         $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
-        $login_template->render();
+        $login_template
+            ->add('csrf', Csrf::get())
+            ->render();
     }
     exit();
 } 
