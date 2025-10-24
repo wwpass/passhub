@@ -1,11 +1,11 @@
 {
     "require": {
-        "google/apiclient": "^2.13",
+        "google/apiclient": "^2.18",
         "wwpass/apiclient": "^4.0",
-        "aws/aws-sdk-php": "^3.260",
-        "twig/twig": "^3.5",
-        "stripe/stripe-php": "^10.7",
-        "mailjet/mailjet-apiv3-php": "^1.5",
+        "aws/aws-sdk-php": "^3.342",
+        "twig/twig": "^3.20",
+        "stripe/stripe-php": "^17.1",
+        "mailjet/mailjet-apiv3-php": "^1.6",
         "mongodb/mongodb": "^1.15",
         "microsoft/microsoft-graph": "^1.87"
     },
