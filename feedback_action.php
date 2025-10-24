@@ -47,10 +47,34 @@ if (!isset($_POST['verifier']) || !Csrf::isValid($_POST['verifier'])) {
     exit();
 }
 
-$name = $_POST['name'];
+$name = "";
+
+if (isset($_POST['name'])) {
+    $name = $_POST['name'];
+}
+
+if (isset($_POST['first_name'])) {
+    $name = $name . ' ' . $_POST['first_name'];
+}
+
+if (isset($_POST['last_name'])) {
+    $name = $name . ' ' . $_POST['last_name'];
+}
+
+$name = trim($name);
+
 $email = $_POST['email'];
 
-$message = "From: '$email' (name '$name')" . "<br><br>" . $_POST['message'];
+$message = '';
+if(isset($_POST['message'])) {
+    $message = $_POST['message'];
+}
+
+if(isset($_POST['partnership_message'])) {
+    $message = $_POST['partnership_message'];
+}
+
+$message = "From: '$email' (name '$name')" . "<br><br>" . $message;
 $message = $message . "<br><br>" .  $_SERVER['HTTP_USER_AGENT'] . "<br>" . $_SERVER['REMOTE_ADDR'] ;
 if (array_key_exists('UserID', $_SESSION)) {
     $message = $message . "<br>UserID " .  $_SESSION['UserID'];
@@ -65,7 +89,7 @@ $star = '';
 if(isset($_POST['recap'])) {
     $message = $message . "<br>JS time spent " . $_POST['recap'];
 } else {
-    $message = $message . "<br>no time spent info";
+    $message = $message . "<br>no JS time spent info";
     $star = '* ';
 }
 
@@ -80,6 +104,10 @@ if(isset($_SESSION['feedback start'])) {
 }
 
 $subject = $star . "passhub report";
+
+if(isset($_POST['partnership_message'])) {
+    $subject = $star . "passhub partnership";
+}
 
 if(is_email_blacklisted($email)) {
     $result = ['status' => 'Ok'];
