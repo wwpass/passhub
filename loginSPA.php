@@ -258,6 +258,8 @@ if (array_key_exists('wwp_status', $_REQUEST) && ( $_REQUEST['wwp_status'] != 20
             if ($result['status'] == "Ok") {
                 $UserID = $result['UserID'];
                 $_SESSION["UserID"] = $UserID;
+                Utils::log("user " . $UserID . " login " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
+
                 $result = array("status" => "Ok");
                 $csrf=Csrf::get();
                 
