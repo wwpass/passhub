@@ -37,18 +37,33 @@ class Iam
 
     static function sendInvitationMail($email) {
         $invitation_mail_subject = file_get_contents('config/invitation_mail_subject.txt');
-        $invitation_mail = file_get_contents('config/invitation_mail.txt');
+        $invitation_mail_txt  = file_get_contents('config/invitation_mail.txt2');
         
-        if (strlen($invitation_mail_subject) == 0) {
+        Utils::err('11111111');
+        Utils::err($invitation_mail_txt);
+        
+        $invitation_mail_html = file_get_contents('config/invitation_mail.html');
+        
+        Utils::err('22222');
+        Utils::err($invitation_mail_html);
+
+
+        if (!$invitation_mail_subject || (strlen($invitation_mail_subject) == 0)) {
             Utils::err("config/invitation_mail_subject.txt absent or empty");
             return;
         }
-        if (strlen($invitation_mail) == 0) {
+        if (!$invitation_mail_txt || (strlen($invitation_mail_txt) == 0)) {
             Utils::err("config/invitation_mail.txt absent or empty");
-            return;
+	    $invitation_mail_txt = null;
         }
+
+        if (!$invitation_mail_html || (strlen($invitation_mail_html) == 0)) {
+            Utils::err("config/invitation_mail.htmlt absent or empty");
+	    $invitation_mail_html = null;
+     }
+
         
-        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
+        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail_html, $invitation_mail_txt);
     }
 
     public static function addWhiteMailList($mng, $req, $admin_email) 

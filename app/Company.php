@@ -79,7 +79,7 @@ class Company
             return;
         }
         
-        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail, $contentType = 'text/html; charset=UTF-8');
+        Utils::sendMail($email, $invitation_mail_subject, $invitation_mail);
     }
 
     public static function addWhiteMailList($mng, $email, $admin_email) 

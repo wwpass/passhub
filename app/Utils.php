@@ -18,147 +18,6 @@ namespace PassHub;
 class Utils
 {
 
-    private static function sendLocalServer($to, $subject, $body, $contentType) {
-
-        $header = 'MIME-Version: 1.0' . "\r\n";
-        if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
-            $header  .= 'From: ' . SENDMAIL_FROM . "\r\n";
-            $header  .= 'Return-Path: ' . SENDMAIL_FROM . "\r\n";
-        } else if (isset($_POST['host'])) {
-            $header  .= 'From: noreply@' . htmlspecialchars($_POST['host']) . "\r\n";
-        }
-        
-        $header .= 'Content-type: ' . $contentType . "\r\n";
-
-        $header .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
-        if (!mb_detect_encoding($subject, 'ASCII', true)) {
-            $subject = '=?UTF-8?B?'.base64_encode($subject).'?=';
-        }
-
-        if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
-            $result = mail($to, $subject, $body, $header, '-f' . SENDMAIL_FROM); 
-        } else {
-            $result = mail($to, $subject, $body, $header); 
-        }
-
-        return $result ? ['status' => 'Ok'] : ['status' => 'fail'];
-    }
-
-
-    private static function sendMailJet($to, $subject, $body, $contentType) {
-        
-        $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
-
-        if($contentType == 'text/plain; charset="UTF-8"') {
-            $messages = [
-                'Messages' => [
-                    [
-                        'From' => [
-                            'Email' => SMTP_SERVER["from"]
-                        ],
-                        'To' => [
-                            [
-                                'Email' => $to,
-                            ]
-                        ],
-                        'Subject' => $subject,
-                        'TextPart' => $body,
-                    ]
-                ]
-            ];
-    
-        } else {
-            $messages = [
-                'Messages' => [
-                    [
-                        'From' => [
-                            'Email' => SMTP_SERVER["from"]
-                        ],
-                        'To' => [
-                            [
-                                'Email' => $to,
-                            ]
-                        ],
-                        'Subject' => $subject,
-                        'HTMLPart' => $body
-                    ]
-                ]
-            ];
-        }
-
-        $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $messages]);
-
-        $data = $response->getData();
-
-        if($data['Messages'][0]['Status'] == 'success') {
-           $to = $data['Messages'][0]['To'][0];
-           Utils::err( "Mailjet");
-           Utils::err([
-            'To' => $to['Email'],
-            'MessageID' => $to['MessageID']
-
-           ]);
-        } else {
-            Utils::err('MailJet');
-            Utils::err($data);
-        }
-
-        if($response->success()) {
-            return ['status' => 'Ok'];
-        }
-        return ['status' => 'fail'];
-    }
-
-    private static function sendSMTP($to, $subject, $body, $contentType) {
-
-        if(isset(SMTP_SERVER["host"]) && stristr(SMTP_SERVER["host"],"in-v3.mailjet.com")) {
-            return self::sendMailJet($to, $subject, $body, $contentType);
-        }
-        $from = '<' . SMTP_SERVER["username"] . '>';
-        if(isset(SMTP_SERVER["from"])) {
-            $from = '<' . SMTP_SERVER["from"] . '>';
-        }
-
-
-        $to = '<' . $to . '>';
-    
-        $headers = array(
-            'From' => $from,
-            'To' => $to,
-            'Subject' => $subject,
-            'MIME-Version' => 1,
-            'Content-type' => $contentType
-        );
-        Utils::err(print_r($headers, true));
-    
-        $smtp = \Mail::factory('smtp', SMTP_SERVER);
-    
-        $mail = $smtp->send($to, $headers, $body);
-    
-        if (\PEAR::isError($mail)) {
-            self::err('sendSMTP error ' . $mail->getMessage());
-            return ['status' => 'fail'];
-        }
-        return ['status' => 'Ok'];
-    }
-
-    public static function sendMail($to, $subject, $body, $contentType = 'text/html; charset=UTF-8') {
-
-        if ($subject != "passhub PREMIUM paid") {
-            if (!Utils::valid_origin()) {
-                return ['status' => 'Ok'];
-            }
-        }
-        if(Utils::blacklisted()) {
-            return ['status' => 'Ok'];
-        }
-
-        if (defined('SMTP_SERVER')) {
-            return self::sendSMTP($to, $subject, $body, $contentType);
-        }
-        return self::sendLocalServer($to, $subject, $body, $contentType);
-    }
-
     public static function render(string $template, array $context = []): string
     {
         $loader = new \Twig\Loader\FilesystemLoader('views');
@@ -219,35 +78,6 @@ class Utils
         }
     }
     
-
-
-/*
-    public static function err1($message) {
-        if(is_array($message)) {
-            $message = print_r($message, true);
-            self::err('warning: attempt to log an array');
-        } else if(is_object($message)) {
-            $message = print_r($message, true);
-            self::err('warning: attempt to log an object');
-        }
-
-        if (defined('LOG_DIR') && ($message != "")) {
-            $fname = LOG_DIR . '/passhub-' . date("ymd") . ".err";
-            if ($fh = fopen($fname, 'a')) {
-                fwrite($fh, date("c") . " "  . $_SERVER['REMOTE_ADDR'] . " " . $message . "\n");
-                fclose($fh);
-            } else {
-                error_log("Cannot open err log file " . $fname);
-            }
-        }
-        if (defined('SYSLOG') && SYSLOG) {
-            openlog("passhub", LOG_PID | LOG_PERROR, LOG_LOCAL0);
-            syslog(LOG_ERR, $message);
-            closelog();
-        }
-    }
-*/
-
     public static function timingLog($message) {
         if (defined('LOG_DIR') && ($message != "")) {
             $fname = LOG_DIR . '/timing-' . date("ymd") . ".log";
@@ -266,23 +96,6 @@ class Utils
         header("Location: error_page.php");
         exit();
     }
-
-
-    /*
-    function message_page($title, $content) {
-
-        echo Utils::render(
-            'message_page.html',
-            [
-                'narrow' => true,
-                'PUBLIC_SERVICE' => defined('PUBLIC_SERVICE') ? PUBLIC_SERVICE : false, 
-                'title' => $title,
-                'content' => $content
-            ]
-        );
-        exit();
-    } 
-*/
 
     public static function messagePage($title, $content, $logout = false) {
 
@@ -410,5 +223,144 @@ class Utils
             return "Internal server error";
         }
         return "Ok";
-    }    
+    }  
+    
+    
+/***********************************************************************************************
+
+                all mail functions:
+
+***********************************************************************************************/
+
+    private static function sendLocalServer($to, $subject, $body_html, $body_txt) {
+
+        $header = 'MIME-Version: 1.0' . "\r\n";
+        if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
+            $header  .= 'From: ' . SENDMAIL_FROM . "\r\n";
+            $header  .= 'Return-Path: ' . SENDMAIL_FROM . "\r\n";
+        } else if (isset($_POST['host'])) {
+            $header  .= 'From: noreply@' . htmlspecialchars($_POST['host']) . "\r\n";
+        }
+        
+        $header .= 'Content-type: ' . $contentType . "\r\n";
+
+        $header .= 'Content-Transfer-Encoding: 8bit' . "\r\n";
+        if (!mb_detect_encoding($subject, 'ASCII', true)) {
+            $subject = '=?UTF-8?B?'.base64_encode($subject).'?=';
+        }
+
+        if (defined('SENDMAIL_FROM') && (SENDMAIL_FROM != "")) {
+            $result = mail($to, $subject, $body, $header, '-f' . SENDMAIL_FROM); 
+        } else {
+            $result = mail($to, $subject, $body, $header); 
+        }
+
+        return $result ? ['status' => 'Ok'] : ['status' => 'fail'];
+    }
+
+    private static function sendMailJet($to, $subject, $body_html, $body_txt) {
+    
+        
+        $mj = new \Mailjet\Client(SMTP_SERVER["username"],SMTP_SERVER["password"],true,['version' => 'v3.1']);
+
+        $message = [
+                    'From' => ['Email' => SMTP_SERVER["from"]],
+                    'To' => [['Email' => $to,]],
+                    'Subject' => $subject,
+        ];
+
+        if($body_html) {
+            $message['HTMLPart'] = $body_html;
+        }
+        if($body_txt) {
+            $message['TextPart'] = $body_txt;
+        }
+
+        if(!$body_txt && !$body_html) {
+            echo 'Fail';
+            return ['status' => 'fail'];
+        }
+
+        $messages = [ 'Messages' => [ $message]];
+
+        Utils::err('Mailjet message');
+        Utils::err($messages);
+
+        $response = $mj->post( \Mailjet\Resources::$Email, ['body' => $messages]);
+
+        $data = $response->getData();
+
+        if($data['Messages'][0]['Status'] == 'success') {
+           $to = $data['Messages'][0]['To'][0];
+           Utils::err( "Mailjet");
+           Utils::err([
+            'To' => $to['Email'],
+            'MessageID' => $to['MessageID']
+
+           ]);
+        } else {
+            Utils::err('MailJet');
+            Utils::err($data);
+        }
+
+        if($response->success()) {
+            return ['status' => 'Ok'];
+        }
+        return ['status' => 'fail'];
+    }
+
+    private static function sendSMTP($to, $subject, $body_html, $body_txt) {
+
+        $from = '<' . SMTP_SERVER["username"] . '>';
+        if(isset(SMTP_SERVER["from"])) {
+            $from = '<' . SMTP_SERVER["from"] . '>';
+        }
+
+
+        $to = '<' . $to . '>';
+    
+        $headers = array(
+            'From' => $from,
+            'To' => $to,
+            'Subject' => $subject,
+            'MIME-Version' => 1,
+            'Content-type' => $contentType
+        );
+        Utils::err(print_r($headers, true));
+    
+        $smtp = \Mail::factory('smtp', SMTP_SERVER);
+    
+        $mail = $smtp->send($to, $headers, $body_html);
+    
+        if (\PEAR::isError($mail)) {
+            self::err('sendSMTP error ' . $mail->getMessage());
+            return ['status' => 'fail'];
+        }
+        return ['status' => 'Ok'];
+    }
+
+    public static function sendMail($to, $subject, $body_html=null, $body_txt=null) {
+
+        if ($subject != "passhub PREMIUM paid") {
+            if (!Utils::valid_origin()) {
+                return ['status' => 'Ok'];
+            }
+        }
+
+        if(Utils::blacklisted()) {
+            return ['status' => 'Ok'];
+        }
+
+        if(!$body_txt && !$body_html) {
+            return ['status' => 'fail'];
+        }
+
+        if (defined('SMTP_SERVER')) {
+            if(isset(SMTP_SERVER["host"]) && stristr(SMTP_SERVER["host"],"in-v3.mailjet.com")) {
+                return self::sendMailJet($to, $subject, $body_html, $body_txt);
+            }
+            return self::sendSMTP($to, $subject, $body_html, $body_txt);
+        }
+        return self::sendLocalServer($to, $subject, $body, 'text/html; charset=UTF-8');
+    }
 }
