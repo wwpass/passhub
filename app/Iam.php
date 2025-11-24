@@ -37,13 +37,17 @@ class Iam
 
     static function sendInvitationMail($email) {
         $invitation_mail_subject = file_get_contents('config/invitation_mail_subject.txt');
-        $invitation_mail_txt  = file_get_contents('config/invitation_mail.txt2');
-        
+        $invitation_mail_txt  = file_get_contents('config/invitation_mail.txt');
+
+        $invitation_mail_txt = str_replace("<!--email placeholder-->", $email, $invitation_mail_txt);
+
         Utils::err('11111111');
         Utils::err($invitation_mail_txt);
         
         $invitation_mail_html = file_get_contents('config/invitation_mail.html');
         
+        $invitation_mail_html = str_replace("<!--email placeholder-->", $email, $invitation_mail_html);
+
         Utils::err('22222');
         Utils::err($invitation_mail_html);
 
