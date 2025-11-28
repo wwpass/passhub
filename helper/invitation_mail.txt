@@ -7,7 +7,7 @@ You’ve been invited to join <your organization> <WatchMyGreen> PassHub.us work
 
     Go to  <invitation link> <watchmygreen.passhub.us.
 
-    Scan the QR code with your WWPass Key app to log in securely. Your PassHub account will be created automatically during your first login. On your phone tap 'Log in with WWPass' button
+    Scan the QR code with your WWPass Key app to log in securely. Your PassHub account will be created automatically during your first login. On your phone tap the 'Log in with WWPass' button
 
     To sign-up, use your email <!--email placeholder-->.
 
