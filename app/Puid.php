@@ -174,6 +174,13 @@ class Puid
         }
         if (isset($email)) {
             Utils::err("new user $email $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
+
+            if(defined('ADMIN_NOTIFICATION_MAIL')) {
+                Utils::sendMail(
+                    to: ADMIN_NOTIFICATION_MAIL, 
+                    subject: "A new passhub account created", 
+                    body_txt: "A user with the email address " . $email . "has created a new account in " . $_SERVER['HTTP_HOST']);
+            }
         }
         Utils::log("new user $UserID " . $_SERVER['REMOTE_ADDR'] . " " .  $_SERVER['HTTP_USER_AGENT']);
 
