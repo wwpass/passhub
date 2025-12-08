@@ -271,6 +271,17 @@ if (defined('PUBLIC_SERVICE')) {
     exit();
 } 
 
+
+$background_image = "url('public/img/formentera-beach.jpeg')";
+if (defined('LOGIN_BACKGROUND')) {
+    $background_image=LOGIN_BACKGROUND;
+}
+
+
+
 echo Utils::render(
-    'login.html'
+    'login.twig', 
+    [
+        'background_image' => $background_image
+    ]
 );
