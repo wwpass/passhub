@@ -47,6 +47,7 @@ class Iam
         $invitation_mail_html = file_get_contents('config/invitation_mail.html');
         
         $invitation_mail_html = str_replace("<!--email placeholder-->", $email, $invitation_mail_html);
+        $invitation_mail_html = str_replace("<!--url placeholder-->", $_SERVER['SERVER_NAME'], $invitation_mail_html);
 
         Utils::err('22222');
         Utils::err($invitation_mail_html);
