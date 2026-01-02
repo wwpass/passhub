@@ -98,7 +98,7 @@ if ($iOS) {
     $idx = array_search('OS', $user_agent);
     $ios_version = explode('_', $user_agent[$idx+1]);
     if(count($ios_version) > 1) {
-        Utils::err('iOS version ' . $ios_version[0]);
+//        Utils::err('iOS version ' . $ios_version[0]);
         if(intval($ios_version[0]) < 10) {
             $incompatible_browser = "iOS";
         }
@@ -266,6 +266,9 @@ if (defined('PUBLIC_SERVICE')) {
         $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
         $login_template
             ->add('csrf', Csrf::get())
+            ->add('header_secondary', "")
+            ->add('main_class', "")
+
             ->render();
     }
     exit();
