@@ -5,7 +5,7 @@ You’ve been invited to join <your organization> <WatchMyGreen> PassHub.us work
 
     Install the WWPass Key app on your mobile device: Download for iOS Download for Android
 
-    Go to  <invitation link> <watchmygreen.passhub.us.
+    Go to  <!--url placeholder-->.
 
     Scan the QR code with your WWPass Key app to log in securely. Your PassHub account will be created automatically during your first login. On your phone tap the 'Log in with WWPass' button
 

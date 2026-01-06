@@ -43,8 +43,8 @@ if (!file_exists(WWPASS_CERT_FILE)) {
     echo Utils::render(
         'no_crt_file_found.html',
         [
-//            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
+            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
+//            'wwpass_manage' => TRUE
         ]
     );
     exit();
@@ -54,8 +54,8 @@ if (!file_exists(WWPASS_KEY_FILE)) {
     echo Utils::render(
         'no_crt_file_found.html',
         [
-  //          'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
+            'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
+  //          'wwpass_manage' => TRUE
         ]
     );
     exit();
@@ -98,7 +98,7 @@ if ($iOS) {
     $idx = array_search('OS', $user_agent);
     $ios_version = explode('_', $user_agent[$idx+1]);
     if(count($ios_version) > 1) {
-        Utils::err('iOS version ' . $ios_version[0]);
+//        Utils::err('iOS version ' . $ios_version[0]);
         if(intval($ios_version[0]) < 10) {
             $incompatible_browser = "iOS";
         }
@@ -266,11 +266,25 @@ if (defined('PUBLIC_SERVICE')) {
         $login_template = LocalizedTemplate::factory(LOGIN_PAGE);
         $login_template
             ->add('csrf', Csrf::get())
+            ->add('header_secondary', "")
+            ->add('main_class', "")
+
             ->render();
     }
     exit();
 } 
 
+
+$background_image = "url('public/img/formentera-beach.jpeg')";
+if (defined('LOGIN_BACKGROUND')) {
+    $background_image=LOGIN_BACKGROUND;
+}
+
+
+
 echo Utils::render(
-    'login.html'
+    'login.twig', 
+    [
+        'background_image' => $background_image
+    ]
 );
