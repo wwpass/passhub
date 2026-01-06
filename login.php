@@ -43,8 +43,8 @@ if (!file_exists(WWPASS_CERT_FILE)) {
     echo Utils::render(
         'no_crt_file_found.html',
         [
-//            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
+            'message' => 'Please set <b>config/config.php/WWPASS_CERT_FILE</b> parameter: file does not exist.',
+//            'wwpass_manage' => TRUE
         ]
     );
     exit();
@@ -54,8 +54,8 @@ if (!file_exists(WWPASS_KEY_FILE)) {
     echo Utils::render(
         'no_crt_file_found.html',
         [
-  //          'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
-            'wwpass_manage' => TRUE
+            'message' => 'Please set <b>config/config.php/WWPASS_KEY_FILE</b> parameter: file does not exist.',
+  //          'wwpass_manage' => TRUE
         ]
     );
     exit();
