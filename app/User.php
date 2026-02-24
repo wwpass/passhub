@@ -698,6 +698,8 @@ class User
             return "internal error";
         }
         
+        $safeIDs = [];
+
         foreach ($req->import as $safe) {
             if (isset($safe->id)) {  //merge
                 $SafeID = $safe->id;
@@ -747,8 +749,9 @@ class User
                     }
                 }
             }
+            $safeIDs[] = $SafeID;
         }
-        return ["status" => "Ok"];
+        return ["status" => "Ok", "safeIDs" => $safeIDs];
     }
 
     public function deleteSafe($SafeID, $operation) {

@@ -45,6 +45,61 @@ abstract class File
     }
 
 
+    public static function upload_pux_file($mng, $UserID,  $SafeID, $puxId, $fileInfoJson, $fileContent) {
+
+        $fileInfo = json_decode($fileInfoJson);
+        Utils::err("fileInfo");
+        Utils::err($fileInfo);
+
+        Utils::err("SafeID");
+        Utils::err($SafeID);
+
+/*
+
+
+        if ($user->canWrite($SafeID) == false) {
+            Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
+            return "Sorry, you do not have editor rights for this safe";
+        }
+*/            
+
+
+
+        $file_id = new \MongoDB\BSON\ObjectID();
+        $file_id = (string)$file_id;
+
+        $f = self::newFile($file_id);
+        $result = $f->upload($fileContent);
+        if ($result['status'] != "Ok") {
+            Utils::err('line 73');
+            Utils::err($result['status']);
+            return $result;
+        }
+
+
+        $cursor = $mng->safe_items->find(['SafeID' => $SafeID, "note" => 1, "onePasswordDocumentId" => $puxId]);
+        $array = $cursor->toArray();
+        Utils::err("count(array)");
+        Utils::err(count($array));
+
+        $result = $mng->safe_items->updateOne(
+            ['SafeID' => $SafeID, "note" => 1, "onePasswordDocumentId" => $puxId],
+                ['$set'=> ['file' => ['id' => (string)$file_id,
+                 'size' => strlen($fileContent),
+                        'key' =>$fileInfo->key,
+                        'iv' => $fileInfo->iv,
+                        'tag' => $fileInfo->tag]],
+                '$unset'=>["note"=> ""]
+            ]);
+        
+            Utils::err('result');
+            Utils::err($result);
+
+
+        return ['status' => "Ok"];
+    }
+    
+
     public static function create($mng, $UserID, $SafeID, $folder, $meta, $file, $filecontent) {
 
         $user = new User($mng, $UserID);
