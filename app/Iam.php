@@ -40,6 +40,7 @@ class Iam
         $invitation_mail_txt  = file_get_contents('config/invitation_mail.txt');
 
         $invitation_mail_txt = str_replace("<!--email placeholder-->", $email, $invitation_mail_txt);
+        $invitation_mail_txt = str_replace("<!--url placeholder-->", $_SERVER['SERVER_NAME'], $invitation_mail_html);
 
         Utils::err('11111111');
         Utils::err($invitation_mail_txt);
