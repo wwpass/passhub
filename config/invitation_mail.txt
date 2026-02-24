@@ -1,0 +1,19 @@
+Welcome to PassHub secure secret manager powered by WWPass.
+
+You’ve been invited to join <!--url placeholder--> workspace — a fully encrypted environment for sharing passwords, credentials, and sensitive files, while maintaining complete privacy and control.
+🔐 Getting Started (Takes Just a Minute)
+
+    Install the WWPass Key app on your mobile device: Download for iOS Download for Android
+
+    Go to  <!--url placeholder-->.
+
+    Scan the QR code with your WWPass Key app to log in securely. Your PassHub account will be created automatically during your first login. On your phone tap the 'Log in with WWPass' button
+
+    To sign-up, use your email <!--email placeholder-->.
+
+No passwords are required — WWPass Key ensures passwordless, phishing-resistant multi-factor authentication and client-side encryption by default.
+🛠 Questions? Contact support@passhub.net or visit  https://passhub.net/doc/
+Welcome aboard!
+The PassHub Team
+
+
