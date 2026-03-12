@@ -44,26 +44,39 @@ abstract class File
         throw new \Exception('Site is misconfigured. Please contact your system administrator.');
     }
 
-
     public static function upload_pux_file($mng, $UserID,  $SafeID, $puxId, $fileInfoJson, $fileContent) {
 
-        $fileInfo = json_decode($fileInfoJson);
-        Utils::err("fileInfo");
-        Utils::err($fileInfo);
-
-        Utils::err("SafeID");
-        Utils::err($SafeID);
-
-/*
-
+        $user = new User($mng, $UserID);
 
         if ($user->canWrite($SafeID) == false) {
             Utils::err("error file 20 role = '$role'  UserID " . $UserID . " SafeID " . $SafeID);
             return "Sorry, you do not have editor rights for this safe";
         }
+/*
+        if (!defined('MAX_FILE_SIZE')) {
+            $max_file_size = 5 * 1024 * 1024;
+        } else {
+            $max_file_size = MAX_FILE_SIZE;
+        }
+        Utils::err("upload file size " . strlen($fileContent));
+        if (strlen($fileContent) > $max_file_size) {
+            return ['status' => "File size exceeds " . Utils::humanReadableFileSize($max_file_size)];
+        }
 */            
-
-
+/*
+        if (defined('MAX_STORAGE_PER_USER')) {
+            $result = $user->account();
+            if ($result['status'] == "Ok") {
+                if ($result['used'] +  strlen($fileContent) > $result['maxStorage']) {
+                    return ['status' => "No room to store the file, used " 
+                    . Utils::humanReadableFileSize($result['used']) . " out of ". Utils::humanReadableFileSize($result['maxStorage'])];
+                }
+            } else {
+                return $result;
+            }
+        }        
+*/
+        $fileInfo = json_decode($fileInfoJson);
 
         $file_id = new \MongoDB\BSON\ObjectID();
         $file_id = (string)$file_id;
@@ -75,7 +88,6 @@ abstract class File
             Utils::err($result['status']);
             return $result;
         }
-
 
         $cursor = $mng->safe_items->find(['SafeID' => $SafeID, "note" => 1, "onePasswordDocumentId" => $puxId]);
         $array = $cursor->toArray();
