@@ -451,7 +451,7 @@ class User
 
     public static function getBestRole($role1, $role2) {
 
-        Utils::err('GetBestRole role1 ' . $role1 . ' role2 ' . $role2);
+//        Utils::err('GetBestRole role1 ' . $role1 . ' role2 ' . $role2);
 
         if(($role1 == self::ROLE_ADMINISTRATOR) || ($role2 == self::ROLE_ADMINISTRATOR)) {
             return self::ROLE_ADMINISTRATOR;            
@@ -512,13 +512,13 @@ class User
     public function canWrite($SafeID)
     {
         $role = $this->getUserRole($SafeID);
-        Utils::err("CanWrite role: " . $role);
+//        Utils::err("CanWrite role: " . $role);
 
         if(($role == self::ROLE_ADMINISTRATOR)  || ($role == self::ROLE_EDITOR)) {
-            Utils::err("CanWrite: true");
+//            Utils::err("CanWrite: true");
             return true;
         }
-        Utils::err("CanWrite: false");
+//        Utils::err("CanWrite: false");
         return false;
     }
     

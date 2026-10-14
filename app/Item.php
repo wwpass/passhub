@@ -97,42 +97,7 @@ class Item {
         }
     }
 
-    public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
-
-        $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
-
-        $a = $cursor->toArray();
-        if (count($a) != 1) {
-            Utils::err("error itm 324, entryID $this->entryID count is " . count($a));
-            return "Internal server error itm 324";
-        }
-        $itemData = $a[0];
-
-        $SafeID = $itemData->SafeID;
-
-        $user = new User($this->mng, $UserID);
-
-        if (!$user->canRead($srcSafeID)) {
-            return "no src read";
-        }
-        if (($operation == "move") && !$user->canWrite($srcSafeID)) {
-            return "no src write";
-        }
-
-        if (!$user->canWrite($dstSafeID)) {
-            return "no dst write";
-        }
-
-        $srcKey = $user->getEncryptedAesKey($srcSafeID);
-        $dstKey = $user->getEncryptedAesKey($dstSafeID);
-        return array(
-            "status" => "Ok",
-            "item" => $itemData,
-            "src_key" => $srcKey,
-            "dst_key" => $dstKey
-        );
-    }
-
+    
     public function update($UserID, $SafeID, $data, $expectedRevision = null) {
 
         if ($SafeID != $this->getSafe()) {
@@ -309,13 +274,29 @@ class Item {
     }
 
     // TODO: preserve modification data
-    public function move($UserID, $sourceSafeID, $targetSafeID, $dst_folder, $data, $operation) {
+    public function move($UserID, $sourceSafeID_not_used, $targetSafeID, $dst_folder, $data, $operation) {
 
         /*    // TODO
         - if dst_folder exists and belongs to dst_safe
         - if the user has rights to write to dst_folder
         - if the user has rights to access source folder
         */
+
+        $srcSafeID = $this->getSafe();
+
+        $user = new User($this->mng, $UserID);
+
+        if (!$user->canRead($srcSafeID)) {
+            return "no src read";
+        }
+        if (($operation == "move") && !$user->canWrite($srcSafeID)) {
+            return "no src write";
+        }
+
+        if (!$user->canWrite($targetSafeID)) {
+            return "no dst write";
+        }
+
         $js = json_decode($data);
         if ($js !== null) {
             if (
@@ -380,3 +361,43 @@ class Item {
         return "Internal error itm 319";
     }
 }
+
+
+
+/*
+    public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
+
+        $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
+
+        $a = $cursor->toArray();
+        if (count($a) != 1) {
+            Utils::err("error itm 324, entryID $this->entryID count is " . count($a));
+            return "Internal server error itm 324";
+        }
+        $itemData = $a[0];
+
+        $SafeID = $itemData->SafeID;
+
+        $user = new User($this->mng, $UserID);
+
+        if (!$user->canRead($srcSafeID)) {
+            return "no src read";
+        }
+        if (($operation == "move") && !$user->canWrite($srcSafeID)) {
+            return "no src write";
+        }
+
+        if (!$user->canWrite($dstSafeID)) {
+            return "no dst write";
+        }
+
+        $srcKey = $user->getEncryptedAesKey($srcSafeID);
+        $dstKey = $user->getEncryptedAesKey($dstSafeID);
+        return array(
+            "status" => "Ok",
+            "item" => $itemData,
+            "src_key" => $srcKey,
+            "dst_key" => $dstKey
+        );
+    }
+*/

@@ -79,12 +79,12 @@ function move_record_proxy($mng) {
         Utils::err("error mov 66");
         return "internal error mov 66";
     }
-
+/*
     if (isset($req->checkRights)) {
         $item = new Item($mng, $entryID);
         return $item->getMoveOperationData($UserID, $SafeID, $TargetSafeID, $operation);
     }
-
+*/
     $new_item = trim($req->item);
     $dst_folder = 0;
     if (isset($req->dst_folder)) {

@@ -1,5 +1,11 @@
 # Passhub password manager
+
 ## Full featire list
+
+### Strong multifactor authentication and client-side encryption
+
+Using WWPass technology, with true 256-bit AES encryption
+
 
 ### Type of records:
 
@@ -35,18 +41,42 @@ Search in record titles, usernames, URLs, notes and any fileds but passwords. Se
    - Firefox
    - 
  - Password managers
-  - LastPass 
-  - Keepass
-  - Bitwarden
-  - Keeper Security
-  - 1Password
-  - 
+   - LastPass 
+   - Keepass
+   - Bitwarden
+   - Keeper Security
+   - 1Password
+   
 
 ### Export
  - Keepass
   
 
+### Browser extensions
+
+- Chrome
+- Edge
+- Firefox
+- Safari
+
+Web Form autofill for usernames, passwords, OTP codes, bank card data and addresses
 
 
 
+## PassHub for Business
+
+All basic features plus Integration
+
+### User managements
+ - local
+ - Active Directpry (LDAPS)
+ - Azure EntraID
+ - Google Workspace
+  
+### Audit
+ - local
+ - Crowdstrike
+ - Sentinel
+  
+### Cloud or Self-hosted
 
