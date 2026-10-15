@@ -66,7 +66,31 @@ class Item {
                     $js = (array)$js;
                     $record = $record + $js;
                     $record['folder'] = $folder;
-                    $record['revision'] = 1;
+
+
+//                     $record['revision'] = 1; ??
+/*
+  // Validation for passkey (version 6)
+                    if ($js['version'] == 6 && isset($js['type']) && $js['type'] === 'passkey') {
+                        if (!isset($js['passkey']) || !is_object($js['passkey'])) {
+                            Utils::err("Passkey data missing or invalid");
+                            return ('Invalid passkey structure');
+                        }
+                        $passkey = (array)$js['passkey'];
+                        $required_fields = ['credentialId', 'privateKey', 'publicKey', 'userHandle', 'counter', 'rpId'];
+                        foreach ($required_fields as $field) {
+                            if (!isset($passkey[$field])) {
+                                Utils::err("Passkey missing field: $field");
+                                return ("Invalid passkey: missing $field");
+                            }
+                        }
+                        $record['passkey'] = $passkey;
+                    }
+*/
+
+
+
+
 
                     if (!isset($record['lastModified'])) {
                         $record['lastModified'] = Date('c');
