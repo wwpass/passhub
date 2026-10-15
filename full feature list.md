@@ -16,6 +16,7 @@ Using WWPass technology, with true 256-bit AES encryption
  - bank cards
  - addresses
  - files
+      - View files in-place, no need to download
  - notes
 
 All records have a "notes" field for arbitrary comments 
