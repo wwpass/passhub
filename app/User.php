@@ -161,6 +161,55 @@ class User
         }
     }
 
+    // The private key is encrypted with the client key of a particular WWPass key.
+    // Additional (bound) keys keep their own copy in the puids record,
+    // the original key uses the copy in the user profile.
+    public function getEncryptedPrivateKey($PUID = null) {
+        if ($PUID === null && isset($_SESSION['PUID'])) {
+            $PUID = $_SESSION['PUID'];
+        }
+        if ($PUID !== null) {
+            $record = $this->mng->puids->findOne(['PUID' => $PUID, 'UserID' => $this->UserID]);
+            if ($record && isset($record->privateKey_CSE)) {
+                return $record->privateKey_CSE;
+            }
+        }
+        if (!isset($this->profile)) {
+            $this->getProfile();
+        }
+        return $this->profile->privateKey_CSE;
+    }
+
+    // list of WWPass keys bound to the account
+    public function getKeys() {
+        $keys = [];
+        $this->getProfile();
+        if (isset($this->profile->PUID)) {  // legacy schema: PUID in users collection ????? was it??
+            $keys[] = [
+                'id' => 'primary',
+                'primary' => true,
+                'current' => isset($_SESSION['PUID']) && ($_SESSION['PUID'] === $this->profile->PUID),
+            ];
+        }
+        $records = $this->mng->puids->find(['UserID' => $this->UserID])->toArray();
+        foreach ($records as $record) {
+            $primary = !isset($record->privateKey_CSE);
+            if ($primary && count($keys) && $keys[0]['primary']) {
+                continue;
+            }
+            $key = [
+                'id' => $primary ? 'primary' : (string)$record->_id,
+                'primary' => $primary,
+                'current' => isset($_SESSION['PUID']) && ($_SESSION['PUID'] === $record->PUID),
+            ];
+            if (isset($record->created)) {
+                $key['created'] = $record->created;
+            }
+            $keys[] = $key;
+        }
+        return $keys;
+    }
+
     public function isCSE() {
         if (isset($this->profile)) {
             if (!isset($this->profile->publicKey_CSE) || !isset($this->profile->privateKey_CSE)) {
@@ -346,7 +395,7 @@ class User
             'invitation_accept_pending' => false,
             'currentSafe' => $this->profile->currentSafe,
             'email' => $this->profile->email,
-            'ePrivateKey' => $this->profile->privateKey_CSE,
+            'ePrivateKey' => $this->getEncryptedPrivateKey(),
             'safes' => $safes,
 
 //            'safes' => $this->getSafes(),
@@ -1026,8 +1075,10 @@ class User
             $puids = $cursor->toArray();
             if (count($puids) > 0) {
                 $this->PUID = $puids[0]->PUID;
+                // the account may have several WWPass keys bound
+                $allPuids = array_map(fn($p) => $p->PUID, $puids);
                 $result = $this->mng->puids->deleteMany(['UserID' => $this->UserID]);
-                if ($result->getDeletedCount() != 1) {
+                if ($result->getDeletedCount() != count($puids)) {
                     Utils::err(print_r($result, true));
                     return "Internal error 107";
                 }
@@ -1036,9 +1087,12 @@ class User
                 return "Internal error 111";
             }
         }
+        if (!isset($allPuids)) {
+            $allPuids = [$this->PUID];
+        }
 
-        $result = $this->mng->reg_codes->deleteMany(['PUID' => $this->PUID]);
-        $result = $this->mng->change_mail_codes->deleteMany(['PUID' => $this->PUID]);
+        $result = $this->mng->reg_codes->deleteMany(['PUID' => ['$in' => $allPuids]]);
+        $result = $this->mng->change_mail_codes->deleteMany(['PUID' => ['$in' => $allPuids]]);
         $result = $this->mng->users->deleteMany(['_id' => $this->_id]);
         $this->cancel_subscriptions();
 
