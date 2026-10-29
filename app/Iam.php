@@ -87,16 +87,18 @@ class Iam
         } 
 
         $company = null;
-        if( $req->company && (strlen($req->company) == 24) && ctype_xdigit($req->company) ) {
+        $invitation = ['email' => $email];
+        if( isset($req->company) && $req->company && (strlen($req->company) == 24) && ctype_xdigit($req->company) ) {
             $company = $req->company;
-            $mng->mail_invitations->insertOne(['email' => $email, 'company' => $company]);
-            
-        } else {
-            $mng->mail_invitations->insertOne(['email' => $email]);
+            $invitation['company'] = $company;
         }
+        $as_admin = isset($req->admin) && ($req->admin === true);
+        if ($as_admin) {
+            $invitation['admin'] = true;
+        }
+        $mng->mail_invitations->insertOne($invitation);
 
-
-        Utils::audit_log($mng, ["actor" => $admin_email, "operation" => "invite", "user" => $email]);
+        Utils::audit_log($mng, ["actor" => $admin_email, "operation" => $as_admin ? "inviteAdmin" : "invite", "user" => $email]);
 
         self::sendInvitationMail($email);
         return self::whiteMailList($mng, $company);
@@ -332,12 +334,26 @@ class Iam
             }
         }
 
-        $cursor = $mng->mail_invitations->find($filter, ['projection' => ['_id' => false, 'email' => true]]);
-        $invited = $cursor->toArray();        
-        
+        $cursor = $mng->mail_invitations->find($filter, ['projection' => ['_id' => false, 'email' => true, 'admin' => true]]);
+        $invited = $cursor->toArray();
+
         foreach($invited as $i) {
             if(!in_array($i['email'], $mail_list)) {
-                array_push($user_array, ["email" => $i['email'], "status" => "invited"]);
+                $entry = ["email" => $i['email'], "status" => "invited"];
+
+                Utils::err("entry 344");
+                Utils::err($entry);
+
+                if (isset($i['admin']) && $i['admin']) {
+                    $entry['site_admin'] = true;
+                }
+                Utils::err("entry 350");
+                Utils::err($entry);
+
+                array_push($user_array, $entry);
+                Utils::err("array 354");
+                Utils::err($user_array);
+                
             }
         }
         if(!defined('MSP')) {
@@ -357,6 +373,8 @@ class Iam
                 return [];
             }
         }
+        Utils::err("array 376");
+        Utils::err($user_array);
         return $user_array;
     }
 
