@@ -1,5 +1,9 @@
 PassHub Password Manager
 
+2026-10-29
+
+PassHub for Business: the "invite as admin" feature is now enabled for local user management.
+
 2026-10-18
 
 Additional WWPass keys can now be used to log in to a user account.
