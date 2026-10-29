@@ -38278,16 +38278,21 @@ function keyPairGenerated(keypair) {
   subtle.exportKey('pkcs8', keypair.privateKey).then(privateKeyExported_pkcs8).catch(cryptoapi_catch);
   subtle.exportKey('spki', keypair.publicKey).then(publicKeyExported_spki).catch(cryptoapi_catch);
 }
-if (subtle && !(navigator.userAgent.match('Version/10') && navigator.userAgent.match('iPhone'))) {
+
+/*
+if (subtle && !((navigator.userAgent.match('Version/10') && navigator.userAgent.match('iPhone')))) {
   subtle.generateKey({
     name: 'RSA-OAEP',
     modulusLength: 2048,
     publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
-    hash: {
-      name: 'SHA-1'
-    }
-  }, true, ['encrypt', 'decrypt']).then(keyPairGenerated).catch(cryptoapi_catch);
-} else {
+    hash: { name: 'SHA-1' },
+  },
+    true, ['encrypt', 'decrypt']).then(keyPairGenerated).catch(cryptoapi_catch);
+} else 
+*/
+
+{
+  console.log('forge test');
   const state = node_forge__WEBPACK_IMPORTED_MODULE_1___default().rsa.createKeyPairGenerationState(2048, 0x10001);
   let waitMessage = '>';
   let secondsPassed = 0;
