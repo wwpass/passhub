@@ -151,6 +151,11 @@ class Puid
         if (isset($email)) {
             $record['email'] = $email;
 
+            // invited as admin
+            $invitation = $this->mng->mail_invitations->findOne(['email' => strtolower($email), 'admin' => true]);
+            if ($invitation) {
+                $record['site_admin'] = true;
+            }
         }
         if (isset($userprincipalname)) {
             $record['userprincipalname'] = $userprincipalname;

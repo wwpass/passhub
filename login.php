@@ -269,10 +269,15 @@ if (defined('LOGIN_BACKGROUND')) {
     $background_image=LOGIN_BACKGROUND;
 }
 
+// white label
+$login_page = 'login.twig';
 
+if (defined('LOGIN_PAGE')) {
+    $login_page=LOGIN_PAGE;
+}
 
 echo Utils::render(
-    'login.twig', 
+    $login_page, 
     [
         'background_image' => $background_image
     ]
