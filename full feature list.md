@@ -21,6 +21,9 @@ Using WWPass technology, with true 256-bit AES encryption
 
 All records have a "notes" field for arbitrary comments 
 
+### History
+
+ - full record history is implemented
 
 ### Filesystem-like records structure
 
