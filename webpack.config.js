@@ -9,7 +9,6 @@ module.exports = {
     login: './src/js/login.js',
     //    payment: './src/js/payment.js',
     //    survey: './src/js/survey.js',
-    test_forge: './src/js/test_forge.js',
 
   },
 
