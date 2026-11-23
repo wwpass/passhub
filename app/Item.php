@@ -94,7 +94,8 @@ class Item {
             return ('Internal system error 110');
         }
     }
-   
+
+    
     /**
      * Returns a single item (same shape as in get_user_datar.php) if the user can read its safe.
      */
@@ -346,6 +347,8 @@ class Item {
                     return ("Move internal error");
                 }
                 // else operation = copy
+
+//                $record['revision'] = 1;
 
                 $result = $this->mng->safe_items->insertOne(
                     ['SafeID' => $targetSafeID] + $record
