@@ -129,13 +129,17 @@ class Item {
             Utils::err("error itm 356: SafeID_requested = '$SafeID', SafeID_real = " . $row->SafeID);
             return "Internal server error 356";
         }
-        $user = new User($this->mng, $UserID);
-        if ($user->canWrite($SafeID) == false) {
-            Utils::err("error 150 (no rights) UserID " . $UserID . " SafeID " . $SafeID);
-            return "Sorry, you do not have editor rights for this safe";
-        }
 
         $js = json_decode($data);
+
+        $user = new User($this->mng, $UserID);
+        if ($user->canWrite($SafeID) == false) {
+            if($js && ($js->version !== 6 )) {  //allow to update counters in passkey records in a read-only safe 
+            Utils::err("error 150 (no rights) UserID " . $UserID . " SafeID " . $SafeID);
+            return "Sorry, you do not have editor rights for this safe";
+            }
+        }
+
         if ($js !== null) {
 
             // Passkey records (version 6) use revision/CAS and do not support
