@@ -7,4 +7,6 @@ helpers
 tests_output
 *.tgz
 passhub-backend/*
+public/js/dist
+
 
