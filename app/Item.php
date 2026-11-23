@@ -66,32 +66,6 @@ class Item {
                     $js = (array)$js;
                     $record = $record + $js;
                     $record['folder'] = $folder;
-
-
-//                     $record['revision'] = 1; ??
-/*
-  // Validation for passkey (version 6)
-                    if ($js['version'] == 6 && isset($js['type']) && $js['type'] === 'passkey') {
-                        if (!isset($js['passkey']) || !is_object($js['passkey'])) {
-                            Utils::err("Passkey data missing or invalid");
-                            return ('Invalid passkey structure');
-                        }
-                        $passkey = (array)$js['passkey'];
-                        $required_fields = ['credentialId', 'privateKey', 'publicKey', 'userHandle', 'counter', 'rpId'];
-                        foreach ($required_fields as $field) {
-                            if (!isset($passkey[$field])) {
-                                Utils::err("Passkey missing field: $field");
-                                return ("Invalid passkey: missing $field");
-                            }
-                        }
-                        $record['passkey'] = $passkey;
-                    }
-*/
-
-
-
-
-
                     if (!isset($record['lastModified'])) {
                         $record['lastModified'] = Date('c');
                     }
@@ -122,7 +96,34 @@ class Item {
     }
 
     
-    public function update($UserID, $SafeID, $data, $expectedRevision = null) {
+    /**
+     * Returns a single item (same shape as in get_user_datar.php) if the user can read its safe.
+     */
+    public function read($UserID, $SafeID) {
+        $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
+        $a = $cursor->toArray();
+        if (count($a) != 1) {
+            return "Record not found";
+        }
+        $row = $a[0];
+        if ($row->SafeID != $SafeID) {
+            Utils::err("error itm read: SafeID_requested = '$SafeID', SafeID_real = " . $row->SafeID);
+            return "Record not found";
+        }
+        $user = new User($this->mng, $UserID);
+        if ($user->canRead($SafeID) == false) {
+            Utils::err("error itm read (no rights) UserID " . $UserID . " SafeID " . $SafeID);
+            return "Record not found";
+        }
+        $row = (array)$row;
+        $row['_id'] = (string)$row['_id'];
+        if (!array_key_exists('folder', $row)) {
+            $row['folder'] = 0;
+        }
+        return ['status' => "Ok", 'item' => $row];
+    }
+
+    public function update($UserID, $SafeID, $data /*, $expectedRevision = null*/) {
 
         if ($SafeID != $this->getSafe()) {
             Utils::err("error itm 356: SafeID_requested = '$SafeID', SafeID_real = " . $row->SafeID);
@@ -185,46 +186,28 @@ class Item {
             }
 
             if (isset($js->version) && (($js->version == 3) || ($js->version == 4)  || ($js->version == 5) || ($js->version == 6)) && isset($js->iv) && isset($js->data) && isset($js->tag)) {
-                $updateData = [
-                    'iv' => $js->iv,
-                    'data' => $js->data,
-                    'tag' => $js->tag,
-                    'lastModified' => Date('c'),
-                    'version' => $js->version
-                ];
+                $result = $this->mng->safe_items->updateOne(
+                    ['_id' => $this->_id],
+                    ['$set' => ['iv' => $js->iv,
+                        'data' => $js->data,
+                        'tag' => $js->tag,
+                        'lastModified' =>Date('c'),
+                        'version' => $js->version]]
+                );
             } else {
                 Utils::err(print_r($js, true));
                 return "Internal error 169";
             }
         } else {  // version 2: data are fields hex encrypted, should not happen
-            $updateData = [
-                'SafeID' => $SafeID,
+            // $bulk->insert( ['SafeID' => $SafeID, 'data' => $data, 'lastModified' =>Date('c'), 'version' => 2]);
+            $result = $this->mng->safe_items->updateOne(
+                ['_id' => $this->_id],
+                ['$set' => ['SafeID' => $SafeID,
                 'data' => $data,
-                'lastModified' => Date('c'),
-                'version' => 2
-            ];
+                'lastModified' =>Date('c'),
+                'version' => 2]]
+            );
         }
-
-        $filter = ['_id' => $this->_id];
-        if ($expectedRevision !== null) {
-            $filter['SafeID'] = $SafeID;
-            if ($expectedRevision === 0) {
-                $filter['$or'] = [
-                    ['revision' => 0],
-                    ['revision' => ['$exists' => false]]
-                ];
-            } else {
-                $filter['revision'] = $expectedRevision;
-            }
-        }
-
-        $result = $this->mng->safe_items->updateOne(
-            $filter,
-            [
-                '$set' => $updateData,
-                '$inc' => ['revision' => 1]
-            ]
-        );
 
         // try-catch
         if ($result->getModifiedCount() == 1) {
@@ -245,9 +228,11 @@ class Item {
             Utils::log('user ' . $UserID . ' activity item update');
             return ['status' => "Ok", 'item' => $row];
         }
+/*        
         if ($expectedRevision !== null) {
             return ['status' => "Conflict"];
         }
+*/            
         Utils::err(print_r($result, true));
         return "Internal error 201";
     }
@@ -298,14 +283,13 @@ class Item {
     }
 
     // TODO: preserve modification data
-    public function move($UserID, $sourceSafeID_not_used, $targetSafeID, $dst_folder, $data, $operation) {
+    public function move($UserID, $sourceSafeID, $targetSafeID, $dst_folder, $data, $operation) {
 
         /*    // TODO
         - if dst_folder exists and belongs to dst_safe
         - if the user has rights to write to dst_folder
         - if the user has rights to access source folder
         */
-
         $srcSafeID = $this->getSafe();
 
         $user = new User($this->mng, $UserID);
@@ -352,13 +336,15 @@ class Item {
                 }
 
                 if ($operation == "move") {
+                    
                     $result = $this->mng->safe_items->updateMany(
                         ['_id' => $this->_id],
                         [
-                            '$set' => $record,
-                            '$inc' => ['revision' => 1]
+                              '$set' => $record,
+//                            '$inc' => ['revision' => 1]
                         ]
                     );
+                    
                     if ($result->getModifiedCount() == 1) {
                         Utils::log('user ' . $UserID . ' activity item move');
                         return "Ok";
@@ -368,7 +354,7 @@ class Item {
                 }
                 // else operation = copy
 
-                $record['revision'] = 1;
+//                $record['revision'] = 1;
 
                 $result = $this->mng->safe_items->insertOne(
                     ['SafeID' => $targetSafeID] + $record
@@ -387,9 +373,8 @@ class Item {
 }
 
 
-
 /*
-    public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
+public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
 
         $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
 
@@ -424,4 +409,5 @@ class Item {
             "dst_key" => $dstKey
         );
     }
+
 */
