@@ -10,7 +10,7 @@
  * @package   PassHub
  * @author    Vladimir Korshunov <v.korshunov@wwpass.com>
  * @author    Mikhail Vysogorets <m.vysogorets@wwpass.com>
- * @copyright 2017-2018 WWPass
+ * @copyright 2017-2026 WWPass
  * @license   http://opensource.org/licenses/mit-license.php The MIT License
  */
 
@@ -94,8 +94,7 @@ class Item {
             return ('Internal system error 110');
         }
     }
-
-    
+   
     /**
      * Returns a single item (same shape as in get_user_datar.php) if the user can read its safe.
      */
@@ -228,11 +227,6 @@ class Item {
             Utils::log('user ' . $UserID . ' activity item update');
             return ['status' => "Ok", 'item' => $row];
         }
-/*        
-        if ($expectedRevision !== null) {
-            return ['status' => "Conflict"];
-        }
-*/            
         Utils::err(print_r($result, true));
         return "Internal error 201";
     }
@@ -341,7 +335,6 @@ class Item {
                         ['_id' => $this->_id],
                         [
                               '$set' => $record,
-//                            '$inc' => ['revision' => 1]
                         ]
                     );
                     
@@ -353,8 +346,6 @@ class Item {
                     return ("Move internal error");
                 }
                 // else operation = copy
-
-//                $record['revision'] = 1;
 
                 $result = $this->mng->safe_items->insertOne(
                     ['SafeID' => $targetSafeID] + $record
@@ -371,43 +362,3 @@ class Item {
         return "Internal error itm 319";
     }
 }
-
-
-/*
-public function getMoveOperationData($UserID, $srcSafeID, $dstSafeID, $operation) {
-
-        $cursor = $this->mng->safe_items->find(['_id' => $this->_id]);
-
-        $a = $cursor->toArray();
-        if (count($a) != 1) {
-            Utils::err("error itm 324, entryID $this->entryID count is " . count($a));
-            return "Internal server error itm 324";
-        }
-        $itemData = $a[0];
-
-        $SafeID = $itemData->SafeID;
-
-        $user = new User($this->mng, $UserID);
-
-        if (!$user->canRead($srcSafeID)) {
-            return "no src read";
-        }
-        if (($operation == "move") && !$user->canWrite($srcSafeID)) {
-            return "no src write";
-        }
-
-        if (!$user->canWrite($dstSafeID)) {
-            return "no dst write";
-        }
-
-        $srcKey = $user->getEncryptedAesKey($srcSafeID);
-        $dstKey = $user->getEncryptedAesKey($dstSafeID);
-        return array(
-            "status" => "Ok",
-            "item" => $itemData,
-            "src_key" => $srcKey,
-            "dst_key" => $dstKey
-        );
-    }
-
-*/
